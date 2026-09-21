@@ -109,7 +109,7 @@ export function DataTablePagination({
             disabled={!table.getCanPreviousPage()}
             onClick={() => table.previousPage()}
           >
-            <ChevronLeftIcon aria-hidden="true" />
+            <ChevronLeftIcon data-icon="inline-start" aria-hidden="true" />
           </Button>
           <Button
             variant="outline"
@@ -118,7 +118,7 @@ export function DataTablePagination({
             disabled={isPlaceholderData || !table.getCanNextPage()}
             onClick={() => table.nextPage()}
           >
-            <ChevronRightIcon aria-hidden="true" />
+            <ChevronRightIcon data-icon="inline-start" aria-hidden="true" />
           </Button>
         </div>
       </div>

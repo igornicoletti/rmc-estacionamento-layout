@@ -29,7 +29,6 @@ npx playwright install
 - Tailwind CSS 4 via plugin oficial para Vite
 - shadcn/ui Luma sobre Base UI
 - TanStack Table 9 com features opt-in e tree-shaking
-- Zod 4 para validação em runtime
 - Vitest, Testing Library e cobertura V8
 - Playwright em Chromium, Firefox e WebKit
 
@@ -37,7 +36,7 @@ npx playwright install
 
 ```text
 tests/
-├─ unit/          # unidades isoladas e contratos do repositório mock
+├─ unit/          # unidades isoladas dos componentes reutilizáveis
 ├─ integration/   # composição React entre componentes, providers e domínio
 ├─ e2e/           # jornadas reais executadas pelo Playwright
 └─ support/       # setup e utilitários compartilhados exclusivamente por testes
@@ -56,7 +55,6 @@ As configurações seguem as documentações oficiais de cada projeto.
 - [shadcn/ui com Vite](https://ui.shadcn.com/docs/installation/vite)
 - [shadcn/ui Luma](https://ui.shadcn.com/docs/changelog/2026-03-luma)
 - [TanStack Table para React](https://tanstack.com/table/latest/docs/framework/react/quick-start)
-- [Zod](https://zod.dev/packages/zod)
 - [Vitest](https://vitest.dev/config/environment.html)
 - [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 - [Playwright](https://playwright.dev/docs/intro)

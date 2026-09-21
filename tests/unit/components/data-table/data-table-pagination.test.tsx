@@ -57,11 +57,11 @@ describe("DataTablePagination", () => {
         table={table}
         rowCount={1}
         pageSizes={[10]}
-        itemLabel={{ singular: "usuário", plural: "usuários" }}
+        itemLabel={{ singular: "item", plural: "itens" }}
       />,
     )
 
-    expect(screen.getByText("1 usuário")).toBeInTheDocument()
+    expect(screen.getByText("1 item")).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Página anterior" }))
     await user.click(screen.getByRole("button", { name: "Próxima página" }))
     expect(table.previousPage).toHaveBeenCalledOnce()

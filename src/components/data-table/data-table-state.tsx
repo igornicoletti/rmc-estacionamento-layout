@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { CircleAlertIcon, SearchXIcon } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -93,17 +98,16 @@ export function DataTableError({
     <Alert variant="destructive">
       <CircleAlertIcon aria-hidden="true" />
       <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>
-        <p>{description}</p>
+      <AlertDescription>{description}</AlertDescription>
+      <AlertAction>
         <Button
-          className="mt-3 w-full sm:w-auto"
           variant="outline"
           size="sm"
           onClick={onRetry}
         >
           Tentar novamente
         </Button>
-      </AlertDescription>
+      </AlertAction>
     </Alert>
   );
 }

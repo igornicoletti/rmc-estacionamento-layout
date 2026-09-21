@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" shape-rendering="geometricPrecision">
+  <!--
+    Símbolo Monte Carlo — versão MONO (cor sólida cyan #29ABE2).
+    Geometria idêntica à versão com gradiente. Para uso em fundos coloridos,
+    badges, contextos onde o gradiente perde legibilidade.
+  -->
+  <g fill="#29ABE2" transform="translate(14.90 29.54) scale(0.9796)">
+    <circle cx="3.11"  cy="0.00"  r="5.00"/>
+    <circle cx="32.71" cy="2.96"  r="4.23"/>
+    <circle cx="57.39" cy="5.57"  r="3.61"/>
+    <circle cx="13.94" cy="10.54" r="5.00"/>
+    <circle cx="41.91" cy="11.90" r="4.23"/>
+    <circle cx="65.23" cy="13.20" r="3.61"/>
+    <circle cx="24.79" cy="20.76" r="5.00"/>
+    <circle cx="51.10" cy="20.58" r="4.22"/>
+    <circle cx="73.06" cy="20.57" r="3.61"/>
+    <circle cx="12.20" cy="31.62" r="5.00"/>
+    <circle cx="40.43" cy="29.77" r="4.24"/>
+    <circle cx="63.95" cy="28.44" r="3.61"/>
+    <circle cx="0.00"  cy="41.76" r="5.00"/>
+    <circle cx="30.09" cy="38.36" r="4.22"/>
+    <circle cx="55.15" cy="35.77" r="3.62"/>
+  </g>
+</svg>

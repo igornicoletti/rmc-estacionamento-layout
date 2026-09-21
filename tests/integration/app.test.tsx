@@ -6,14 +6,15 @@ import { renderWithProviders } from "@tests/support/render"
 import App from "@/App"
 
 describe("App", () => {
-  it("exibe somente a tabela de usuários", async () => {
+  it("exibe a base sem conteúdo demonstrativo", () => {
     renderWithProviders(<App />)
 
     expect(
       screen.getByRole("heading", { name: /rmc estacionamento/i }),
     ).toBeInTheDocument()
-    expect(await screen.findByText("Ana Martins")).toBeInTheDocument()
-    expect(screen.getByText("12 usuários")).toBeInTheDocument()
-    expect(screen.getAllByRole("table")).toHaveLength(1)
+    expect(
+      screen.getByText("Base de interface pronta para integração com dados reais."),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("table")).not.toBeInTheDocument()
   })
 })

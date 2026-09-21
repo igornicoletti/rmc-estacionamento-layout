@@ -36,12 +36,12 @@ describe("DataTableUpdating", () => {
 });
 
 describe("DataTableError", () => {
-  it("mantém a ação no fluxo responsivo do alerta", () => {
+  it("compõe a ação no slot oficial do alerta", () => {
     render(<DataTableError onRetry={vi.fn()} />);
 
     expect(
       document.querySelector('[data-slot="alert-action"]'),
-    ).not.toBeInTheDocument();
+    ).toContainElement(screen.getByRole("button", { name: "Tentar novamente" }));
   });
 
   it("executa a nova tentativa com mensagem segura", async () => {
@@ -73,12 +73,12 @@ describe("DataTableEmpty", () => {
       <DataTableEmpty
         hasFilters={false}
         onClearFilters={onClearFilters}
-        emptyTitle="Nenhum usuário"
-        emptyDescription="Cadastre um usuário."
+        emptyTitle="Nenhum registro"
+        emptyDescription="Cadastre um registro."
       />,
     );
-    expect(screen.getByText("Nenhum usuário")).toBeInTheDocument();
-    expect(screen.getByText("Cadastre um usuário.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhum registro")).toBeInTheDocument();
+    expect(screen.getByText("Cadastre um registro.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Limpar filtros" }))
       .not.toBeInTheDocument();
   });

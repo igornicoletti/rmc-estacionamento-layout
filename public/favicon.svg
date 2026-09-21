@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="9 23.6 82 53" shape-rendering="geometricPrecision">
+  <!--
+    Símbolo Monte Carlo — favicon.
+    Geometria interna (raios, posições, gradiente) preservada conforme manual da marca.
+    Apenas o viewBox foi recortado ao bounding box real (80x50.7) com ~1u de respiro
+    para antialiasing, eliminando o padding excessivo no preview da aba do navegador.
+  -->
+  <defs>
+    <linearGradient id="mc-grad" gradientUnits="userSpaceOnUse"
+                    x1="14.90" y1="70.23" x2="83.27" y2="29.54">
+      <stop offset="0"   stop-color="#0556B3"/>
+      <stop offset="0.5" stop-color="#1192DD"/>
+      <stop offset="1"   stop-color="#22BFF5"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#mc-grad)" transform="translate(14.90 29.54) scale(0.9796)">
+    <circle cx="3.11"  cy="0.00"  r="5.00"/>
+    <circle cx="32.71" cy="2.96"  r="4.23"/>
+    <circle cx="57.39" cy="5.57"  r="3.61"/>
+    <circle cx="13.94" cy="10.54" r="5.00"/>
+    <circle cx="41.91" cy="11.90" r="4.23"/>
+    <circle cx="65.23" cy="13.20" r="3.61"/>
+    <circle cx="24.79" cy="20.76" r="5.00"/>
+    <circle cx="51.10" cy="20.58" r="4.22"/>
+    <circle cx="73.06" cy="20.57" r="3.61"/>
+    <circle cx="12.20" cy="31.62" r="5.00"/>
+    <circle cx="40.43" cy="29.77" r="4.24"/>
+    <circle cx="63.95" cy="28.44" r="3.61"/>
+    <circle cx="0.00"  cy="41.76" r="5.00"/>
+    <circle cx="30.09" cy="38.36" r="4.22"/>
+    <circle cx="55.15" cy="35.77" r="3.62"/>
+  </g>
+</svg>
