@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { DataTableToolbar } from "./data-table-toolbar"
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
 
 describe("DataTableToolbar", () => {
   it("renderiza ações e limpa filtros ativos", async () => {

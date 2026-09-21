@@ -28,4 +28,20 @@ export default tseslint.config(
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     },
   },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@tests/*"],
+              message: "Código de produção não deve importar infraestrutura de testes.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 )

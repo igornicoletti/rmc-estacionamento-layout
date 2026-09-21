@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   useDataTablePageBounds,
   useDataTableState,
-} from "./use-data-table-state"
+} from "@/components/data-table/use-data-table-state"
 
 afterEach(() => {
   vi.useRealTimers()

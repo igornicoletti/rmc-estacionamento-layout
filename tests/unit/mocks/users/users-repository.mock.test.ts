@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import type { ListUsersParams } from "@/features/users/api/users-repository"
 
-import { MOCK_USERS } from "./users.data"
-import { createMockUsersRepository } from "./users-repository.mock"
+import { MOCK_USERS } from "@/mocks/users/users.data"
+import { createMockUsersRepository } from "@/mocks/users/users-repository.mock"
 
 const baseParams: ListUsersParams = {
   search: "",

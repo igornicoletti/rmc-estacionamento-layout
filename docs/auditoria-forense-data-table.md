@@ -71,6 +71,9 @@ Os testes compartilhados verificam badges, exclusão de opções indisponíveis,
 seleção, limpeza nativa e fallback vazio. A integração de usuários cobre busca,
 facets cruzadas, paginação e detalhes. O E2E cobre o fluxo principal, limpeza do
 Combobox, proteção da última coluna e centralização responsiva do estado vazio.
+As suítes ficam fora do código de produção: unidades em `tests/unit`, composição
+React em `tests/integration`, jornadas Playwright em `tests/e2e` e infraestrutura
+exclusiva em `tests/support`.
 
 O Sheet de detalhes é carregado somente quando uma linha é aberta. O build usa
 os grupos oficiais de code splitting do Rolldown para separar Base UI e TanStack,

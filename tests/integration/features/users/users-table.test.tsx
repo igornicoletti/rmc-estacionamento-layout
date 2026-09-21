@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
 import { createMockUsersRepository } from "@/mocks/users/users-repository.mock"
-import { renderWithProviders } from "@/test/render"
+import { renderWithProviders } from "@tests/support/render"
 
-import { UsersTable } from "./users-table"
+import { UsersTable } from "@/features/users/components/users-table"
 
 describe("UsersTable", () => {
   it("pagina a base de usuários com os componentes compartilhados", async () => {

@@ -33,6 +33,19 @@ npx playwright install
 - Vitest, Testing Library e cobertura V8
 - Playwright em Chromium, Firefox e WebKit
 
+## Organização dos testes
+
+```text
+tests/
+├─ unit/          # unidades isoladas e contratos do repositório mock
+├─ integration/   # composição React entre componentes, providers e domínio
+├─ e2e/           # jornadas reais executadas pelo Playwright
+└─ support/       # setup e utilitários compartilhados exclusivamente por testes
+```
+
+O diretório `src` contém somente código da aplicação. O Vitest executa as
+suítes `unit` e `integration`; o Playwright fica restrito a `tests/e2e`.
+
 As configurações seguem as documentações oficiais de cada projeto.
 
 ## Referências oficiais

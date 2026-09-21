@@ -2,9 +2,9 @@ import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { renderWithProviders } from "@/test/render"
+import { renderWithProviders } from "@tests/support/render"
 
-import { DataTableViewOptions } from "./data-table-view-options"
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options"
 
 describe("DataTableViewOptions", () => {
   it("impede ocultar a última coluna de dados visível", async () => {

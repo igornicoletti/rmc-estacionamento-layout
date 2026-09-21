@@ -2,9 +2,9 @@ import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { renderWithProviders } from "@/test/render"
+import { renderWithProviders } from "@tests/support/render"
 
-import { DataTableComboboxFilter } from "./data-table-combobox-filter"
+import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 
 const ITEMS = [
   { label: "Ativo", value: "active" },

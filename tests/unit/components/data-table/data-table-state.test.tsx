@@ -7,7 +7,7 @@ import {
   DataTableError,
   DataTableSkeletonRows,
   DataTableUpdating,
-} from "./data-table-state";
+} from "@/components/data-table/data-table-state";
 
 afterEach(() => {
   vi.useRealTimers();

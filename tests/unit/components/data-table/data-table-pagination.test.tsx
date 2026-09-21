@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { DataTablePagination } from "./data-table-pagination"
+import { DataTablePagination } from "@/components/data-table/data-table-pagination"
 
 function createTable() {
   return {

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { DataTableColumnHeader } from "./data-table-column-header"
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 
 describe("DataTableColumnHeader", () => {
   it("usa o título e o ícone como um único alvo de ordenação", async () => {

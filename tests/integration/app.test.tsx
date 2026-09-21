@@ -1,9 +1,9 @@
 import { screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { renderWithProviders } from "@/test/render"
+import { renderWithProviders } from "@tests/support/render"
 
-import App from "./App"
+import App from "@/App"
 
 describe("App", () => {
   it("exibe somente a tabela de usuários", async () => {
