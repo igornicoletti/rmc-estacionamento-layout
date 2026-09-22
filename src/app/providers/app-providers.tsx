@@ -3,12 +3,11 @@ import type { ReactNode } from "react"
 
 import { Toaster } from "@/components/ui/toast"
 import { TooltipProvider } from "@/components/ui/tooltip"
-
-import { SessionBootstrapBoundary } from "../session/session-bootstrap-boundary"
-import type { SessionCommands } from "../session/session-commands"
-import { SessionProvider } from "../session/session-provider"
-import type { SessionSnapshot } from "../session/session-status"
-import { QueryProvider } from "./query-provider"
+import { QueryProvider } from "@/app/providers/query-provider"
+import { SessionBootstrapBoundary } from "@/app/session/session-bootstrap-boundary"
+import type { SessionCommands } from "@/app/session/session-commands"
+import { SessionProvider } from "@/app/session/session-provider"
+import type { SessionSnapshot } from "@/app/session/session-status"
 
 export interface AppProvidersProps {
   children: ReactNode

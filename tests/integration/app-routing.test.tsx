@@ -7,13 +7,28 @@ import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-status"
 
 describe("app routing", () => {
-  it("preserva a página inicial", async () => {
+  it("abre o dashboard na rota raiz e atualiza o título da aba", async () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
     expect(
-      await screen.findByRole("heading", { name: "RMC Estacionamento" }),
+      await screen.findByRole("heading", { name: "Dashboard" }),
+    ).toBeInTheDocument()
+    expect(document.title).toBe(
+      "Dashboard | Portal Estacionamento — Rede Monte Carlo",
+    )
+  })
+
+  it("resolve deep links do catálogo", async () => {
+    const router = createMemoryRouter(routes, {
+      initialEntries: ["/seguranca-da-conta"],
+    })
+
+    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", { name: "Segurança da conta" }),
     ).toBeInTheDocument()
   })
 

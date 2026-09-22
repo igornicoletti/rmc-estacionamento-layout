@@ -1,7 +1,7 @@
 import {
   isRouteAccessPolicy,
   type RouteAccessPolicy,
-} from "./access/route-access-policy"
+} from "@/app/routing/access/route-access-policy"
 
 export interface AppRouteHandle {
   access: RouteAccessPolicy

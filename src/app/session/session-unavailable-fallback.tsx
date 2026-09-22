@@ -2,9 +2,8 @@ import { WifiOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-
-import { AppEmptyState } from "../fallbacks/app-empty-state"
-import { StandaloneLayout } from "../layouts/standalone-layout"
+import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { AppEmpty } from "@/components/common/app-empty"
 
 interface SessionUnavailableFallbackProps {
   isRetrying: boolean
@@ -17,8 +16,8 @@ export function SessionUnavailableFallback({
 }: SessionUnavailableFallbackProps) {
   return (
     <StandaloneLayout>
-      <AppEmptyState
-        action={
+      <AppEmpty
+        primaryAction={
           <Button
             aria-busy={isRetrying}
             disabled={isRetrying}
@@ -32,7 +31,7 @@ export function SessionUnavailableFallback({
           </Button>
         }
         description="Não foi possível confirmar sua sessão. Tente novamente."
-        icon={WifiOff}
+        media={{ icon: WifiOff }}
         title="Sessão indisponível"
       />
     </StandaloneLayout>

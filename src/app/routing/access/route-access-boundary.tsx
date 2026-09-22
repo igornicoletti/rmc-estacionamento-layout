@@ -1,12 +1,12 @@
 import { ShieldX } from "lucide-react"
 import { Navigate, Outlet, useLocation, useMatches } from "react-router"
 
-import { AppEmptyState } from "../../fallbacks/app-empty-state"
-import { StandaloneLayout } from "../../layouts/standalone-layout"
-import { SessionBootstrapFallback } from "../../session/session-bootstrap-fallback"
-import { useSession } from "../../session/use-session"
-import { isAppRouteHandle } from "../route-metadata"
-import { evaluateRouteAccess } from "./route-access-policy"
+import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { evaluateRouteAccess } from "@/app/routing/access/route-access-policy"
+import { isAppRouteHandle } from "@/app/routing/route-metadata"
+import { SessionBootstrapFallback } from "@/app/session/session-bootstrap-fallback"
+import { useSession } from "@/app/session/use-session"
+import { AppEmpty } from "@/components/common/app-empty"
 
 interface RouteAccessBoundaryProps {
   authenticationPath?: string
@@ -46,9 +46,9 @@ export function RouteAccessBoundary({
 
   return (
     <StandaloneLayout>
-      <AppEmptyState
+      <AppEmpty
         description="Você não tem permissão para acessar este conteúdo."
-        icon={ShieldX}
+        media={{ icon: ShieldX }}
         title="Acesso não permitido"
       />
     </StandaloneLayout>

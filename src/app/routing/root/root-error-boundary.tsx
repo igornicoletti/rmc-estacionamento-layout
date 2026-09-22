@@ -8,9 +8,8 @@ import {
 import { isRouteErrorResponse, useRouteError } from "react-router"
 
 import { Button } from "@/components/ui/button"
-
-import { AppEmptyState } from "../../fallbacks/app-empty-state"
-import { StandaloneLayout } from "../../layouts/standalone-layout"
+import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { AppEmpty } from "@/components/common/app-empty"
 
 export interface RootErrorPresentation {
   description: string
@@ -82,10 +81,10 @@ export function RootErrorContent({
 
   return (
     <StandaloneLayout>
-      <AppEmptyState
-        action={action}
+      <AppEmpty
         description={presentation.description}
-        icon={Icon}
+        media={{ icon: Icon }}
+        primaryAction={action}
         title={presentation.title}
       />
     </StandaloneLayout>

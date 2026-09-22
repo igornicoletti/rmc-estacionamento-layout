@@ -1,4 +1,4 @@
-import type { AuthenticatedSession } from "./session-types"
+import type { AuthenticatedSession } from "@/app/session/session-types"
 
 export type SessionSnapshot =
   | { status: "bootstrapping" }

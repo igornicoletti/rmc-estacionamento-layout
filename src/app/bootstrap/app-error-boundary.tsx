@@ -6,9 +6,8 @@ import {
 } from "react"
 
 import { Button } from "@/components/ui/button"
-
-import { AppEmptyState } from "../fallbacks/app-empty-state"
-import { StandaloneLayout } from "../layouts/standalone-layout"
+import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { AppEmpty } from "@/components/common/app-empty"
 
 interface AppErrorBoundaryProps {
   children: ReactNode
@@ -47,14 +46,14 @@ export class AppErrorBoundary extends Component<
     if (this.state.failed) {
       return (
         <StandaloneLayout>
-          <AppEmptyState
-            action={
+          <AppEmpty
+            primaryAction={
               <Button onClick={this.reload} type="button">
                 Recarregar
               </Button>
             }
             description="Recarregue a página para tentar novamente."
-            icon={TriangleAlert}
+            media={{ icon: TriangleAlert }}
             title="Não foi possível iniciar a aplicação"
           />
         </StandaloneLayout>

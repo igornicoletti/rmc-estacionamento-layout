@@ -1,6 +1,6 @@
 import { createContext } from "react"
 
-import type { SessionSnapshot } from "./session-status"
+import type { SessionSnapshot } from "@/app/session/session-status"
 
 export interface SessionContextValue {
   isRefreshing: boolean

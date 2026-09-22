@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { DataTableColumnMeta } from "./data-table.types";
+import type { DataTableColumnMeta } from "@/components/data-table/data-table.types";
 
 interface HideableColumn {
   id: string;

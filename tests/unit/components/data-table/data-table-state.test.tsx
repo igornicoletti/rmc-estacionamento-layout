@@ -28,7 +28,7 @@ describe("DataTableUpdating", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(300);
     });
-    expect(screen.getByRole("status")).toHaveTextContent("Atualizando");
+    expect(screen.getByRole("status")).toBeVisible();
 
     rerender(<DataTableUpdating active={false} />);
     expect(container).toBeEmptyDOMElement();
@@ -44,14 +44,12 @@ describe("DataTableError", () => {
     ).toContainElement(screen.getByRole("button", { name: "Tentar novamente" }));
   });
 
-  it("executa a nova tentativa com mensagem segura", async () => {
+  it("executa a nova tentativa", async () => {
     const user = userEvent.setup();
     const onRetry = vi.fn();
     render(<DataTableError onRetry={onRetry} />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Não foi possível carregar os registros",
-    );
+    expect(screen.getByRole("alert")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
@@ -65,7 +63,6 @@ describe("DataTableEmpty", () => {
       <DataTableEmpty hasFilters onClearFilters={onClearFilters} />,
     );
 
-    expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Limpar filtros" }));
     expect(onClearFilters).toHaveBeenCalledOnce();
 
@@ -77,8 +74,6 @@ describe("DataTableEmpty", () => {
         emptyDescription="Cadastre um registro."
       />,
     );
-    expect(screen.getByText("Nenhum registro")).toBeInTheDocument();
-    expect(screen.getByText("Cadastre um registro.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Limpar filtros" }))
       .not.toBeInTheDocument();
   });

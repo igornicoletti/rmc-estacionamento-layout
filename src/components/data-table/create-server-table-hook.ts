@@ -1,6 +1,6 @@
 import { createTableHook } from "@tanstack/react-table"
 
-import { createServerTableFeatures } from "./create-server-table-features"
+import { createServerTableFeatures } from "@/components/data-table/create-server-table-features"
 
 export function createServerTableHook<TMeta extends object>() {
   const features = createServerTableFeatures<TMeta>()

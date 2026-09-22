@@ -5,7 +5,7 @@ shadcn/ui com Base UI no estilo Luma.
 
 ## Requisitos
 
-- Node.js 22.12 ou superior (Node 24 LTS recomendado)
+- Node.js 22.22 ou superior (Node 24 LTS recomendado)
 - npm 11
 
 ## Comandos

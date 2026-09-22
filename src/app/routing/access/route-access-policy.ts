@@ -1,8 +1,8 @@
-import type { SessionSnapshot } from "../../session/session-status"
+import type { SessionSnapshot } from "@/app/session/session-status"
 import type {
   SessionAssurance,
   SessionCapability,
-} from "../../session/session-types"
+} from "@/app/session/session-types"
 
 export interface RouteAccessPolicy {
   assurance?: SessionAssurance

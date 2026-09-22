@@ -1,15 +1,24 @@
 import { expect, test } from "@playwright/test"
 
-test("exibe a base sem conteúdo demonstrativo", async ({ page }) => {
+test("abre o dashboard e publica a identidade do portal na aba", async ({
+  page,
+}) => {
   await page.goto("/")
 
   await expect(
-    page.getByRole("heading", { name: /rmc estacionamento/i }),
+    page.getByRole("heading", { name: "Dashboard" }),
   ).toBeVisible()
+  await expect(page).toHaveTitle(
+    "Dashboard | Portal Estacionamento — Rede Monte Carlo",
+  )
+})
+
+test("resolve uma rota reservada por deep link", async ({ page }) => {
+  await page.goto("/patio-virtual")
+
   await expect(
-    page.getByText("Base de interface pronta para integração com dados reais."),
+    page.getByRole("heading", { name: "Pátio virtual" }),
   ).toBeVisible()
-  await expect(page.getByRole("table")).toHaveCount(0)
 })
 
 test("apresenta página não encontrada para deep link desconhecido", async ({

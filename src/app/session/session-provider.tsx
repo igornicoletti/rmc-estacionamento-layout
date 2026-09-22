@@ -11,14 +11,17 @@ import {
 import {
   anonymousSessionCommands,
   type SessionCommands,
-} from "./session-commands"
-import { SessionContext, type SessionContextValue } from "./session-context"
+} from "@/app/session/session-commands"
+import {
+  SessionContext,
+  type SessionContextValue,
+} from "@/app/session/session-context"
 import {
   anonymousSession,
   bootstrappingSession,
   type ResolvedSessionSnapshot,
   type SessionSnapshot,
-} from "./session-status"
+} from "@/app/session/session-status"
 
 interface SessionProviderProps {
   children: ReactNode

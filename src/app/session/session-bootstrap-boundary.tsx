@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 
-import { SessionBootstrapFallback } from "./session-bootstrap-fallback"
-import { SessionUnavailableFallback } from "./session-unavailable-fallback"
-import { useSession } from "./use-session"
+import { SessionBootstrapFallback } from "@/app/session/session-bootstrap-fallback"
+import { SessionUnavailableFallback } from "@/app/session/session-unavailable-fallback"
+import { useSession } from "@/app/session/use-session"
 
 interface SessionBootstrapBoundaryProps {
   children: ReactNode

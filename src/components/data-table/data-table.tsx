@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 
-import { DataTableSkeletonRows } from "./data-table-state";
-import type { ServerTableFeatures } from "./create-server-table-features";
+import type { ServerTableFeatures } from "@/components/data-table/create-server-table-features";
+import { DataTableSkeletonRows } from "@/components/data-table/data-table-state";
 interface DataTableProps<
   TMeta extends object,
   TData extends RowData,
