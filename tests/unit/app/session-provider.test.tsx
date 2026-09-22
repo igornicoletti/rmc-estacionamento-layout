@@ -175,7 +175,7 @@ describe("SessionProvider", () => {
     const commands: SessionCommands = {
       getSession: vi.fn(),
       refreshSession: vi.fn().mockResolvedValue(current),
-      signOut: vi.fn((signal) => {
+      signOut: vi.fn((signal: AbortSignal) => {
         signOutSignal = signal
         return signOutGate
       }),
