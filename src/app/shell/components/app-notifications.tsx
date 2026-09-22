@@ -13,7 +13,7 @@ import {
 } from "@/app/config/app-copy"
 import { AppEmpty } from "@/components/common/app-empty"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Item,
   ItemActions,
@@ -194,13 +194,13 @@ export function AppNotifications({
             </ItemGroup>
 
             {viewAllTo ? (
-              <Button
+              <Link
+                className={buttonVariants({ variant: "link" })}
                 onClick={() => setOpen(false)}
-                render={<Link to={viewAllTo} />}
-                variant="link"
+                to={viewAllTo}
               >
                 {copy.viewAll}
-              </Button>
+              </Link>
             ) : null}
           </>
         ) : (
