@@ -151,7 +151,7 @@ export function DataTableComboboxFilter<TValue extends string>({
       >
         <ComboboxInput
           aria-label={searchAriaLabel}
-          className="[&_[data-slot=input]]:text-sm"
+          className="[&_[data-slot=input]]:text-sm!"
           clearAriaLabel={clearAriaLabel}
           placeholder={searchPlaceholder}
           readOnly={!searchable}
