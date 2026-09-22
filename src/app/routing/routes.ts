@@ -56,7 +56,7 @@ function createPageRoute(id: AppPageId): RouteObject {
 
 function NotFoundRoute() {
   return createElement(RootErrorContent, {
-    kind: "not-found",
+    kind: "notFound",
   })
 }
 
