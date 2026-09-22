@@ -56,6 +56,23 @@ describe("app routing", () => {
     expect(screen.getByRole("separator")).toBeInTheDocument()
   })
 
+  it.each(["units", "clients"] as const)(
+    "expõe ações de histórico e sincronização em %s",
+    async (pageId) => {
+      const page = appPages[pageId]
+      const router = createMemoryRouter(routes, { initialEntries: [page.path] })
+
+      render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+      expect(
+        await screen.findByRole("button", { name: "Histórico" }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole("button", { name: "Sincronizar" }),
+      ).toBeInTheDocument()
+    },
+  )
+
   it("mantém o fallback desconhecido fora do shell", async () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/usuarios"] })
 
