@@ -36,6 +36,7 @@ interface DataTableComboboxFilterProps<TValue extends string> {
   onValueChange: (value: TValue | undefined) => void
   placeholder: string
   searchable?: boolean
+  searchPlaceholder?: string
   value?: TValue
 }
 
@@ -72,6 +73,7 @@ export function DataTableComboboxFilter<TValue extends string>({
   onValueChange,
   placeholder,
   searchable = true,
+  searchPlaceholder = "Buscar...",
   value,
 }: DataTableComboboxFilterProps<TValue>) {
   const anchorRef = useRef<HTMLDivElement>(null)
@@ -106,7 +108,10 @@ export function DataTableComboboxFilter<TValue extends string>({
         data-slot="data-table-combobox-filter"
       >
         <div className="flex w-full items-center gap-1">
-          <div ref={anchorRef} className="min-w-0 flex-1">
+          <div
+            ref={anchorRef}
+            className="min-w-0 flex-1 @sm/toolbar:min-w-56"
+          >
             <ComboboxTrigger
               aria-label={ariaLabel}
               render={
@@ -138,14 +143,15 @@ export function DataTableComboboxFilter<TValue extends string>({
       <ComboboxContent
         anchor={anchorRef}
         aria-label={ariaLabel}
-        className="w-(--anchor-width) min-w-(--anchor-width) max-w-(--anchor-width)"
+        className="w-(--anchor-width) min-w-(--anchor-width) max-w-(--available-width)"
       >
         <ComboboxInput
           aria-label={`Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
-          clearAriaLabel="Limpar busca"
-          placeholder="Buscar..."
+          className="[&_[data-slot=input]]:text-sm"
+          clearAriaLabel={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+          placeholder={searchPlaceholder}
           readOnly={!searchable}
-          showClear={searchable}
+          showClear={selectedItem !== null}
           showTrigger={false}
         />
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
