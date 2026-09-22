@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   evaluateRouteAccess,
+  evaluateRouteAccessPolicies,
   type RouteAccessPolicy,
 } from "@/app/routing/route-access"
 import type { SessionSnapshot } from "@/app/session/session-types"
@@ -48,14 +49,24 @@ describe("evaluateRouteAccess", () => {
     ).toEqual({ kind: "deny" })
   })
 
-  it("nega políticas desconhecidas em runtime", () => {
-    const malformedPolicy = {
+  it("nega políticas desconhecidas ou contraditórias em runtime", () => {
+    const malformedAuthentication = {
       authentication: "unexpected",
     } as unknown as RouteAccessPolicy
+    const contradictoryAnonymousPolicy = {
+      authentication: "anonymous-only",
+      assurance: "aal2",
+    } as unknown as RouteAccessPolicy
 
-    expect(evaluateRouteAccess(authenticated, malformedPolicy)).toEqual({
-      kind: "deny",
-    })
+    expect(
+      evaluateRouteAccess(authenticated, malformedAuthentication),
+    ).toEqual({ kind: "deny" })
+    expect(
+      evaluateRouteAccess(
+        { status: "anonymous" },
+        contradictoryAnonymousPolicy,
+      ),
+    ).toEqual({ kind: "deny" })
   })
 
   it("só redireciona para autenticação quando o destino é configurado", () => {
@@ -66,5 +77,39 @@ describe("evaluateRouteAccess", () => {
     expect(
       evaluateRouteAccess(snapshot, policy, { authenticationPath: "/login" }),
     ).toEqual({ kind: "redirect", to: "/login" })
+  })
+
+  it("compõe as políticas da hierarquia sem permitir que o filho enfraqueça o pai", () => {
+    const anonymous = { status: "anonymous" } satisfies SessionSnapshot
+
+    expect(
+      evaluateRouteAccessPolicies(
+        anonymous,
+        [
+          { authentication: "required" },
+          { authentication: "either" },
+        ],
+        { authenticationPath: "/login" },
+      ),
+    ).toEqual({ kind: "redirect", to: "/login" })
+
+    expect(
+      evaluateRouteAccessPolicies(authenticated, [
+        {
+          authentication: "required",
+          capabilities: ["users:read"],
+        },
+        {
+          authentication: "required",
+          capabilities: ["users:write"],
+        },
+      ]),
+    ).toEqual({ kind: "deny" })
+  })
+
+  it("nega uma hierarquia sem política de acesso", () => {
+    expect(evaluateRouteAccessPolicies(authenticated, [])).toEqual({
+      kind: "deny",
+    })
   })
 })

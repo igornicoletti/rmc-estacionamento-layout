@@ -6,8 +6,9 @@ import {
   SunMoonIcon,
   UserRoundIcon,
 } from "lucide-react"
-import { Link } from "react-router"
+import { Link, type To } from "react-router"
 
+import { appCopy, getUserAvatarAlt } from "@/app/app-copy"
 import { isTheme } from "@/components/theme/theme-context"
 import { useTheme } from "@/components/theme/use-theme"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,28 +27,28 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { To } from "react-router"
 import { getUserInitials } from "@/lib/user-initials"
 
-export interface SidebarUserMenuProps {
+export interface AppUserMenuProps {
   avatarSrc?: string
-  name: string
   email?: string
-  profileTo: To
   isSigningOut?: boolean
+  name: string
   onLogout: () => void
+  profileTo: To
 }
 
-export function SidebarUserMenu({
+export function AppUserMenu({
   avatarSrc,
-  name,
   email,
+  isSigningOut = false,
+  name,
   onLogout,
   profileTo,
-  isSigningOut = false,
-}: SidebarUserMenuProps) {
+}: AppUserMenuProps) {
   const { theme, setTheme } = useTheme()
   const normalizedEmail = email?.trim()
+  const copy = appCopy.toolbar.userMenu
 
   const handleThemeChange = (value: string) => {
     if (isTheme(value)) {
@@ -58,24 +59,17 @@ export function SidebarUserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button
-            aria-label="Abrir menu do usuário"
-            className="hover:bg-transparent! aria-expanded:bg-transparent!"
-            variant="ghost"
-          />
-        }
+        render={<Button aria-label={copy.trigger} variant="ghost" />}
       >
         <Avatar>
           {avatarSrc ? (
-            <AvatarImage alt={`Foto de perfil de ${name}`} src={avatarSrc} />
+            <AvatarImage alt={getUserAvatarAlt(name)} src={avatarSrc} />
           ) : null}
           <AvatarFallback>{getUserInitials(name)}</AvatarFallback>
         </Avatar>
 
         <span className="hidden min-w-0 text-center leading-tight md:block">
           <span className="block max-w-48 truncate">{name}</span>
-
           {normalizedEmail ? (
             <span className="block max-w-48 truncate text-xs font-normal text-muted-foreground">
               {normalizedEmail}
@@ -84,7 +78,7 @@ export function SidebarUserMenu({
         </span>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="md:hidden">
             <span className="block max-w-48 truncate text-sm text-foreground">
@@ -103,14 +97,14 @@ export function SidebarUserMenu({
         <DropdownMenuGroup>
           <DropdownMenuItem render={<Link to={profileTo} />}>
             <UserRoundIcon aria-hidden="true" />
-            Meu perfil
+            {copy.profile}
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <SunMoonIcon aria-hidden="true" />
-            Aparência
+            {copy.appearance}
           </DropdownMenuSubTrigger>
 
           <DropdownMenuSubContent>
@@ -120,17 +114,15 @@ export function SidebarUserMenu({
             >
               <DropdownMenuRadioItem value="light">
                 <SunIcon aria-hidden="true" />
-                Claro
+                {copy.themeLight}
               </DropdownMenuRadioItem>
-
               <DropdownMenuRadioItem value="dark">
                 <MoonIcon aria-hidden="true" />
-                Escuro
+                {copy.themeDark}
               </DropdownMenuRadioItem>
-
               <DropdownMenuRadioItem value="system">
                 <MonitorIcon aria-hidden="true" />
-                Sistema
+                {copy.themeSystem}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
@@ -139,9 +131,13 @@ export function SidebarUserMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem disabled={isSigningOut} onClick={onLogout} variant="destructive">
+          <DropdownMenuItem
+            disabled={isSigningOut}
+            onClick={onLogout}
+            variant="destructive"
+          >
             <LogOutIcon aria-hidden="true" />
-            Sair
+            {isSigningOut ? copy.signingOut : copy.signOut}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

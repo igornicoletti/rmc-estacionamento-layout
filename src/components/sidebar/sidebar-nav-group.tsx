@@ -1,7 +1,8 @@
 import { ChevronRightIcon } from "lucide-react"
-import { useState } from "react"
 import { matchPath, useLocation } from "react-router"
 
+import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items"
+import type { SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,9 +14,6 @@ import {
   SidebarGroupLabel,
   useSidebar,
 } from "@/components/ui/sidebar"
-import type { SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
-
-import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items"
 
 type SidebarNavGroupProps = Pick<SidebarNavigationSection, "items" | "label">
 
@@ -26,18 +24,11 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
     (item) =>
       matchPath({ path: item.to, end: item.end ?? false }, pathname) !== null,
   )
-  const [manualOpen, setManualOpen] = useState(true)
-  const open = hasActiveItem || manualOpen
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!hasActiveItem) {
-      setManualOpen(nextOpen)
-    }
-  }
+  const activeStateKey = hasActiveItem ? "active" : "inactive"
 
   if (!isMobile && state === "collapsed") {
     return (
-      <SidebarGroup className="py-0.5">
+      <SidebarGroup className="py-1">
         <SidebarGroupContent>
           <SidebarNavItems items={items} />
         </SidebarGroupContent>
@@ -48,17 +39,18 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
   return (
     <Collapsible
       className="group/collapsible"
-      onOpenChange={handleOpenChange}
-      open={open}
+      defaultOpen={hasActiveItem}
+      key={activeStateKey}
     >
-      <SidebarGroup className="py-0.5">
+      <SidebarGroup className="py-1">
         <SidebarGroupLabel render={<CollapsibleTrigger />}>
           {label}
           <ChevronRightIcon
             aria-hidden="true"
-            className="ml-auto transition-transform motion-reduce:transition-none group-data-open/collapsible:rotate-90"
+            className="ml-auto transition-transform group-data-open/collapsible:rotate-90 motion-reduce:transition-none"
           />
         </SidebarGroupLabel>
+
         <CollapsibleContent>
           <SidebarGroupContent>
             <SidebarNavItems items={items} />

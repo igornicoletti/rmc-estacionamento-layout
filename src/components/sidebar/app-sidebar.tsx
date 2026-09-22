@@ -1,3 +1,13 @@
+import rmcLogoBlack from "@/assets/rmc-logo-black.webp"
+import rmcLogoWhite from "@/assets/rmc-logo-white.webp"
+import rmcSymbol from "@/assets/rmc-simbolo.svg"
+import { appCopy } from "@/app/app-copy"
+import { SidebarNavGroup } from "@/components/sidebar/sidebar-nav-group"
+import { SidebarPrimaryNavigation } from "@/components/sidebar/sidebar-primary-navigation"
+import type {
+  SidebarNavigationItem,
+  SidebarNavigationSection,
+} from "@/components/sidebar/sidebar-types"
 import {
   Sidebar,
   SidebarContent,
@@ -6,59 +16,48 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import type { SidebarNavigationItem, SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
-
-import { SidebarNavGroup } from "@/components/sidebar/sidebar-nav-group"
-import { SidebarPrimaryNavigation } from "@/components/sidebar/sidebar-primary-navigation"
-import {
-  SidebarUnitsSwitcher,
-  type SidebarUnitOption,
-  type SidebarUnitsStatus,
-} from "@/components/sidebar/sidebar-units-switcher"
 
 interface AppSidebarProps {
   primaryItems: readonly SidebarNavigationItem[]
-  sections: readonly SidebarNavigationSection[]
-  activeUnitId: string | undefined
-  onActiveUnitChange: (unitId: string) => void
   profile: string
-  units: readonly SidebarUnitOption[]
-  unitsStatus?: SidebarUnitsStatus
+  sections: readonly SidebarNavigationSection[]
 }
 
 export function AppSidebar({
   primaryItems,
-  sections,
-  activeUnitId,
-  onActiveUnitChange,
   profile,
-  units,
-  unitsStatus = "ready",
+  sections,
 }: AppSidebarProps) {
   const { state } = useSidebar()
-  const resolvedActiveUnitId = units.some((unit) => unit.id === activeUnitId)
-    ? activeUnitId
-    : units[0]?.id
   const triggerLabel =
-    state === "expanded" ? "Recolher menu lateral" : "Expandir menu lateral"
+    state === "expanded" ? appCopy.sidebar.collapse : appCopy.sidebar.expand
 
   return (
-    <Sidebar className="border-r-0!" collapsible="icon" variant="sidebar">
-      <SidebarHeader className="h-(--shell-header-height) shrink-0 border-b bg-background p-1 transition-[padding] ease-linear group-data-[collapsible=icon]:p-2">
-        <SidebarUnitsSwitcher
-          onValueChange={onActiveUnitChange}
-          status={unitsStatus}
-          units={units}
-          value={resolvedActiveUnitId}
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="h-12 items-center justify-center border-b bg-background p-1">
+        <div className="group-data-[collapsible=icon]:hidden">
+          <img
+            alt={appCopy.brand.name}
+            className="h-9 w-auto dark:hidden"
+            src={rmcLogoBlack}
+          />
+          <img
+            alt={appCopy.brand.name}
+            className="hidden h-9 w-auto dark:block"
+            src={rmcLogoWhite}
+          />
+        </div>
+
+        <img
+          alt={appCopy.brand.name}
+          className="hidden size-8 group-data-[collapsible=icon]:block"
+          src={rmcSymbol}
         />
       </SidebarHeader>
 
       <SidebarContent className="gap-0">
-        <nav aria-label="Navegação principal">
-          <SidebarPrimaryNavigation
-            items={primaryItems}
-            profile={profile}
-          />
+        <nav aria-label={appCopy.sidebar.navigation}>
+          <SidebarPrimaryNavigation items={primaryItems} profile={profile} />
 
           {sections.map((section) => (
             <SidebarNavGroup

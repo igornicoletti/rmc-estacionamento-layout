@@ -1,10 +1,12 @@
 import { createElement, type ComponentType } from "react"
 import type { RouteObject } from "react-router"
 
-import { AppLayout } from "@/app/app-layout"
-import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import { appPages, type AppPageId } from "@/app/app-config"
+import { AppLayout } from "@/app/app-layout"
+import { AppShellRoute } from "@/app/app-shell"
+import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import type { AppRouteHandle } from "@/app/routing/route-access"
+import { rootErrorKinds } from "@/app/routing/route-error"
 import {
   RootErrorBoundary,
   RootErrorContent,
@@ -43,7 +45,7 @@ function createPageRoute(id: AppPageId): RouteObject {
   const page = appPages[id]
   const Component = pageComponents[id]
   const handle = {
-    access: { authentication: "either" },
+    access: page.access,
     routeId: id,
     title: page.title,
   } satisfies AppRouteHandle
@@ -55,7 +57,7 @@ function createPageRoute(id: AppPageId): RouteObject {
 
 function NotFoundRoute() {
   return createElement(RootErrorContent, {
-    kind: "not-found",
+    kind: rootErrorKinds.notFound,
   })
 }
 
@@ -68,7 +70,13 @@ export const routes = [
       {
         id: "access-boundary",
         Component: RouteAccessBoundary,
-        children: (Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+        children: [
+          {
+            id: "app-shell",
+            Component: AppShellRoute,
+            children: (Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+          },
+        ],
       },
       {
         id: "not-found",

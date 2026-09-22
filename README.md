@@ -5,13 +5,13 @@ shadcn/ui com Base UI no estilo Luma.
 
 ## Requisitos
 
-- Node.js 22.22 ou superior (Node 24 LTS recomendado)
-- npm 11
+- Node.js 24.18.1 (fixado em `.node-version`; versões compatíveis 24.x são aceitas por `engines`)
+- npm 11.6.0
 
 ## Comandos
 
 ```bash
-npm install
+npm ci
 npm run dev
 npm run check
 npm run test:e2e
@@ -28,7 +28,7 @@ npx playwright install
 - Vite 8, React 19 e TypeScript 6
 - Tailwind CSS 4 via plugin oficial para Vite
 - shadcn/ui Luma sobre Base UI
-- TanStack Table 9 com features opt-in e tree-shaking
+- TanStack Query 5 e TanStack Table 9
 - Vitest, Testing Library e cobertura V8
 - Playwright em Chromium, Firefox e WebKit
 
@@ -36,77 +36,85 @@ npx playwright install
 
 ```text
 tests/
-├─ unit/          # unidades isoladas dos componentes reutilizáveis
-├─ integration/   # composição React entre componentes, providers e domínio
+├─ unit/          # unidades isoladas de regras e componentes reutilizáveis
+├─ integration/   # composição entre router, providers e shell
 ├─ e2e/           # jornadas reais executadas pelo Playwright
 └─ support/       # setup e utilitários compartilhados exclusivamente por testes
 ```
 
-O diretório `src` contém somente código da aplicação. O Vitest executa as
-suítes `unit` e `integration`; o Playwright fica restrito a `tests/e2e`.
-
-As configurações seguem as documentações oficiais de cada projeto.
+O Vitest executa as suítes `unit` e `integration`; o Playwright fica restrito
+a `tests/e2e`. Os testes priorizam comportamento e contratos da aplicação, sem
+fixar copy visual, cores ou detalhes internos de primitives de terceiros. O
+workflow `validate` executa lint, typecheck, testes, build e uma jornada E2E
+em Chromium.
 
 ## Organização do código
 
-- `src/app/app.tsx`: composição da aplicação; recebe o router criado em `main.tsx`.
-- `src/app/app-config.ts`: identidade, URLs, metadados das páginas e mensagens de erro.
-- `src/app/app-layout.tsx`: metadados da navegação e outlet principal.
-- `src/app/app-providers.tsx`: montagem estável dos providers.
+- `src/app/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
+- `src/app/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
+- `src/app/app-copy.ts`: copy estática de feedback, acessibilidade e ações do shell.
+- `src/app/app-layout.tsx`: título da navegação e outlet raiz.
+- `src/app/app-shell.tsx`: composição do sidebar, toolbar e conteúdo das rotas liberadas.
+- `src/app/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
+- `src/app/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
+- `src/app/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
+- `src/app/components/`: apresentação específica do shell da aplicação.
+- `src/app/layouts/`: layouts estruturais específicos da aplicação.
 - `src/app/query-client.ts`: política de cache/retry e fábrica do QueryClient.
 - `src/app/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
 - `src/app/routing/`: rotas, política pura de acesso, bloqueio visual e erros de rota.
-- `src/app/session/`: contratos, comandos, contexto/hook, provider e estados de bootstrap.
-- `src/components/common/`: composições visuais sem dependência de `app`.
+- `src/app/session/`: contratos, comandos, contexto, provider e estados de bootstrap.
+- `src/components/common/`: wrappers reutilizáveis sobre primitives de `ui/`, sem regra de negócio.
+- `src/components/sidebar/`: composição e navegação exclusivas do sidebar.
 - `src/pages/<page>/<page>.layout.tsx`: único arquivo de entrada de cada página.
 
 Cada página reserva `components/` para UI local, `contracts/` para contratos
 externos, `rules/` para regras puras, `types/` para tipos locais e `schemas/`
-para validação de dados em runtime. As pastas sem implementação contêm somente
-`.gitkeep`; não se devem duplicar os mesmos tipos entre essas responsabilidades.
-`src/pages/auth/` e `src/components/sidebar/` estão reservados, sem implementação.
-Pastas e arquivos usam inglês; URLs e conteúdo exibido usam português brasileiro.
-Imports internos usam `@/` e imports exclusivamente de tipos usam `import type`.
+para validação de dados em runtime. Pastas e arquivos usam inglês; URLs e
+conteúdo exibido usam português brasileiro. Imports internos usam `@/` e imports
+exclusivamente de tipos usam `import type`.
 
 A nomenclatura `*.layout.tsx` é uma convenção deste projeto. No Data Mode,
-o React Router associa explicitamente os componentes às rotas; não depende
+o React Router associa explicitamente os componentes às rotas e não depende
 dessa extensão para descobrir arquivos.
 
-## Revisão da arquitetura
+## Decisões atuais
 
-A revisão consolidou os antigos diretórios `bootstrap`, `config`, `providers`
-e `layouts`, além das subdivisões `routing/access` e `routing/root`.
-O layout Auth sem consumidor, a fábrica de router que só encapsulava uma chamada,
-o módulo isolado de título e os contratos duplicados foram removidos ou incorporados.
-Os estados de sessão foram reunidos sem perder o cancelamento de operações,
-a preservação de conteúdo durante refresh e a limpeza de cache privado.
-Respostas obsoletas são descartadas antes de qualquer limpeza de cache.
+As páginas continuam sendo scaffolds públicos de layout. A política
+`authentication: "either"` está declarada no catálogo de páginas para que a
+migração futura para autenticação real seja feita por rota, sem alterar a
+infraestrutura do router. `availability` descreve somente o estágio de entrega
+da página e não autorização.
 
-O título usa um único proprietário por navegação e mantém o título estático do
-HTML. Consultas validam os metadados de rota em runtime; IDs de página são
-inferidos da configuração, com o registro de componentes conferido por
-`satisfies`. Primitives de UI permanecem independentes de sessão e roteamento.
+O `RouteAccessBoundary` compõe as políticas de todos os route matches
+registrados. Assim, uma rota filha não pode enfraquecer silenciosamente uma
+restrição declarada por uma rota ancestral.
 
-As páginas atuais são estruturas de layout: `available` no catálogo não indica
-integração com backend nem autorização. A sessão padrão continua anônima e as
-rotas do catálogo continuam públicas (`authentication: "either"`).
-Autenticação real, schemas de API e autorização no servidor dependem da futura
-integração. Antes de adicionar loaders privados, a autorização deverá ser
-resolvida também antes de buscar dados: um bloqueio visual não protege loaders.
+A sessão diferencia bootstrap, anonimato, autenticação e indisponibilidade.
+Operações concorrentes usam `AbortController` e epoch. Quando a autoridade
+muda, queries em andamento são canceladas e o QueryClient é limpo antes do novo
+snapshot ser publicado, evitando reutilização de dados de outra identidade.
 
-Referências para as decisões: [rotas em Data Mode](https://reactrouter.com/start/data/routing),
-[metadados de título no React](https://react.dev/reference/react-dom/components/title),
-[`satisfies` no TypeScript](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html)
-e [defaults do TanStack Query](https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults).
+O shell usa os primitives oficiais do shadcn/ui com Base UI e mantém regras de
+dados fora dos componentes visuais. `AppShell` recebe dados e comandos por
+contrato; `AppShellRoute` é o adaptador temporário dos fixtures de preview.
+Estados de carregamento, indisponibilidade e ações pendentes continuam
+controlados fora dos componentes visuais.
+
+Antes de adicionar loaders privados, a autorização deverá migrar para uma
+barreira executada antes dos loaders, como middleware de rota quando a integração
+real estiver definida e a API escolhida estiver estável para o caso de uso.
+O boundary visual atual não deve ser tratado como proteção de dados.
 
 ## Referências oficiais
 
+- [React Router](https://reactrouter.com/)
+- [React Router Middleware](https://reactrouter.com/how-to/middleware)
+- [TanStack Query](https://tanstack.com/query/latest)
+- [shadcn/ui Sidebar](https://ui.shadcn.com/docs/components/base/sidebar)
+- [Base UI](https://base-ui.com/react/overview/quick-start)
 - [Vite](https://vite.dev/guide/)
 - [React com TypeScript](https://react.dev/learn/typescript)
 - [Tailwind CSS com Vite](https://tailwindcss.com/docs/installation/using-vite)
-- [shadcn/ui com Vite](https://ui.shadcn.com/docs/installation/vite)
-- [shadcn/ui Luma](https://ui.shadcn.com/docs/changelog/2026-03-luma)
-- [TanStack Table para React](https://tanstack.com/table/latest/docs/framework/react/quick-start)
-- [Vitest](https://vitest.dev/config/environment.html)
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+- [Vitest](https://vitest.dev/)
 - [Playwright](https://playwright.dev/docs/intro)

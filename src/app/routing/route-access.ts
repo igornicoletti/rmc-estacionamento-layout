@@ -4,11 +4,20 @@ import type {
   SessionSnapshot,
 } from "@/app/session/session-types"
 
-export interface RouteAccessPolicy {
+interface AuthenticatedRouteRequirements {
   assurance?: SessionAssurance
-  authentication: "required" | "anonymous-only" | "either"
   capabilities?: readonly SessionCapability[]
 }
+
+export type RouteAccessPolicy =
+  | {
+      authentication: "anonymous-only"
+      assurance?: never
+      capabilities?: never
+    }
+  | ({
+      authentication: "required" | "either"
+    } & AuthenticatedRouteRequirements)
 
 export type RouteAccessDecision =
   | { kind: "allow" }
@@ -47,13 +56,23 @@ export function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy 
   const assurance = "assurance" in value ? value.assurance : undefined
   const capabilities =
     "capabilities" in value ? value.capabilities : undefined
+  const hasAuthenticatedRequirements =
+    assurance !== undefined || capabilities !== undefined
+
+  if (
+    typeof authentication !== "string" ||
+    !authenticationModes.has(authentication)
+  ) {
+    return false
+  }
+
+  if (authentication === "anonymous-only" && hasAuthenticatedRequirements) {
+    return false
+  }
 
   return (
-    typeof authentication === "string" &&
-    authenticationModes.has(authentication) &&
     (assurance === undefined ||
-      (typeof assurance === "string" &&
-        assuranceLevels.has(assurance))) &&
+      (typeof assurance === "string" && assuranceLevels.has(assurance))) &&
     (capabilities === undefined ||
       (Array.isArray(capabilities) &&
         capabilities.every((capability) => typeof capability === "string")))
@@ -88,23 +107,52 @@ export function evaluateRouteAccess(
   if (snapshot.status === "anonymous") {
     const hasAuthenticatedRequirements =
       policy.assurance !== undefined || (policy.capabilities?.length ?? 0) > 0
+
     return hasAuthenticatedRequirements ? { kind: "deny" } : { kind: "allow" }
   }
 
   if (policy.assurance) {
     const actualRank = assuranceRank[snapshot.session.assurance]
     const requiredRank = assuranceRank[policy.assurance]
+
     if (!actualRank || !requiredRank || actualRank < requiredRank) {
       return { kind: "deny" }
     }
   }
 
   const capabilities = new Set(snapshot.session.capabilities)
+
   if (policy.capabilities?.some((capability) => !capabilities.has(capability))) {
     return { kind: "deny" }
   }
 
   return { kind: "allow" }
+}
+
+export function evaluateRouteAccessPolicies(
+  snapshot: SessionSnapshot,
+  policies: readonly RouteAccessPolicy[],
+  options: RouteAccessOptions = {},
+): RouteAccessDecision {
+  if (policies.length === 0) {
+    return { kind: "deny" }
+  }
+
+  let redirect: Extract<RouteAccessDecision, { kind: "redirect" }> | undefined
+
+  for (const policy of policies) {
+    const decision = evaluateRouteAccess(snapshot, policy, options)
+
+    if (decision.kind === "deny" || decision.kind === "pending") {
+      return decision
+    }
+
+    if (decision.kind === "redirect") {
+      redirect ??= decision
+    }
+  }
+
+  return redirect ?? { kind: "allow" }
 }
 
 export interface AppRouteHandle {

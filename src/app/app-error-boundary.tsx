@@ -1,13 +1,10 @@
-import { TriangleAlert } from "lucide-react"
-import {
-  Component,
-  type ErrorInfo,
-  type ReactNode,
-} from "react"
+import { TriangleAlertIcon } from "lucide-react"
+import { Component, type ErrorInfo, type ReactNode } from "react"
 
-import { Button } from "@/components/ui/button"
-import { StandaloneLayout } from "@/components/common/standalone-layout"
+import { appCopy } from "@/app/app-copy"
+import { StandaloneLayout } from "@/app/layouts/standalone-layout"
 import { AppEmpty } from "@/components/common/app-empty"
+import { Button } from "@/components/ui/button"
 
 interface AppErrorBoundaryProps {
   children: ReactNode
@@ -43,23 +40,25 @@ export class AppErrorBoundary extends Component<
   }
 
   render() {
-    if (this.state.failed) {
-      return (
-        <StandaloneLayout>
-          <AppEmpty
-            primaryAction={
-              <Button onClick={this.reload} type="button">
-                Recarregar
-              </Button>
-            }
-            description="Recarregue a página para tentar novamente."
-            media={{ icon: TriangleAlert }}
-            title="Não foi possível iniciar a aplicação"
-          />
-        </StandaloneLayout>
-      )
+    if (!this.state.failed) {
+      return this.props.children
     }
 
-    return this.props.children
+    const feedback = appCopy.feedback.applicationFailure
+
+    return (
+      <StandaloneLayout>
+        <AppEmpty
+          description={feedback.description}
+          media={{ icon: TriangleAlertIcon }}
+          primaryAction={
+            <Button onClick={this.reload} type="button">
+              {feedback.action}
+            </Button>
+          }
+          title={feedback.title}
+        />
+      </StandaloneLayout>
+    )
   }
 }

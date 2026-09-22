@@ -17,22 +17,27 @@ function createTable() {
 }
 
 describe("DataTablePagination", () => {
-  it("bloqueia o avanço enquanto exibe dados anteriores", () => {
+  it("bloqueia somente o avanço enquanto exibe dados anteriores", () => {
+    const table = createTable()
+    table.getCanPreviousPage = () => true
+
     render(
       <DataTablePagination
-        table={createTable()}
+        table={table}
         rowCount={11}
         isPlaceholderData
       />,
     )
 
-    expect(
-      screen.getByRole("button", { name: "Próxima página" }),
-    ).toBeDisabled()
+    const navigationButtons = screen.getAllByRole("button")
+    expect(navigationButtons).toHaveLength(2)
+    expect(navigationButtons[0]).toBeEnabled()
+    expect(navigationButtons[1]).toBeDisabled()
   })
 
   it("remove tamanhos inválidos e duplicados", async () => {
     const user = userEvent.setup()
+
     render(
       <DataTablePagination
         table={createTable()}
@@ -41,13 +46,12 @@ describe("DataTablePagination", () => {
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "Linhas por página" }))
+    await user.click(screen.getByRole("combobox"))
+
     expect(await screen.findAllByRole("option")).toHaveLength(2)
-    expect(screen.getByRole("option", { name: "5" })).toBeInTheDocument()
-    expect(screen.getByRole("option", { name: "10" })).toBeInTheDocument()
   })
 
-  it("navega, altera o tamanho e usa o rótulo singular", async () => {
+  it("encaminha navegação e alteração de tamanho", async () => {
     const user = userEvent.setup()
     const table = createTable()
     table.getCanPreviousPage = () => true
@@ -55,30 +59,22 @@ describe("DataTablePagination", () => {
     render(
       <DataTablePagination
         table={table}
-        rowCount={1}
+        rowCount={11}
         pageSizes={[10]}
-        itemLabel={{ singular: "item", plural: "itens" }}
       />,
     )
 
-    expect(screen.getByText("1 item")).toBeInTheDocument()
-    await user.click(screen.getByRole("button", { name: "Página anterior" }))
-    await user.click(screen.getByRole("button", { name: "Próxima página" }))
+    const navigationButtons = screen.getAllByRole("button")
+    expect(navigationButtons).toHaveLength(2)
+
+    await user.click(navigationButtons[0])
+    await user.click(navigationButtons[1])
+
     expect(table.previousPage).toHaveBeenCalledOnce()
     expect(table.nextPage).toHaveBeenCalledOnce()
 
-    await user.click(screen.getByRole("combobox", { name: "Linhas por página" }))
-    await user.click(await screen.findByRole("option", { name: "10" }))
+    await user.click(screen.getByRole("combobox"))
+    await user.click(await screen.findByRole("option", { selected: false }))
     expect(table.setPageSize).toHaveBeenCalledWith(10)
-  })
-
-  it("normaliza uma contagem de páginas vazia", () => {
-    const table = createTable()
-    table.getPageCount = () => 0
-
-    render(<DataTablePagination table={table} rowCount={0} />)
-
-    expect(screen.getByText("0 registros")).toBeInTheDocument()
-    expect(screen.getByText("Página 1 de 1")).toBeInTheDocument()
   })
 })

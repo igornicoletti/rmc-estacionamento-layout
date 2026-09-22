@@ -6,17 +6,16 @@ import { isAppRouteHandle } from "@/app/routing/route-access"
 
 export function AppLayout() {
   const matches = useMatches()
-  const title = matches
+  const routeTitle = matches
     .map((match) => match.handle)
     .filter(isAppRouteHandle)
     .at(-1)?.title
 
   useEffect(() => {
-    document.title = title ? `${title} | ${APP_BROWSER_TITLE}` : APP_BROWSER_TITLE
-    return () => {
-      document.title = APP_BROWSER_TITLE
-    }
-  }, [title])
+    document.title = routeTitle
+      ? `${routeTitle} | ${APP_BROWSER_TITLE}`
+      : APP_BROWSER_TITLE
+  }, [routeTitle])
 
   return <Outlet />
 }

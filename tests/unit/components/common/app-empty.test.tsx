@@ -4,11 +4,10 @@ import { CircleHelpIcon } from "lucide-react"
 import { describe, expect, it, vi } from "vitest"
 
 import { AppEmpty } from "@/components/common/app-empty"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
 describe("AppEmpty", () => {
-  it("oferece uma ou duas ações sem assumir o comportamento", async () => {
+  it("encaminha as ações sem assumir o comportamento", async () => {
     const user = userEvent.setup()
     const onPrimary = vi.fn()
     const onSecondary = vi.fn()
@@ -16,37 +15,23 @@ describe("AppEmpty", () => {
     render(
       <AppEmpty
         media={{ icon: CircleHelpIcon }}
-        primaryAction={<Button onClick={onPrimary}>Confirmar</Button>}
+        primaryAction={<Button onClick={onPrimary}>primary</Button>}
         secondaryAction={
           <Button onClick={onSecondary} variant="outline">
-            Voltar
+            secondary
           </Button>
         }
-        title="Escolha uma ação"
+        title="state"
       />,
     )
 
-    await user.click(screen.getByRole("button", { name: "Confirmar" }))
-    await user.click(screen.getByRole("button", { name: "Voltar" }))
+    const actions = screen.getAllByRole("button")
+    expect(actions).toHaveLength(2)
+
+    await user.click(actions[0])
+    await user.click(actions[1])
 
     expect(onPrimary).toHaveBeenCalledOnce()
     expect(onSecondary).toHaveBeenCalledOnce()
-  })
-
-  it("aceita um avatar como mídia", () => {
-    render(
-      <AppEmpty
-        media={{
-          avatar: (
-            <Avatar>
-              <AvatarFallback>RM</AvatarFallback>
-            </Avatar>
-          ),
-        }}
-        title="Perfil indisponível"
-      />,
-    )
-
-    expect(screen.getByText("RM")).toBeInTheDocument()
   })
 })

@@ -26,11 +26,47 @@ import {
 interface SessionProviderProps {
   children: ReactNode
   commands?: SessionCommands
-  initialSnapshot?: SessionSnapshot
+  initialSnapshot?: ResolvedSessionSnapshot
 }
 
-function isIdentityScoped(meta: Record<string, unknown> | undefined) {
-  return meta?.identityScoped === true
+type AuthorityOperationKind = "bootstrap" | "refresh" | "sign-out"
+
+interface AuthorityOperation {
+  controller: AbortController
+  kind: AuthorityOperationKind
+}
+
+function hasSameCapabilities(
+  current: readonly string[],
+  next: readonly string[],
+) {
+  const currentSet = new Set(current)
+  const nextSet = new Set(next)
+
+  return (
+    currentSet.size === nextSet.size &&
+    [...currentSet].every((capability) => nextSet.has(capability))
+  )
+}
+
+function isSameAuthority(
+  current: SessionSnapshot,
+  next: ResolvedSessionSnapshot,
+) {
+  if (current.status === "anonymous" && next.status === "anonymous") {
+    return true
+  }
+
+  return (
+    current.status === "authenticated" &&
+    next.status === "authenticated" &&
+    current.session.identity.id === next.session.identity.id &&
+    current.session.assurance === next.session.assurance &&
+    hasSameCapabilities(
+      current.session.capabilities,
+      next.session.capabilities,
+    )
+  )
 }
 
 export function SessionProvider({
@@ -39,71 +75,98 @@ export function SessionProvider({
   initialSnapshot,
 }: SessionProviderProps) {
   const queryClient = useQueryClient()
-  const [snapshot, setSnapshot] = useState<SessionSnapshot>(
+  const [snapshot, setSnapshotState] = useState<SessionSnapshot>(
     initialSnapshot ?? bootstrappingSession,
   )
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const authorityEpochRef = useRef(0)
-  const activeControllerRef = useRef<AbortController | null>(null)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const snapshotRef = useRef(snapshot)
+  const activeOperationRef = useRef<AuthorityOperation | null>(null)
 
-  const beginAuthorityOperation = useCallback(() => {
-    activeControllerRef.current?.abort()
-
-    const controller = new AbortController()
-    activeControllerRef.current = controller
-    return controller
+  const setSnapshot = useCallback((next: SessionSnapshot) => {
+    snapshotRef.current = next
+    setSnapshotState(next)
   }, [])
 
+  const isCurrentOperation = useCallback((operation: AuthorityOperation) => {
+    return (
+      activeOperationRef.current === operation &&
+      !operation.controller.signal.aborted
+    )
+  }, [])
+
+  const beginAuthorityOperation = useCallback(
+    (kind: AuthorityOperationKind): AuthorityOperation | null => {
+      const activeOperation = activeOperationRef.current
+
+      if (kind === "refresh" && activeOperation?.kind === "sign-out") {
+        return null
+      }
+
+      activeOperation?.controller.abort()
+
+      const operation = {
+        controller: new AbortController(),
+        kind,
+      } satisfies AuthorityOperation
+
+      activeOperationRef.current = operation
+      return operation
+    },
+    [],
+  )
+
   const finishAuthorityOperation = useCallback(
-    (controller: AbortController) => {
-      if (activeControllerRef.current === controller) {
-        activeControllerRef.current = null
+    (operation: AuthorityOperation) => {
+      if (activeOperationRef.current === operation) {
+        activeOperationRef.current = null
       }
     },
     [],
   )
 
-  const clearIdentityScopedCache = useCallback(async () => {
-    const filters = {
-      predicate: (query: { meta?: Record<string, unknown> }) =>
-        isIdentityScoped(query.meta),
-    }
+  const clearAuthorityCache = useCallback(
+    async (operation: AuthorityOperation) => {
+      await queryClient.cancelQueries()
 
-    await queryClient.cancelQueries(filters)
-    queryClient.removeQueries(filters)
-  }, [queryClient])
+      if (!isCurrentOperation(operation)) {
+        return false
+      }
+
+      queryClient.clear()
+      return true
+    },
+    [isCurrentOperation, queryClient],
+  )
 
   const commitSnapshot = useCallback(
     async (
       next: ResolvedSessionSnapshot,
-      controller: AbortController,
-      epoch: number,
+      operation: AuthorityOperation,
     ) => {
-      if (controller.signal.aborted || epoch !== authorityEpochRef.current) {
+      if (!isCurrentOperation(operation)) {
         return
       }
 
-      const previousIdentity =
-        snapshot.status === "authenticated" ? snapshot.session.identity.id : null
-      const nextIdentity =
-        next.status === "authenticated" ? next.session.identity.id : null
+      if (!isSameAuthority(snapshotRef.current, next)) {
+        const cleared = await clearAuthorityCache(operation)
 
-      if (previousIdentity && previousIdentity !== nextIdentity) {
-        await clearIdentityScopedCache()
+        if (!cleared) {
+          return
+        }
       }
 
-      if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
+      if (isCurrentOperation(operation)) {
         setSnapshot(next)
       }
     },
-    [clearIdentityScopedCache, snapshot],
+    [clearAuthorityCache, isCurrentOperation, setSnapshot],
   )
 
   useEffect(
     () => () => {
-      authorityEpochRef.current += 1
-      activeControllerRef.current?.abort()
-      activeControllerRef.current = null
+      activeOperationRef.current?.controller.abort()
+      activeOperationRef.current = null
     },
     [],
   )
@@ -113,50 +176,55 @@ export function SessionProvider({
       return
     }
 
-    const controller = beginAuthorityOperation()
-    const epoch = ++authorityEpochRef.current
+    const operation = beginAuthorityOperation("bootstrap")
+
+    if (!operation) {
+      return
+    }
 
     void commands
-      .getSession(controller.signal)
-      .then((next) => {
-        if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
-          setSnapshot(next)
-        }
-      })
+      .getSession(operation.controller.signal)
+      .then((next) => commitSnapshot(next, operation))
       .catch(() => {
-        if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
+        if (isCurrentOperation(operation)) {
           setSnapshot({ status: "unavailable" })
         }
       })
       .finally(() => {
-        finishAuthorityOperation(controller)
+        finishAuthorityOperation(operation)
       })
 
     return () => {
-      controller.abort()
-      if (activeControllerRef.current === controller) {
-        activeControllerRef.current = null
-      }
-      authorityEpochRef.current += 1
+      operation.controller.abort()
+      finishAuthorityOperation(operation)
     }
   }, [
     beginAuthorityOperation,
     commands,
+    commitSnapshot,
     finishAuthorityOperation,
     initialSnapshot,
+    isCurrentOperation,
+    setSnapshot,
   ])
 
   const refresh = useCallback(async () => {
-    const controller = beginAuthorityOperation()
-    const epoch = ++authorityEpochRef.current
+    const operation = beginAuthorityOperation("refresh")
+
+    if (!operation) {
+      return
+    }
+
     setIsRefreshing(true)
 
     try {
-      const next = await commands.refreshSession(controller.signal)
-      await commitSnapshot(next, controller, epoch)
+      const next = await commands.refreshSession(operation.controller.signal)
+      await commitSnapshot(next, operation)
     } finally {
-      finishAuthorityOperation(controller)
-      if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
+      const shouldFinalize = isCurrentOperation(operation)
+      finishAuthorityOperation(operation)
+
+      if (shouldFinalize) {
         setIsRefreshing(false)
       }
     }
@@ -165,36 +233,57 @@ export function SessionProvider({
     commands,
     commitSnapshot,
     finishAuthorityOperation,
+    isCurrentOperation,
   ])
 
   const signOut = useCallback(async () => {
-    const controller = beginAuthorityOperation()
-    const epoch = ++authorityEpochRef.current
+    const operation = beginAuthorityOperation("sign-out")
+
+    if (!operation) {
+      return
+    }
+
     setIsRefreshing(false)
+    setIsSigningOut(true)
 
     try {
-      await commands.signOut(controller.signal)
+      await commands.signOut(operation.controller.signal)
 
-      if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
-        await clearIdentityScopedCache()
+      if (!isCurrentOperation(operation)) {
+        return
       }
 
-      if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
+      const cleared = await clearAuthorityCache(operation)
+
+      if (cleared && isCurrentOperation(operation)) {
         setSnapshot(anonymousSession)
       }
     } finally {
-      finishAuthorityOperation(controller)
+      const shouldFinalize = isCurrentOperation(operation)
+      finishAuthorityOperation(operation)
+
+      if (shouldFinalize) {
+        setIsSigningOut(false)
+      }
     }
   }, [
     beginAuthorityOperation,
-    clearIdentityScopedCache,
+    clearAuthorityCache,
     commands,
     finishAuthorityOperation,
+    isCurrentOperation,
+    setSnapshot,
   ])
 
   const value = useMemo<SessionContextValue>(
-    () => ({ isRefreshing, refresh, signOut, snapshot }),
-    [isRefreshing, refresh, signOut, snapshot],
+    () => ({
+      isRefreshing,
+      isSigningOut,
+      refresh,
+      signOut,
+      snapshot,
+    }),
+    [isRefreshing, isSigningOut, refresh, signOut, snapshot],
   )
 
   return (

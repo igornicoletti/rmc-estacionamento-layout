@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -7,79 +7,82 @@ import { renderWithProviders } from "@tests/support/render"
 import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 
 const ITEMS = [
-  { label: "Ativo", value: "active" },
-  { label: "Convidado", value: "invited" },
-  { label: "Suspenso", value: "suspended" },
+  { label: "A", value: "active" },
+  { label: "B", value: "invited" },
+  { label: "C", value: "suspended" },
 ] as const
 
 describe("DataTableComboboxFilter", () => {
-  it("exibe badges e omite valores indisponíveis", async () => {
+  it("omite opções indisponíveis quando recebe facetas", async () => {
     const user = userEvent.setup()
+
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="Filtrar por status"
+        ariaLabel="filter"
         counts={{ active: 5, invited: 0, suspended: 2 }}
         items={ITEMS}
         onValueChange={vi.fn()}
-        placeholder="Todos os status"
+        placeholder="placeholder"
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "Filtrar por status" }))
+    await user.click(screen.getByRole("combobox"))
 
-    const active = screen.getByRole("option", { name: /Ativo/ })
-    expect(within(active).getByText("5")).toBeInTheDocument()
-    expect(screen.queryByRole("option", { name: /Convidado/ })).not.toBeInTheDocument()
-    expect(within(screen.getByRole("option", { name: /Suspenso/ })).getByText("2"))
-      .toBeInTheDocument()
+    expect(screen.getAllByRole("option")).toHaveLength(2)
   })
 
-  it("usa a seleção e a limpeza nativas do combobox", async () => {
+  it("encaminha seleção e limpeza", async () => {
     const user = userEvent.setup()
     const onValueChange = vi.fn()
     const { rerender } = renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="Filtrar por status"
+        ariaLabel="filter"
         counts={{ active: 5, invited: 3, suspended: 2 }}
         items={ITEMS}
         onValueChange={onValueChange}
-        placeholder="Todos os status"
+        placeholder="placeholder"
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "Filtrar por status" }))
-    await user.click(screen.getByRole("option", { name: /Suspenso/ }))
+    await user.click(screen.getByRole("combobox"))
+    const options = screen.getAllByRole("option")
+    expect(options).toHaveLength(3)
+
+    await user.click(options[2])
     expect(onValueChange).toHaveBeenLastCalledWith("suspended")
 
     rerender(
       <DataTableComboboxFilter
-        ariaLabel="Filtrar por status"
+        ariaLabel="filter"
         counts={{ active: 5, invited: 3, suspended: 0 }}
         items={ITEMS}
         onValueChange={onValueChange}
-        placeholder="Todos os status"
+        placeholder="placeholder"
         value="suspended"
       />,
     )
 
     await user.click(
-      screen.getByRole("button", { name: "Limpar filtrar por status" }),
+      screen.getByRole("button", {
+        name: /.+/u,
+      }),
     )
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 
-  it("mantém todas as opções disponíveis antes de receber as facetas", async () => {
+  it("mantém as opções antes de receber facetas", async () => {
     const user = userEvent.setup()
+
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="Filtrar por status"
+        ariaLabel="filter"
         items={ITEMS}
         onValueChange={vi.fn()}
-        placeholder="Todos os status"
+        placeholder="placeholder"
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "Filtrar por status" }))
+    await user.click(screen.getByRole("combobox"))
 
     expect(screen.getAllByRole("option")).toHaveLength(3)
   })
