@@ -51,7 +51,7 @@ export const appCopy = {
       emptyDescription: "Você não tem notificações não lidas.",
       emptyTitle: "Sem novas notificações",
       loading: "Carregando notificações",
-      markAllRead: "Marcar todas como lidas",
+      markAllRead: "Marcar como lidas",
       title: "Notificações",
       trigger: "Abrir notificações",
       triggerLoading: "Abrir notificações. Carregando notificações.",
