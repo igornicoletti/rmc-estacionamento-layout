@@ -27,7 +27,7 @@ export function DataTableSearch({
   return (
     <InputGroup className="w-full min-w-0 @sm/toolbar:w-80 @sm/toolbar:max-w-md @sm/toolbar:flex-[1_1_20rem]">
       <InputGroupInput
-        className="text-sm"
+        className="text-sm!"
         type="text"
         role="searchbox"
         inputMode="search"
