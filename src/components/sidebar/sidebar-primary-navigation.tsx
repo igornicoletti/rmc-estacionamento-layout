@@ -1,22 +1,19 @@
-import { ShieldCheckIcon } from "lucide-react"
+import { ShieldCheckIcon } from "lucide-react";
 
-import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items"
-import type { SidebarNavigationItem } from "@/components/sidebar/sidebar-types"
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-} from "@/components/ui/sidebar"
+import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items";
+import type { SidebarNavigationItem } from "@/components/sidebar/sidebar-types";
+import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 
 interface SidebarPrimaryNavigationProps {
-  items: readonly SidebarNavigationItem[]
-  profile: string
+  items: readonly SidebarNavigationItem[];
+  profile: string;
 }
 
 export function SidebarPrimaryNavigation({
   items,
   profile,
 }: SidebarPrimaryNavigationProps) {
-  const profileLabel = profile.toLocaleUpperCase("pt-BR")
+  const profileLabel = profile.toLocaleUpperCase("pt-BR");
 
   return (
     <SidebarGroup>
@@ -34,5 +31,5 @@ export function SidebarPrimaryNavigation({
         <SidebarNavItems items={items} />
       </SidebarGroupContent>
     </SidebarGroup>
-  )
+  );
 }
