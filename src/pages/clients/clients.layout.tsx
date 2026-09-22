@@ -1,15 +1,15 @@
 import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
-import { LazyDataTablePreview } from "@/components/data-table/components/lazy-data-table-preview"
+import { PageHistorySyncActions } from "@/components/common/page-history-sync-actions"
+import { LazyClientsDataTable } from "@/pages/clients/components/lazy-clients-data-table"
 
 export function ClientsPage() {
   return (
-    <AppPageLayout page={appPages["clients"]}>
-      <LazyDataTablePreview
-        caption="Lista de clientes"
-        idPrefix="cli"
-        itemLabel={{ singular: "cliente", plural: "clientes" }}
-      />
+    <AppPageLayout
+      actions={<PageHistorySyncActions />}
+      page={appPages["clients"]}
+    >
+      <LazyClientsDataTable />
     </AppPageLayout>
   )
 }
