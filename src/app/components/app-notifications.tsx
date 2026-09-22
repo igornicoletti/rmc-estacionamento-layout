@@ -8,6 +8,10 @@ import {
 import { useState, type MouseEvent } from "react"
 import { Link, type To } from "react-router"
 
+import {
+  appCopy,
+  getNotificationsTriggerLabel,
+} from "@/app/app-copy"
 import { AppEmpty } from "@/components/common/app-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,7 +32,7 @@ import {
 } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
 
-export interface SidebarNotificationItem {
+export interface AppNotificationItem {
   dateTime: string
   description: string
   icon: LucideIcon
@@ -38,46 +42,25 @@ export interface SidebarNotificationItem {
   to: To
 }
 
-export type SidebarNotificationsStatus = "loading" | "ready" | "unavailable"
+export type AppNotificationsStatus = "loading" | "ready" | "unavailable"
 
-interface SidebarNotificationsProps {
+interface AppNotificationsProps {
   isMarkingAllAsRead?: boolean
   onMarkAllAsRead: () => void
   onNotificationRead: (notificationId: string) => void
   readingNotificationId?: string
-  status?: SidebarNotificationsStatus
-  unreadNotifications: readonly SidebarNotificationItem[]
+  status?: AppNotificationsStatus
+  unreadNotifications: readonly AppNotificationItem[]
   viewAllTo?: To
 }
 
 const notificationPreviewLimit = 5
-const viewAllNotificationsLabel = "Ver todas as notificações"
 
 function formatBadgeCount(count: number) {
   return count > 99 ? "+99" : count
 }
 
-function getTriggerLabel(count: number, status: SidebarNotificationsStatus) {
-  if (status === "loading") {
-    return "Abrir notificações. Carregando notificações."
-  }
-
-  if (status === "unavailable") {
-    return "Abrir notificações. Notificações indisponíveis."
-  }
-
-  if (count === 0) {
-    return "Abrir notificações"
-  }
-
-  if (count === 1) {
-    return "Abrir notificações, 1 não lida"
-  }
-
-  return `Abrir notificações, ${count} não lidas`
-}
-
-export function SidebarNotifications({
+export function AppNotifications({
   isMarkingAllAsRead = false,
   onMarkAllAsRead,
   onNotificationRead,
@@ -85,8 +68,9 @@ export function SidebarNotifications({
   status = "ready",
   unreadNotifications,
   viewAllTo,
-}: SidebarNotificationsProps) {
+}: AppNotificationsProps) {
   const [open, setOpen] = useState(false)
+  const copy = appCopy.toolbar.notifications
   const unreadCount = status === "ready" ? unreadNotifications.length : 0
   const previewNotifications = unreadNotifications.slice(
     0,
@@ -106,18 +90,12 @@ export function SidebarNotifications({
     setOpen(false)
   }
 
-  const handleMarkAllAsRead = () => {
-    if (!isMarkingAllAsRead) {
-      onMarkAllAsRead()
-    }
-  }
-
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
         render={
           <Button
-            aria-label={getTriggerLabel(unreadCount, status)}
+            aria-label={getNotificationsTriggerLabel(unreadCount, status)}
             className="relative"
             size="icon"
             variant="ghost"
@@ -136,18 +114,15 @@ export function SidebarNotifications({
         ) : null}
       </PopoverTrigger>
 
-      <PopoverContent
-        align="end"
-        className="w-96 max-w-[calc(100vw-2rem)]"
-      >
+      <PopoverContent align="end" className="w-80 sm:w-96">
         <PopoverHeader className="flex-row items-center justify-between">
-          <PopoverTitle>Notificações</PopoverTitle>
+          <PopoverTitle>{copy.title}</PopoverTitle>
 
           {status === "ready" && unreadCount > 0 ? (
             <Button
               aria-busy={isMarkingAllAsRead}
               disabled={isMarkingAllAsRead}
-              onClick={handleMarkAllAsRead}
+              onClick={onMarkAllAsRead}
               size="xs"
               variant="ghost"
             >
@@ -156,7 +131,7 @@ export function SidebarNotifications({
               ) : (
                 <CheckCheckIcon aria-hidden="true" data-icon="inline-start" />
               )}
-              Marcar todas como lidas
+              {copy.markAllRead}
             </Button>
           ) : null}
         </PopoverHeader>
@@ -168,14 +143,14 @@ export function SidebarNotifications({
             role="status"
           >
             <Spinner aria-hidden="true" />
-            <span className="sr-only">Carregando notificações</span>
+            <span className="sr-only">{copy.loading}</span>
           </div>
         ) : status === "unavailable" ? (
           <AppEmpty
-            description="Não foi possível acessar as notificações."
+            description={copy.unavailableDescription}
             headingLevel={3}
             media={{ icon: TriangleAlertIcon }}
-            title="Notificações indisponíveis"
+            title={copy.unavailableTitle}
           />
         ) : unreadCount > 0 ? (
           <>
@@ -227,13 +202,13 @@ export function SidebarNotifications({
                 onClick={() => setOpen(false)}
                 render={<Link to={viewAllTo} />}
               >
-                {viewAllNotificationsLabel}
+                {copy.viewAll}
               </Button>
             ) : null}
           </>
         ) : (
           <AppEmpty
-            description="Você não tem notificações não lidas."
+            description={copy.emptyDescription}
             headingLevel={3}
             media={{ icon: BellOffIcon }}
             primaryAction={
@@ -242,11 +217,11 @@ export function SidebarNotifications({
                   onClick={() => setOpen(false)}
                   render={<Link to={viewAllTo} />}
                 >
-                  {viewAllNotificationsLabel}
+                  {copy.viewAll}
                 </Button>
               ) : undefined
             }
-            title="Sem novas notificações"
+            title={copy.emptyTitle}
           />
         )}
       </PopoverContent>

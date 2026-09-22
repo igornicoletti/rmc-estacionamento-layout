@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { Link, type To } from "react-router"
 
+import { appCopy } from "@/app/app-copy"
 import { isTheme } from "@/components/theme/theme-context"
 import { useTheme } from "@/components/theme/use-theme"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -28,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { getUserInitials } from "@/lib/user-initials"
 
-export interface SidebarUserMenuProps {
+export interface AppUserMenuProps {
   avatarSrc?: string
   email?: string
   isSigningOut?: boolean
@@ -37,16 +38,17 @@ export interface SidebarUserMenuProps {
   profileTo: To
 }
 
-export function SidebarUserMenu({
+export function AppUserMenu({
   avatarSrc,
   email,
   isSigningOut = false,
   name,
   onLogout,
   profileTo,
-}: SidebarUserMenuProps) {
+}: AppUserMenuProps) {
   const { theme, setTheme } = useTheme()
   const normalizedEmail = email?.trim()
+  const copy = appCopy.toolbar.userMenu
 
   const handleThemeChange = (value: string) => {
     if (isTheme(value)) {
@@ -57,9 +59,7 @@ export function SidebarUserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button aria-label="Abrir menu do usuário" variant="ghost" />
-        }
+        render={<Button aria-label={copy.trigger} variant="ghost" />}
       >
         <Avatar>
           {avatarSrc ? (
@@ -97,14 +97,14 @@ export function SidebarUserMenu({
         <DropdownMenuGroup>
           <DropdownMenuItem render={<Link to={profileTo} />}>
             <UserRoundIcon aria-hidden="true" />
-            Meu perfil
+            {copy.profile}
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <SunMoonIcon aria-hidden="true" />
-            Aparência
+            {copy.appearance}
           </DropdownMenuSubTrigger>
 
           <DropdownMenuSubContent>
@@ -114,15 +114,15 @@ export function SidebarUserMenu({
             >
               <DropdownMenuRadioItem value="light">
                 <SunIcon aria-hidden="true" />
-                Claro
+                {copy.themeLight}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="dark">
                 <MoonIcon aria-hidden="true" />
-                Escuro
+                {copy.themeDark}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="system">
                 <MonitorIcon aria-hidden="true" />
-                Sistema
+                {copy.themeSystem}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
@@ -137,7 +137,7 @@ export function SidebarUserMenu({
             variant="destructive"
           >
             <LogOutIcon aria-hidden="true" />
-            {isSigningOut ? "Saindo" : "Sair"}
+            {isSigningOut ? copy.signingOut : copy.signOut}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

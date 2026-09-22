@@ -1,27 +1,17 @@
 import { useState, type ReactNode } from "react"
 import { Outlet } from "react-router"
 
+import { appCopy } from "@/app/app-copy"
 import { appPages } from "@/app/app-config"
 import { navigationSections, primaryNavigation } from "@/app/app-navigation"
 import { shellPreviewData } from "@/app/app-preview"
+import { AppNotifications, type AppNotificationItem, type AppNotificationsStatus } from "@/app/components/app-notifications"
+import { AppToolbar } from "@/app/components/app-toolbar"
+import { AppUserMenu } from "@/app/components/app-user-menu"
 import { useSession } from "@/app/session/session-context"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
-import {
-  SidebarNotifications,
-  type SidebarNotificationItem,
-  type SidebarNotificationsStatus,
-} from "@/components/sidebar/sidebar-notifications"
-import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu"
-import type {
-  SidebarUnitOption,
-  SidebarUnitsStatus,
-} from "@/components/sidebar/sidebar-units-switcher"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar"
+import type { SidebarUnitOption, SidebarUnitsStatus } from "@/components/sidebar/sidebar-units-switcher"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { toast } from "@/components/ui/toast"
 
 interface AppShellUser {
@@ -37,28 +27,15 @@ export interface AppShellProps {
   currentUser: AppShellUser
   isMarkingAllAsRead?: boolean
   isSigningOut?: boolean
-  notificationsStatus?: SidebarNotificationsStatus
+  notificationsStatus?: AppNotificationsStatus
   onActiveUnitChange: (unitId: string) => void
   onLogout: () => void
   onMarkAllAsRead: () => void
   onNotificationRead: (notificationId: string) => void
   readingNotificationId?: string
-  unreadNotifications: readonly SidebarNotificationItem[]
+  unreadNotifications: readonly AppNotificationItem[]
   units: readonly SidebarUnitOption[]
   unitsStatus?: SidebarUnitsStatus
-}
-
-function AppToolbar({ children }: { children: ReactNode }) {
-  const { isMobile, openMobile, state } = useSidebar()
-  const isOpen = isMobile ? openMobile : state === "expanded"
-  const triggerLabel = isOpen ? "Fechar menu lateral" : "Abrir menu lateral"
-
-  return (
-    <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-      <SidebarTrigger aria-label={triggerLabel} className="md:hidden" />
-      <div className="ml-auto flex items-center gap-1">{children}</div>
-    </div>
-  )
 }
 
 export function AppShell({
@@ -91,7 +68,7 @@ export function AppShell({
 
       <SidebarInset>
         <AppToolbar>
-          <SidebarNotifications
+          <AppNotifications
             isMarkingAllAsRead={isMarkingAllAsRead}
             onMarkAllAsRead={onMarkAllAsRead}
             onNotificationRead={onNotificationRead}
@@ -100,8 +77,7 @@ export function AppShell({
             unreadNotifications={unreadNotifications}
             viewAllTo={appPages.notifications.path}
           />
-
-          <SidebarUserMenu
+          <AppUserMenu
             avatarSrc={currentUser.avatarSrc}
             email={currentUser.email}
             isSigningOut={isSigningOut}
@@ -122,9 +98,9 @@ export function AppShellRoute() {
   const [activeUnitId, setActiveUnitId] = useState<string | undefined>(
     shellPreviewData.units[0]?.id,
   )
-  const [unreadNotifications, setUnreadNotifications] = useState<
-    SidebarNotificationItem[]
-  >(() => [...shellPreviewData.notifications])
+  const [unreadNotifications, setUnreadNotifications] = useState<AppNotificationItem[]>(
+    () => [...shellPreviewData.notifications],
+  )
 
   const handleNotificationRead = (notificationId: string) => {
     setUnreadNotifications((current) =>
@@ -135,9 +111,9 @@ export function AppShellRoute() {
   const handleLogout = () => {
     void signOut().catch(() => {
       toast.add({
-        description: "Tente novamente.",
+        description: appCopy.feedback.logoutFailure.description,
         priority: "high",
-        title: "Não foi possível sair",
+        title: appCopy.feedback.logoutFailure.title,
         type: "error",
       })
     })
