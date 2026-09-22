@@ -36,7 +36,7 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
 
   if (!isMobile && state === "collapsed") {
     return (
-      <SidebarGroup>
+      <SidebarGroup className="py-1">
         <SidebarGroupContent>
           <SidebarNavItems items={items} />
         </SidebarGroupContent>
@@ -50,7 +50,7 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
       onOpenChange={handleOpenChange}
       open={open}
     >
-      <SidebarGroup>
+      <SidebarGroup className="py-1">
         <SidebarGroupLabel render={<CollapsibleTrigger />}>
           {label}
           <ChevronRightIcon

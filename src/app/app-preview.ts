@@ -9,12 +9,6 @@ export const shellPreviewData = {
     name: "Nome do Usuário",
     profile: "Superadmin",
   },
-  units: [
-    {
-      id: "unit-1",
-      name: "Nome da Unidade",
-    },
-  ],
   notifications: [
     {
       id: "capture-created",
@@ -31,7 +25,7 @@ export const shellPreviewData = {
       description: "Os dados da unidade foram atualizados.",
       dateTime: "2026-08-29T16:20:00-03:00",
       timeLabel: "29/08, 16:20",
-      to: appPages["units"].path,
+      to: appPages.units.path,
       icon: Building2Icon,
     },
     {

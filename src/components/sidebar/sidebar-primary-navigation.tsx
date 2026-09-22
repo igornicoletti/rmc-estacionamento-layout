@@ -19,9 +19,9 @@ export function SidebarPrimaryNavigation({
   const profileLabel = profile.toLocaleUpperCase("pt-BR")
 
   return (
-    <SidebarGroup>
+    <SidebarGroup className="py-1">
       <SidebarGroupContent className="flex flex-col gap-2">
-        <div className="flex h-9 items-center gap-2 px-3 text-sm text-primary group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+        <div className="flex h-9 items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 text-sm text-primary group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!">
           <ShieldCheckIcon aria-hidden="true" className="shrink-0 size-4" />
           <span className="truncate group-data-[collapsible=icon]:sr-only">
             {profileLabel}

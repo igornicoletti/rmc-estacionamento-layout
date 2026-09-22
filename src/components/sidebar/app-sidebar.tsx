@@ -1,5 +1,7 @@
+import rmcLogoBlack from "@/assets/rmc-logo-black.webp"
 import rmcLogoWhite from "@/assets/rmc-logo-white.webp"
-import rmcSymbolMono from "@/assets/rmc-simbolo-mono.svg"
+import rmcSymbol from "@/assets/rmc-simbolo.svg"
+import { appCopy } from "@/app/app-copy"
 import { SidebarNavGroup } from "@/components/sidebar/sidebar-nav-group"
 import { SidebarPrimaryNavigation } from "@/components/sidebar/sidebar-primary-navigation"
 import type {
@@ -7,72 +9,54 @@ import type {
   SidebarNavigationSection,
 } from "@/components/sidebar/sidebar-types"
 import {
-  SidebarUnitsSwitcher,
-  type SidebarUnitOption,
-  type SidebarUnitsStatus,
-} from "@/components/sidebar/sidebar-units-switcher"
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
 
 interface AppSidebarProps {
-  activeUnitId: string | undefined
-  onActiveUnitChange: (unitId: string) => void
   primaryItems: readonly SidebarNavigationItem[]
   profile: string
   sections: readonly SidebarNavigationSection[]
-  units: readonly SidebarUnitOption[]
-  unitsStatus?: SidebarUnitsStatus
 }
 
 export function AppSidebar({
-  activeUnitId,
-  onActiveUnitChange,
   primaryItems,
   profile,
   sections,
-  units,
-  unitsStatus = "ready",
 }: AppSidebarProps) {
   const { state } = useSidebar()
   const triggerLabel =
-    state === "expanded" ? "Recolher menu lateral" : "Expandir menu lateral"
+    state === "expanded" ? appCopy.sidebar.collapse : appCopy.sidebar.expand
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="items-center">
+      <SidebarHeader className="h-12 items-center justify-center border-b bg-background p-1">
+        <div className="group-data-[collapsible=icon]:hidden">
+          <img
+            alt="Rede Monte Carlo"
+            className="h-9 w-auto dark:hidden"
+            src={rmcLogoBlack}
+          />
+          <img
+            alt="Rede Monte Carlo"
+            className="hidden h-9 w-auto dark:block"
+            src={rmcLogoWhite}
+          />
+        </div>
+
         <img
           alt="Rede Monte Carlo"
-          className="h-8 w-auto group-data-[collapsible=icon]:hidden"
-          src={rmcLogoWhite}
-        />
-        <img
-          alt=""
           className="hidden size-8 group-data-[collapsible=icon]:block"
-          src={rmcSymbolMono}
+          src={rmcSymbol}
         />
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarUnitsSwitcher
-              onValueChange={onActiveUnitChange}
-              status={unitsStatus}
-              units={units}
-              value={activeUnitId}
-            />
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <nav aria-label="Navegação principal">
+      <SidebarContent className="gap-0">
+        <nav aria-label={appCopy.sidebar.navigation}>
           <SidebarPrimaryNavigation items={primaryItems} profile={profile} />
 
           {sections.map((section) => (

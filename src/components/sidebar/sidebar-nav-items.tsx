@@ -26,7 +26,7 @@ function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
-        className="data-active:bg-background data-active:text-primary data-active:hover:bg-background"
+        className="data-active:bg-background data-active:text-primary data-active:hover:bg-background data-active:hover:text-primary"
         isActive={active}
         render={<NavLink end={end} onClick={onNavigate} to={item.to} />}
         tooltip={item.label}

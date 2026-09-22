@@ -5,12 +5,15 @@ import { appCopy } from "@/app/app-copy"
 import { appPages } from "@/app/app-config"
 import { navigationSections, primaryNavigation } from "@/app/app-navigation"
 import { shellPreviewData } from "@/app/app-preview"
-import { AppNotifications, type AppNotificationItem, type AppNotificationsStatus } from "@/app/components/app-notifications"
+import {
+  AppNotifications,
+  type AppNotificationItem,
+  type AppNotificationsStatus,
+} from "@/app/components/app-notifications"
 import { AppToolbar } from "@/app/components/app-toolbar"
 import { AppUserMenu } from "@/app/components/app-user-menu"
 import { useSession } from "@/app/session/session-context"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
-import type { SidebarUnitOption, SidebarUnitsStatus } from "@/components/sidebar/sidebar-units-switcher"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { toast } from "@/components/ui/toast"
 
@@ -22,48 +25,36 @@ interface AppShellUser {
 }
 
 export interface AppShellProps {
-  activeUnitId: string | undefined
   children: ReactNode
   currentUser: AppShellUser
   isMarkingAllAsRead?: boolean
   isSigningOut?: boolean
   notificationsStatus?: AppNotificationsStatus
-  onActiveUnitChange: (unitId: string) => void
   onLogout: () => void
   onMarkAllAsRead: () => void
   onNotificationRead: (notificationId: string) => void
   readingNotificationId?: string
   unreadNotifications: readonly AppNotificationItem[]
-  units: readonly SidebarUnitOption[]
-  unitsStatus?: SidebarUnitsStatus
 }
 
 export function AppShell({
-  activeUnitId,
   children,
   currentUser,
   isMarkingAllAsRead = false,
   isSigningOut = false,
   notificationsStatus = "ready",
-  onActiveUnitChange,
   onLogout,
   onMarkAllAsRead,
   onNotificationRead,
   readingNotificationId,
   unreadNotifications,
-  units,
-  unitsStatus = "ready",
 }: AppShellProps) {
   return (
     <SidebarProvider>
       <AppSidebar
-        activeUnitId={activeUnitId}
-        onActiveUnitChange={onActiveUnitChange}
         primaryItems={primaryNavigation}
         profile={currentUser.profile}
         sections={navigationSections}
-        units={units}
-        unitsStatus={unitsStatus}
       />
 
       <SidebarInset>
@@ -77,6 +68,7 @@ export function AppShell({
             unreadNotifications={unreadNotifications}
             viewAllTo={appPages.notifications.path}
           />
+
           <AppUserMenu
             avatarSrc={currentUser.avatarSrc}
             email={currentUser.email}
@@ -95,12 +87,9 @@ export function AppShell({
 
 export function AppShellRoute() {
   const { isSigningOut, signOut } = useSession()
-  const [activeUnitId, setActiveUnitId] = useState<string | undefined>(
-    shellPreviewData.units[0]?.id,
-  )
-  const [unreadNotifications, setUnreadNotifications] = useState<AppNotificationItem[]>(
-    () => [...shellPreviewData.notifications],
-  )
+  const [unreadNotifications, setUnreadNotifications] = useState<
+    AppNotificationItem[]
+  >(() => [...shellPreviewData.notifications])
 
   const handleNotificationRead = (notificationId: string) => {
     setUnreadNotifications((current) =>
@@ -121,15 +110,12 @@ export function AppShellRoute() {
 
   return (
     <AppShell
-      activeUnitId={activeUnitId}
       currentUser={shellPreviewData.currentUser}
       isSigningOut={isSigningOut}
-      onActiveUnitChange={setActiveUnitId}
       onLogout={handleLogout}
       onMarkAllAsRead={() => setUnreadNotifications([])}
       onNotificationRead={handleNotificationRead}
       unreadNotifications={unreadNotifications}
-      units={shellPreviewData.units}
     >
       <Outlet />
     </AppShell>
