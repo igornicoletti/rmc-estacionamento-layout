@@ -17,17 +17,22 @@ function createTable() {
 }
 
 describe("DataTablePagination", () => {
-  it("bloqueia o avanço enquanto exibe dados anteriores", () => {
+  it("bloqueia somente o avanço enquanto exibe dados anteriores", () => {
+    const table = createTable()
+    table.getCanPreviousPage = () => true
+
     render(
       <DataTablePagination
-        table={createTable()}
+        table={table}
         rowCount={11}
         isPlaceholderData
       />,
     )
 
-    const buttons = screen.getAllByRole("button")
-    expect(buttons.some((button) => button.hasAttribute("disabled"))).toBe(true)
+    const navigationButtons = screen.getAllByRole("button")
+    expect(navigationButtons).toHaveLength(2)
+    expect(navigationButtons[0]).toBeEnabled()
+    expect(navigationButtons[1]).toBeDisabled()
   })
 
   it("remove tamanhos inválidos e duplicados", async () => {
@@ -60,8 +65,10 @@ describe("DataTablePagination", () => {
     )
 
     const navigationButtons = screen.getAllByRole("button")
-    await user.click(navigationButtons[0]!)
-    await user.click(navigationButtons[1]!)
+    expect(navigationButtons).toHaveLength(2)
+
+    await user.click(navigationButtons[0])
+    await user.click(navigationButtons[1])
 
     expect(table.previousPage).toHaveBeenCalledOnce()
     expect(table.nextPage).toHaveBeenCalledOnce()

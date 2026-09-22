@@ -45,10 +45,11 @@ describe("DataTableViewOptions", () => {
     await user.click(screen.getByRole("button"))
 
     const options = await screen.findAllByRole("menuitemcheckbox")
+    expect(options).toHaveLength(2)
     expect(options[0]).toHaveAttribute("aria-disabled", "true")
     expect(toggleTitle).not.toHaveBeenCalled()
 
-    await user.click(options[1]!)
+    await user.click(options[1])
     expect(toggleStatus).toHaveBeenCalledWith(true)
   })
 

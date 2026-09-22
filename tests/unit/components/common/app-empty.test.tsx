@@ -26,8 +26,10 @@ describe("AppEmpty", () => {
     )
 
     const actions = screen.getAllByRole("button")
-    await user.click(actions[0]!)
-    await user.click(actions[1]!)
+    expect(actions).toHaveLength(2)
+
+    await user.click(actions[0])
+    await user.click(actions[1])
 
     expect(onPrimary).toHaveBeenCalledOnce()
     expect(onSecondary).toHaveBeenCalledOnce()

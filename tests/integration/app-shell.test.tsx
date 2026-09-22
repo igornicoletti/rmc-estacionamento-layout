@@ -21,7 +21,11 @@ describe("app shell", () => {
       .find((button) => button.getAttribute("aria-expanded") === "false")
 
     expect(collapsedTrigger).toBeDefined()
-    await user.click(collapsedTrigger!)
+    if (!collapsedTrigger) {
+      return
+    }
+
+    await user.click(collapsedTrigger)
 
     await waitFor(() => {
       expect(within(navigation).getAllByRole("link").length).toBeGreaterThan(

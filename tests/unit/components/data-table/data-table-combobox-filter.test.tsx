@@ -45,7 +45,10 @@ describe("DataTableComboboxFilter", () => {
     )
 
     await user.click(screen.getByRole("combobox"))
-    await user.click(screen.getAllByRole("option")[2]!)
+    const options = screen.getAllByRole("option")
+    expect(options).toHaveLength(3)
+
+    await user.click(options[2])
     expect(onValueChange).toHaveBeenLastCalledWith("suspended")
 
     rerender(
