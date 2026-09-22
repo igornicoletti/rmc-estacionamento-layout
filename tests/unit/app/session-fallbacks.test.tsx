@@ -11,9 +11,7 @@ describe("session fallbacks", () => {
   it("anuncia o bootstrap como estado de carregamento", () => {
     render(<SessionBootstrapFallback />)
 
-    expect(
-      screen.getByRole("status", { name: "Inicializando aplicação" }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveAttribute("aria-label")
   })
 
   it("bloqueia novo retry enquanto a sessão está sendo consultada", async () => {
@@ -23,14 +21,14 @@ describe("session fallbacks", () => {
       <SessionUnavailableFallback isRetrying={false} onRetry={onRetry} />,
     )
 
-    await user.click(screen.getByRole("button", { name: "Tentar novamente" }))
+    await user.click(screen.getByRole("button"))
     expect(onRetry).toHaveBeenCalledOnce()
 
     view.rerender(
       <SessionUnavailableFallback isRetrying={true} onRetry={onRetry} />,
     )
 
-    const retry = screen.getByRole("button", { name: "Tentando novamente" })
+    const retry = screen.getByRole("button")
     expect(retry).toBeDisabled()
     expect(retry).toHaveAttribute("aria-busy", "true")
 

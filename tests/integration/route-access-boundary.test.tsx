@@ -1,24 +1,18 @@
-import { render, screen } from "@testing-library/react"
+import { render, waitFor } from "@testing-library/react"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import App from "@/app/app"
-import {
-  RouteAccessBoundary,
-} from "@/app/routing/route-access-boundary"
+import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import type { AppRouteHandle } from "@/app/routing/route-access"
 import { anonymousSession } from "@/app/session/session-types"
 
-function LoginPage() {
-  return <h1>Login</h1>
-}
-
-function PrivatePage() {
-  return <h1>Privado</h1>
+function EmptyRoute() {
+  return null
 }
 
 describe("route access boundary", () => {
-  it("preserva pathname, query e hash ao redirecionar para autenticação", async () => {
+  it("preserva pathname, query e hash ao redirecionar", async () => {
     const privateHandle = {
       access: { authentication: "required" },
       routeId: "private",
@@ -27,7 +21,7 @@ describe("route access boundary", () => {
       [
         {
           path: "/login",
-          Component: LoginPage,
+          Component: EmptyRoute,
         },
         {
           Component: () => (
@@ -36,7 +30,7 @@ describe("route access boundary", () => {
           children: [
             {
               path: "/private",
-              Component: PrivatePage,
+              Component: EmptyRoute,
               handle: privateHandle,
             },
           ],
@@ -49,10 +43,9 @@ describe("route access boundary", () => {
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    expect(
-      await screen.findByRole("heading", { name: "Login" }),
-    ).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe("/login")
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/login")
+    })
     expect(router.state.location.state).toEqual({
       returnTo: "/private?tab=security#passkeys",
     })

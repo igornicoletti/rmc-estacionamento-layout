@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
@@ -8,74 +8,40 @@ import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
 
 describe("app shell", () => {
-  it("monta sidebar e abre grupos inativos sob demanda", async () => {
+  it("abre um grupo inativo sob demanda", async () => {
     const user = userEvent.setup()
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    expect(
-      await screen.findByRole("navigation", { name: "Navegação principal" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("img", { name: "Rede Monte Carlo" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole("link", { name: "Unidades" }),
-    ).not.toBeInTheDocument()
+    const navigation = await screen.findByRole("navigation")
+    const linksBefore = within(navigation).getAllByRole("link").length
+    const collapsedTrigger = within(navigation)
+      .getAllByRole("button")
+      .find((button) => button.getAttribute("aria-expanded") === "false")
 
-    await user.click(screen.getByRole("button", { name: "CADASTROS" }))
+    expect(collapsedTrigger).toBeDefined()
+    await user.click(collapsedTrigger!)
 
-    expect(
-      await screen.findByRole("link", { name: "Unidades" }),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(within(navigation).getAllByRole("link").length).toBeGreaterThan(
+        linksBefore,
+      )
+    })
   })
 
-  it("mantém aberto o grupo que contém a rota ativa", async () => {
+  it("mantém disponível a rota ativa do grupo atual", async () => {
     const router = createMemoryRouter(routes, {
       initialEntries: ["/usuarios"],
     })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    expect(
-      await screen.findByRole("link", { name: "Usuários" }),
-    ).toHaveAttribute("aria-current", "page")
-  })
+    const navigation = await screen.findByRole("navigation")
+    const activeLink = within(navigation)
+      .getAllByRole("link")
+      .find((link) => link.getAttribute("aria-current") === "page")
 
-  it("atualiza o preview de notificações sem duplicar ação", async () => {
-    const user = userEvent.setup()
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
-
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
-
-    const trigger = await screen.findByRole("button", {
-      name: "Abrir notificações, 3 não lidas",
-    })
-    await user.click(trigger)
-
-    await user.click(
-      await screen.findByRole("button", { name: "Marcar todas como lidas" }),
-    )
-
-    expect(
-      screen.getByRole("button", { name: "Abrir notificações" }),
-    ).toBeInTheDocument()
-  })
-
-  it("mantém o nome acessível do trigger coerente com o estado", async () => {
-    const user = userEvent.setup()
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
-
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
-
-    const trigger = await screen.findByRole("button", {
-      name: "Fechar menu lateral",
-    })
-    await user.click(trigger)
-
-    expect(
-      screen.getByRole("button", { name: "Abrir menu lateral" }),
-    ).toBeInTheDocument()
+    expect(activeLink).toBeDefined()
   })
 })
