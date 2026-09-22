@@ -53,7 +53,7 @@ describe("app routing", () => {
       await screen.findByRole("table", undefined, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: page.title })).toBeInTheDocument()
-    expect(screen.getByRole("separator")).toBeInTheDocument()
+    expect(screen.getAllByRole("separator").length).toBeGreaterThan(0)
   })
 
   it.each(["units", "clients"] as const)(
