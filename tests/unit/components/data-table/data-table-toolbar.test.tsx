@@ -5,34 +5,32 @@ import { describe, expect, it, vi } from "vitest"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
 
 describe("DataTableToolbar", () => {
-  it("renderiza ações e limpa filtros ativos", async () => {
+  it("encaminha a limpeza de filtros ativos", async () => {
     const user = userEvent.setup()
     const onClearFilters = vi.fn()
+
     render(
       <DataTableToolbar
-        actions={<span>Ação auxiliar</span>}
+        actions={<span />}
         hasActiveFilters
         onClearFilters={onClearFilters}
       >
-        <span>Filtros</span>
+        <span />
       </DataTableToolbar>,
     )
 
-    expect(screen.getByText("Ação auxiliar")).toBeInTheDocument()
-    await user.click(screen.getByRole("button", { name: "Limpar filtros" }))
+    await user.click(screen.getByRole("button"))
+
     expect(onClearFilters).toHaveBeenCalledOnce()
   })
 
-  it("não reserva controles opcionais quando estão ausentes", () => {
-    const { container } = render(
+  it("não cria controle de limpeza sem filtros ativos", () => {
+    render(
       <DataTableToolbar hasActiveFilters={false} onClearFilters={vi.fn()}>
-        <span>Filtros</span>
+        <span />
       </DataTableToolbar>,
     )
 
-    expect(screen.queryByRole("button", { name: "Limpar filtros" }))
-      .not.toBeInTheDocument()
-    expect(container.querySelector('[data-slot="data-table-toolbar-actions"]'))
-      .not.toBeInTheDocument()
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 })

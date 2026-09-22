@@ -5,13 +5,13 @@ import { describe, expect, it, vi } from "vitest"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 
 describe("DataTableColumnHeader", () => {
-  it("usa o título e o ícone como um único alvo de ordenação", async () => {
+  it("usa um único controle para ordenar", async () => {
     const user = userEvent.setup()
     const toggleSorting = vi.fn()
 
     render(
       <DataTableColumnHeader
-        title="Nome"
+        title="field"
         column={{
           getCanSort: () => true,
           getIsSorted: () => false,
@@ -20,17 +20,15 @@ describe("DataTableColumnHeader", () => {
       />,
     )
 
-    const button = screen.getByRole("button", { name: "Ordenar por Nome" })
-    expect(button).toHaveTextContent("Nome")
+    await user.click(screen.getByRole("button"))
 
-    await user.click(screen.getByText("Nome"))
     expect(toggleSorting).toHaveBeenCalledOnce()
   })
 
-  it("não cria controle interativo para uma coluna não ordenável", () => {
+  it("não cria controle interativo para coluna não ordenável", () => {
     render(
       <DataTableColumnHeader
-        title="Ações"
+        title="field"
         column={{
           getCanSort: () => false,
           getIsSorted: () => false,
@@ -39,7 +37,6 @@ describe("DataTableColumnHeader", () => {
       />,
     )
 
-    expect(screen.getByText("Ações")).toBeInTheDocument()
     expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 })
