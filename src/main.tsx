@@ -1,9 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import App from "@/app/bootstrap/app";
+import { createBrowserRouter } from "react-router";
+import App from "@/app/app";
+import { routes } from "@/app/routing/routes";
 
-import "./index.css";
+import "@/index.css";
 
 const root = document.getElementById("root");
 
@@ -13,8 +15,10 @@ if (!root) {
   );
 }
 
+const router = createBrowserRouter(routes);
+
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <App router={router} />
   </StrictMode>,
 );

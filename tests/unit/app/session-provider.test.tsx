@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { act, render, screen, waitFor } from "@testing-library/react"
+import { act, render, renderHook, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import type { SessionCommands } from "@/app/session/session-commands"
 import { SessionProvider } from "@/app/session/session-provider"
-import { useSession } from "@/app/session/use-session"
+import { useSession } from "@/app/session/session-context"
+import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
 
 function SessionProbe() {
   const { refresh, snapshot } = useSession()
@@ -29,6 +30,51 @@ function renderSession(commands: SessionCommands) {
 }
 
 describe("SessionProvider", () => {
+  it("descarta refresh cancelado antes de alterar sessão ou limpar cache", async () => {
+    const client = new QueryClient()
+    client.setQueryDefaults(["private"], { meta: { identityScoped: true } })
+    client.setQueryData(["private"], "current-data")
+    const current = {
+      status: "authenticated",
+      session: {
+        assurance: "aal1",
+        capabilities: [],
+        identity: { displayName: "Usuária", id: "current-user" },
+      },
+    } satisfies ResolvedSessionSnapshot
+    let resolveStale!: (value: ResolvedSessionSnapshot) => void
+    const stale = new Promise<ResolvedSessionSnapshot>((resolve) => {
+      resolveStale = resolve
+    })
+    const commands: SessionCommands = {
+      getSession: vi.fn(),
+      refreshSession: vi.fn()
+        .mockReturnValueOnce(stale)
+        .mockResolvedValueOnce(current),
+      signOut: vi.fn(),
+    }
+    const { result } = renderHook(() => useSession(), {
+      wrapper: ({ children }) => (
+        <QueryClientProvider client={client}>
+          <SessionProvider commands={commands} initialSnapshot={current}>
+            {children}
+          </SessionProvider>
+        </QueryClientProvider>
+      ),
+    })
+    let first!: Promise<void>
+    act(() => { first = result.current.refresh() })
+    await act(async () => { await result.current.refresh() })
+    await act(async () => {
+      resolveStale({ status: "anonymous" })
+      await first
+    })
+
+    expect(result.current.snapshot).toEqual(current)
+    expect(client.getQueryData(["private"])).toBe("current-data")
+    expect(result.current.isRefreshing).toBe(false)
+  })
+
   it("diferencia sessão anônima de autoridade indisponível", async () => {
     const commands: SessionCommands = {
       getSession: vi.fn().mockRejectedValue(new Error("offline")),

@@ -21,7 +21,7 @@ import {
   bootstrappingSession,
   type ResolvedSessionSnapshot,
   type SessionSnapshot,
-} from "@/app/session/session-status"
+} from "@/app/session/session-types"
 
 interface SessionProviderProps {
   children: ReactNode
@@ -79,6 +79,10 @@ export function SessionProvider({
       controller: AbortController,
       epoch: number,
     ) => {
+      if (controller.signal.aborted || epoch !== authorityEpochRef.current) {
+        return
+      }
+
       const previousIdentity =
         snapshot.status === "authenticated" ? snapshot.session.identity.id : null
       const nextIdentity =

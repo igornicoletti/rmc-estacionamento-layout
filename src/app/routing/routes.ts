@@ -1,32 +1,27 @@
 import { createElement, type ComponentType } from "react"
 import type { RouteObject } from "react-router"
 
-import { ProtectedLayout } from "@/app/layouts/protected-layout"
-import { RouteAccessBoundary } from "@/app/routing/access/route-access-boundary"
+import { AppLayout } from "@/app/app-layout"
+import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
+import { appPages, type AppPageId } from "@/app/app-config"
+import type { AppRouteHandle } from "@/app/routing/route-access"
 import {
-  appRouteCatalog,
-  getAppPage,
-  type AppRouteId,
-} from "@/app/routing/route-catalog"
-import type { AppRouteHandle } from "@/app/routing/route-metadata"
-import {
-  getRootErrorPresentation,
   RootErrorBoundary,
   RootErrorContent,
-} from "@/app/routing/root/root-error-boundary"
-import { AccountSecurityPage } from "@/pages/account-security/page"
-import { AuditPage } from "@/pages/audit/page"
-import { ClientsPage } from "@/pages/clients/page"
-import { DashboardPage } from "@/pages/dashboard/page"
-import { NotificationsPage } from "@/pages/notifications/page"
-import { PermissionsPage } from "@/pages/permissions/page"
-import { PricesPage } from "@/pages/prices/page"
-import { ProfilePage } from "@/pages/profile/page"
-import { ReportsPage } from "@/pages/reports/page"
-import { RulesPage } from "@/pages/rules/page"
-import { UnitsPage } from "@/pages/units/page"
-import { UsersPage } from "@/pages/users/page"
-import { VirtualYardPage } from "@/pages/virtual-yard/page"
+} from "@/app/routing/route-error-boundary"
+import { AccountSecurityPage } from "@/pages/account-security/account-security.layout"
+import { AuditPage } from "@/pages/audit/audit.layout"
+import { ClientsPage } from "@/pages/clients/clients.layout"
+import { DashboardPage } from "@/pages/dashboard/dashboard.layout"
+import { NotificationsPage } from "@/pages/notifications/notifications.layout"
+import { PermissionsPage } from "@/pages/permissions/permissions.layout"
+import { PricesPage } from "@/pages/prices/prices.layout"
+import { ProfilePage } from "@/pages/profile/profile.layout"
+import { ReportsPage } from "@/pages/reports/reports.layout"
+import { RulesPage } from "@/pages/rules/rules.layout"
+import { UnitsPage } from "@/pages/units/units.layout"
+import { UsersPage } from "@/pages/users/users.layout"
+import { VirtualYardPage } from "@/pages/virtual-yard/virtual-yard.layout"
 
 const pageComponents = {
   "account-security": AccountSecurityPage,
@@ -42,48 +37,38 @@ const pageComponents = {
   units: UnitsPage,
   users: UsersPage,
   "virtual-yard": VirtualYardPage,
-} satisfies Record<AppRouteId, ComponentType>
+} satisfies Record<AppPageId, ComponentType>
 
-function createPageRoute(id: AppRouteId): RouteObject {
-  const page = getAppPage(id)
+function createPageRoute(id: AppPageId): RouteObject {
+  const page = appPages[id]
+  const Component = pageComponents[id]
   const handle = {
     access: { authentication: "either" },
-    breadcrumb: page.title,
-    routeId: page.id,
+    routeId: id,
     title: page.title,
   } satisfies AppRouteHandle
 
-  return page.segment === null
-    ? { id: page.id, index: true, Component: pageComponents[id], handle }
-    : {
-        id: page.id,
-        path: page.segment,
-        Component: pageComponents[id],
-        handle,
-      }
+  return page.path === "/"
+    ? { id, index: true, Component, handle }
+    : { id, path: page.path, Component, handle }
 }
 
 function NotFoundRoute() {
   return createElement(RootErrorContent, {
-    presentation: getRootErrorPresentation({ status: 404 }),
+    kind: "not-found",
   })
 }
 
 export const routes = [
   {
     id: "app-root",
+    Component: AppLayout,
     ErrorBoundary: RootErrorBoundary,
     children: [
       {
         id: "access-boundary",
         Component: RouteAccessBoundary,
-        children: [
-          {
-            id: "protected-layout",
-            Component: ProtectedLayout,
-            children: appRouteCatalog.map(({ id }) => createPageRoute(id)),
-          },
-        ],
+        children: (Object.keys(appPages) as AppPageId[]).map(createPageRoute),
       },
       {
         id: "not-found",

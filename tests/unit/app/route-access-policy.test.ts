@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
   evaluateRouteAccess,
   type RouteAccessPolicy,
-} from "@/app/routing/access/route-access-policy"
-import type { SessionSnapshot } from "@/app/session/session-status"
+} from "@/app/routing/route-access"
+import type { SessionSnapshot } from "@/app/session/session-types"
 
 const authenticated = {
   status: "authenticated",

@@ -1,6 +1,6 @@
-import { createContext } from "react"
+import { createContext, useContext } from "react"
 
-import type { SessionSnapshot } from "@/app/session/session-status"
+import type { SessionSnapshot } from "@/app/session/session-types"
 
 export interface SessionContextValue {
   isRefreshing: boolean
@@ -10,3 +10,13 @@ export interface SessionContextValue {
 }
 
 export const SessionContext = createContext<SessionContextValue | null>(null)
+
+export function useSession() {
+  const context = useContext(SessionContext)
+
+  if (!context) {
+    throw new Error("SESSION_PROVIDER_MISSING")
+  }
+
+  return context
+}

@@ -1,4 +1,4 @@
-import type { ResolvedSessionSnapshot } from "@/app/session/session-status"
+import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
 
 export interface SessionCommands {
   getSession: (signal: AbortSignal) => Promise<ResolvedSessionSnapshot>

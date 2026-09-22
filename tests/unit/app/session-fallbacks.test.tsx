@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import { SessionBootstrapFallback } from "@/app/session/session-bootstrap-fallback"
-import { SessionUnavailableFallback } from "@/app/session/session-unavailable-fallback"
+import { SessionBootstrapFallback } from "@/app/session/session-boundary"
+import { SessionUnavailableFallback } from "@/app/session/session-boundary"
 
 describe("session fallbacks", () => {
   it("anuncia o bootstrap como estado de carregamento", () => {
