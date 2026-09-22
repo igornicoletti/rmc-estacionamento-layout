@@ -1,21 +1,20 @@
-import { StrictMode } from "react"
-import { createRoot } from "react-dom/client"
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-import { AppProviders } from "@/app/app-providers"
+import App from "@/app/bootstrap/app";
 
-import App from "./App"
-import "./index.css"
+import "./index.css";
 
-const root = document.getElementById("root")
+const root = document.getElementById("root");
 
 if (!root) {
-  throw new Error("Elemento raiz da aplicação não encontrado")
+  throw new Error(
+    "Root element not found. Make sure there is an element with id 'root' in your HTML.",
+  );
 }
 
 createRoot(root).render(
   <StrictMode>
-    <AppProviders>
-      <App />
-    </AppProviders>
+    <App />
   </StrictMode>,
-)
+);
