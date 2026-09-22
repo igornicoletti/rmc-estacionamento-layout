@@ -6,6 +6,7 @@ import { AppLayout } from "@/app/app-layout"
 import { AppShellRoute } from "@/app/app-shell"
 import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import type { AppRouteHandle } from "@/app/routing/route-access"
+import { rootErrorKinds } from "@/app/routing/route-error"
 import {
   RootErrorBoundary,
   RootErrorContent,
@@ -56,7 +57,7 @@ function createPageRoute(id: AppPageId): RouteObject {
 
 function NotFoundRoute() {
   return createElement(RootErrorContent, {
-    kind: "notFound",
+    kind: rootErrorKinds.notFound,
   })
 }
 

@@ -74,7 +74,7 @@ describe("DataTablePagination", () => {
     expect(table.nextPage).toHaveBeenCalledOnce()
 
     await user.click(screen.getByRole("combobox"))
-    await user.click(await screen.findByRole("option"))
+    await user.click(await screen.findByRole("option", { selected: false }))
     expect(table.setPageSize).toHaveBeenCalledWith(10)
   })
 })

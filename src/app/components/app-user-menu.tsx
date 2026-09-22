@@ -78,7 +78,7 @@ export function AppUserMenu({
         </span>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="md:hidden">
             <span className="block max-w-48 truncate text-sm text-foreground">

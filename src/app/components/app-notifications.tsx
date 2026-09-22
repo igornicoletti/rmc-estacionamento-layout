@@ -1,9 +1,9 @@
 import {
+  ArrowRightIcon,
   BellIcon,
   BellOffIcon,
   CheckCheckIcon,
   TriangleAlertIcon,
-  type LucideIcon,
 } from "lucide-react"
 import { useState, type MouseEvent } from "react"
 import { Link, type To } from "react-router"
@@ -20,8 +20,6 @@ import {
   ItemContent,
   ItemDescription,
   ItemGroup,
-  ItemMedia,
-  ItemTitle,
 } from "@/components/ui/item"
 import {
   Popover,
@@ -34,11 +32,9 @@ import { Spinner } from "@/components/ui/spinner"
 
 export interface AppNotificationItem {
   dateTime: string
-  description: string
-  icon: LucideIcon
   id: string
+  message: string
   timeLabel: string
-  title: string
   to: To
 }
 
@@ -156,7 +152,6 @@ export function AppNotifications({
           <>
             <ItemGroup className="max-h-80 overflow-y-auto">
               {previewNotifications.map((notification) => {
-                const Icon = notification.icon
                 const isReading = readingNotificationId === notification.id
 
                 return (
@@ -174,23 +169,22 @@ export function AppNotifications({
                     }
                     size="xs"
                   >
-                    <ItemMedia className="text-muted-foreground" variant="icon">
-                      <Icon aria-hidden="true" />
-                    </ItemMedia>
-
                     <ItemContent className="min-w-0">
-                      <ItemTitle>{notification.title}</ItemTitle>
-                      <ItemDescription className="line-clamp-1">
-                        {notification.description}
+                      <ItemDescription className="truncate">
+                        {notification.message}
                       </ItemDescription>
+                      <time
+                        className="text-xs text-muted-foreground"
+                        dateTime={notification.dateTime}
+                      >
+                        {notification.timeLabel}
+                      </time>
                     </ItemContent>
 
-                    <time
-                      className="shrink-0 text-xs text-muted-foreground"
-                      dateTime={notification.dateTime}
-                    >
-                      {notification.timeLabel}
-                    </time>
+                    <ArrowRightIcon
+                      aria-hidden="true"
+                      className="size-4 shrink-0"
+                    />
                   </Item>
                 )
               })}
@@ -198,9 +192,9 @@ export function AppNotifications({
 
             {viewAllTo ? (
               <Button
-                className="w-full"
                 onClick={() => setOpen(false)}
                 render={<Link to={viewAllTo} />}
+                variant="link"
               >
                 {copy.viewAll}
               </Button>

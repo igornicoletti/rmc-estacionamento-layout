@@ -62,7 +62,11 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button"))
+    await user.click(
+      screen.getByRole("button", {
+        name: /.+/u,
+      }),
+    )
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 

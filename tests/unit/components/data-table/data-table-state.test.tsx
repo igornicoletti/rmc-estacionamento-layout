@@ -72,7 +72,7 @@ describe("DataTableEmpty", () => {
 
 describe("DataTableSkeletonRows", () => {
   it("preserva a geometria solicitada", () => {
-    const { container } = render(
+    render(
       <table>
         <tbody>
           <DataTableSkeletonRows columns={2} rows={3} />
@@ -80,7 +80,7 @@ describe("DataTableSkeletonRows", () => {
       </table>,
     )
 
-    expect(container.querySelectorAll("tr")).toHaveLength(3)
-    expect(container.querySelectorAll("td")).toHaveLength(6)
+    expect(screen.getAllByRole("row", { hidden: true })).toHaveLength(3)
+    expect(screen.getAllByRole("cell", { hidden: true })).toHaveLength(6)
   })
 })
