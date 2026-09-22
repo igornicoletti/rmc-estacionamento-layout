@@ -1,32 +1,32 @@
-import { NavLink, useMatch } from "react-router"
+import { NavLink, useMatch } from "react-router";
 
-import type { SidebarNavigationItem } from "@/components/sidebar/sidebar-types"
+import type { SidebarNavigationItem } from "@/components/sidebar/sidebar-types";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 interface SidebarNavItemsProps {
-  items: readonly SidebarNavigationItem[]
-  onNavigate?: () => void
+  items: readonly SidebarNavigationItem[];
+  onNavigate?: () => void;
 }
 
 interface SidebarNavItemProps {
-  item: SidebarNavigationItem
-  onNavigate: () => void
+  item: SidebarNavigationItem;
+  onNavigate: () => void;
 }
 
 function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
-  const end = item.end ?? false
-  const active = useMatch({ path: item.to, end }) !== null
-  const Icon = item.icon
+  const end = item.end ?? false;
+  const active = useMatch({ path: item.to, end }) !== null;
+  const Icon = item.icon;
 
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
-        className="data-active:bg-background data-active:text-primary data-active:hover:bg-background data-active:hover:text-primary"
+        className="data-active:bg-background data-active:text-primary data-active:hover:bg-background data-active:hover:text-primary [&_svg]:opacity-60 [&_svg]:transition-opacity hover:[&_svg]:opacity-100 data-active:[&_svg]:opacity-100 motion-reduce:[&_svg]:transition-none"
         isActive={active}
         render={<NavLink end={end} onClick={onNavigate} to={item.to} />}
         tooltip={item.label}
@@ -35,19 +35,19 @@ function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
         <span>{item.label}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
-  )
+  );
 }
 
 export function SidebarNavItems({ items, onNavigate }: SidebarNavItemsProps) {
-  const { isMobile, setOpenMobile } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const handleNavigation = () => {
-    onNavigate?.()
+    onNavigate?.();
 
     if (isMobile) {
-      setOpenMobile(false)
+      setOpenMobile(false);
     }
-  }
+  };
 
   return (
     <SidebarMenu>
@@ -59,5 +59,5 @@ export function SidebarNavItems({ items, onNavigate }: SidebarNavItemsProps) {
         />
       ))}
     </SidebarMenu>
-  )
+  );
 }

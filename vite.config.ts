@@ -20,6 +20,11 @@ export default defineConfig({
               test: /node_modules[\\/]@tanstack[\\/]/,
               priority: 20,
             },
+            {
+              name: "lucide-react",
+              test: /node_modules[\\/]lucide-react[\\/]/,
+              priority: 20,
+            },
           ],
         },
       },

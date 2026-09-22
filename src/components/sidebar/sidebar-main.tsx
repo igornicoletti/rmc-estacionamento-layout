@@ -7,22 +7,22 @@ import {
   SidebarGroupContent,
 } from "@/components/ui/sidebar"
 
-interface SidebarPrimaryNavigationProps {
+interface SidebarMainProps {
   items: readonly SidebarNavigationItem[]
   profile: string
 }
 
-export function SidebarPrimaryNavigation({
+export function SidebarMain({
   items,
   profile,
-}: SidebarPrimaryNavigationProps) {
+}: SidebarMainProps) {
   const profileLabel = profile.toLocaleUpperCase("pt-BR")
 
   return (
-    <SidebarGroup className="py-1">
+    <SidebarGroup className="pt-3 pb-1">
       <SidebarGroupContent className="flex flex-col gap-2">
         <div className="flex h-9 items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 text-sm text-primary group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!">
-          <ShieldCheckIcon aria-hidden="true" className="shrink-0 size-4" />
+          <ShieldCheckIcon aria-hidden="true" className="size-4 shrink-0" />
           <span className="truncate group-data-[collapsible=icon]:sr-only">
             {profileLabel}
           </span>

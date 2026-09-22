@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
-import { DataTableViewOptions } from "@/components/data-table/data-table-view-options"
+import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 
 describe("DataTableViewOptions", () => {
   it("impede ocultar a última coluna de dados visível", async () => {

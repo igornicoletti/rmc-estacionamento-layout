@@ -1,4 +1,4 @@
-import { appPages } from "@/app/app-config"
+import { appPages } from "@/app/config/app-config"
 
 // Demonstration only: never used to resolve authentication or capabilities.
 export const shellPreviewData = {
@@ -10,6 +10,7 @@ export const shellPreviewData = {
   notifications: [
     {
       id: "capture-created",
+      title: "Nova captura",
       message: "Uma nova captura foi adicionada ao Pátio Virtual.",
       dateTime: "2026-08-30T07:42:00-03:00",
       timeLabel: "30/08, 07:42",
@@ -17,6 +18,7 @@ export const shellPreviewData = {
     },
     {
       id: "unit-updated",
+      title: "Unidade atualizada",
       message: "Os dados da unidade foram atualizados.",
       dateTime: "2026-08-29T16:20:00-03:00",
       timeLabel: "29/08, 16:20",
@@ -24,6 +26,7 @@ export const shellPreviewData = {
     },
     {
       id: "vehicle-updated",
+      title: "Veículo atualizado",
       message: "As informações do veículo foram atualizadas.",
       dateTime: "2026-07-29T09:10:00-03:00",
       timeLabel: "29/07, 09:10",

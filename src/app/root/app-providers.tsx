@@ -1,7 +1,7 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query"
 import { useState, type ReactNode } from "react"
 
-import { createAppQueryClient } from "@/app/query-client"
+import { createAppQueryClient } from "@/app/root/query-client"
 import { SessionBootstrapBoundary } from "@/app/session/session-boundary"
 import type { SessionCommands } from "@/app/session/session-commands"
 import { SessionProvider } from "@/app/session/session-provider"

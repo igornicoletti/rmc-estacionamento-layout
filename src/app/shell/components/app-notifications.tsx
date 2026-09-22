@@ -1,5 +1,4 @@
 import {
-  ArrowRightIcon,
   BellIcon,
   BellOffIcon,
   CheckCheckIcon,
@@ -11,15 +10,18 @@ import { Link, type To } from "react-router"
 import {
   appCopy,
   getNotificationsTriggerLabel,
-} from "@/app/app-copy"
+} from "@/app/config/app-copy"
 import { AppEmpty } from "@/components/common/app-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Item,
+  ItemActions,
   ItemContent,
   ItemDescription,
   ItemGroup,
+  ItemMedia,
+  ItemTitle,
 } from "@/components/ui/item"
 import {
   Popover,
@@ -34,6 +36,7 @@ export interface AppNotificationItem {
   dateTime: string
   id: string
   message: string
+  title: string
   timeLabel: string
   to: To
 }
@@ -110,7 +113,7 @@ export function AppNotifications({
         ) : null}
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-80 sm:w-96">
+      <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-96">
         <PopoverHeader className="flex-row items-center justify-between">
           <PopoverTitle>{copy.title}</PopoverTitle>
 
@@ -156,7 +159,6 @@ export function AppNotifications({
 
                 return (
                   <Item
-                    className="flex-nowrap"
                     key={notification.id}
                     render={
                       <Link
@@ -169,22 +171,23 @@ export function AppNotifications({
                     }
                     size="xs"
                   >
-                    <ItemContent className="min-w-0">
-                      <ItemDescription className="truncate">
+                    <ItemMedia variant="icon">
+                      <BellIcon aria-hidden="true" />
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle>{notification.title}</ItemTitle>
+                      <ItemDescription>
                         {notification.message}
                       </ItemDescription>
+                    </ItemContent>
+                    <ItemActions>
                       <time
                         className="text-xs text-muted-foreground"
                         dateTime={notification.dateTime}
                       >
                         {notification.timeLabel}
                       </time>
-                    </ItemContent>
-
-                    <ArrowRightIcon
-                      aria-hidden="true"
-                      className="size-4 shrink-0"
-                    />
+                    </ItemActions>
                   </Item>
                 )
               })}
@@ -205,16 +208,6 @@ export function AppNotifications({
             description={copy.emptyDescription}
             headingLevel={3}
             media={{ icon: BellOffIcon }}
-            primaryAction={
-              viewAllTo ? (
-                <Button
-                  onClick={() => setOpen(false)}
-                  render={<Link to={viewAllTo} />}
-                >
-                  {copy.viewAll}
-                </Button>
-              ) : undefined
-            }
             title={copy.emptyTitle}
           />
         )}

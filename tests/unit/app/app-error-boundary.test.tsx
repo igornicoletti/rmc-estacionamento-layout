@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { AppErrorBoundary } from "@/app/app-error-boundary"
+import { AppErrorBoundary } from "@/app/root/app-error-boundary"
 
 function BrokenComponent(): never {
   throw new Error("sensitive internal detail")

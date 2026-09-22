@@ -1,9 +1,9 @@
 import { createElement, type ComponentType } from "react"
 import type { RouteObject } from "react-router"
 
-import { appPages, type AppPageId } from "@/app/app-config"
-import { AppLayout } from "@/app/app-layout"
-import { AppShellRoute } from "@/app/app-shell"
+import { appPages, type AppPageId } from "@/app/config/app-config"
+import { AppLayout } from "@/app/root/app-layout"
+import { AppShellRoute } from "@/app/shell/app-shell"
 import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import type { AppRouteHandle } from "@/app/routing/route-access"
 import { rootErrorKinds } from "@/app/routing/route-error"

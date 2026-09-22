@@ -1,7 +1,7 @@
 import { RouterProvider, type RouterProviderProps } from "react-router/dom"
 
-import { AppErrorBoundary } from "@/app/app-error-boundary"
-import { AppProviders, type AppProvidersProps } from "@/app/app-providers"
+import { AppErrorBoundary } from "@/app/root/app-error-boundary"
+import { AppProviders, type AppProvidersProps } from "@/app/root/app-providers"
 
 interface AppProps extends Omit<AppProvidersProps, "children"> {
   router: RouterProviderProps["router"]

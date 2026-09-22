@@ -1,5 +1,10 @@
 import type { PaginationState } from "@tanstack/react-table";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +21,8 @@ interface PaginatedTable {
   getPageCount: () => number;
   getCanPreviousPage: () => boolean;
   getCanNextPage: () => boolean;
+  firstPage: () => void;
+  lastPage: () => void;
   previousPage: () => void;
   nextPage: () => void;
   setPageSize: (size: number) => void;
@@ -30,7 +37,7 @@ interface DataTablePaginationProps {
 }
 
 const DEFAULT_ITEM_LABEL = { singular: "registro", plural: "registros" };
-const DEFAULT_PAGE_SIZES = [5, 10, 20] as const;
+const DEFAULT_PAGE_SIZES = [10, 25, 50, 100] as const;
 
 function normalizePageSizes(pageSizes: readonly number[], currentSize: number) {
   const sizes = Array.from(
@@ -102,24 +109,44 @@ export function DataTablePagination({
           <span className="min-w-24 text-center text-sm">
             Página {pageIndex + 1} de {pageCount}
           </span>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            aria-label="Página anterior"
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.previousPage()}
-          >
-            <ChevronLeftIcon data-icon="inline-start" aria-hidden="true" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            aria-label="Próxima página"
-            disabled={isPlaceholderData || !table.getCanNextPage()}
-            onClick={() => table.nextPage()}
-          >
-            <ChevronRightIcon data-icon="inline-start" aria-hidden="true" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="Primeira página"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.firstPage()}
+            >
+              <ChevronsLeftIcon data-icon="inline-start" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="Página anterior"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+            >
+              <ChevronLeftIcon data-icon="inline-start" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="Próxima página"
+              disabled={isPlaceholderData || !table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+            >
+              <ChevronRightIcon data-icon="inline-start" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="Última página"
+              disabled={isPlaceholderData || !table.getCanNextPage()}
+              onClick={() => table.lastPage()}
+            >
+              <ChevronsRightIcon data-icon="inline-start" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

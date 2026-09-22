@@ -146,3 +146,24 @@
     @apply font-sans;
   }
 }
+
+@media (max-width: 47.999rem) {
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="native-select"],
+  [data-slot="select-trigger"],
+  [data-slot="select-item"],
+  [data-slot="combobox-trigger"],
+  [data-slot="combobox-item"],
+  [data-slot="combobox-chip-input"],
+  [data-slot="command-input"] {
+    font-size: 0.875rem;
+  }
+
+  [data-slot="input"]::placeholder,
+  [data-slot="textarea"]::placeholder,
+  [data-slot="combobox-chip-input"]::placeholder,
+  [data-slot="command-input"]::placeholder {
+    font-size: 0.875rem;
+  }
+}

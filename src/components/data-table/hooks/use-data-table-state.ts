@@ -12,15 +12,19 @@ import {
 const SEARCH_DEBOUNCE_MS = 500
 
 interface UseDataTableStateOptions {
+  initialColumnVisibility?: ColumnVisibilityState
   initialPageSize?: number
 }
 
 export function useDataTableState({
-  initialPageSize = 5,
+  initialColumnVisibility = {},
+  initialPageSize = 10,
 }: UseDataTableStateOptions = {}) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>(
+    initialColumnVisibility,
+  )
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: initialPageSize,

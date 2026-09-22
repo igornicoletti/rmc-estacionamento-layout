@@ -10,7 +10,7 @@ import {
   tableFeatures,
 } from "@tanstack/react-table"
 
-import type { DataTableColumnMeta } from "@/components/data-table/data-table.types"
+import type { DataTableColumnMeta } from "@/components/data-table/core/data-table.types"
 
 export function createServerTableFeatures<TMeta extends object>() {
   return tableFeatures({

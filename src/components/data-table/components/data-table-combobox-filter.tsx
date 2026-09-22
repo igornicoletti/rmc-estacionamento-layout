@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import { XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -8,7 +9,9 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxTrigger,
 } from "@/components/ui/combobox"
+import { Button } from "@/components/ui/button"
 
 export interface DataTableComboboxFilterItem<TValue extends string> {
   label: string
@@ -57,20 +60,36 @@ export function DataTableComboboxFilter<TValue extends string>({
         className="w-full min-w-0 @sm/toolbar:w-fit @sm/toolbar:min-w-40 @sm/toolbar:max-w-sm @sm/toolbar:flex-none"
         data-slot="data-table-combobox-filter"
       >
-        <ComboboxInput
-          aria-label={ariaLabel}
-          className="w-full"
-          clearAriaLabel={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
-          placeholder={placeholder}
-          readOnly={!searchable}
-          showClear
-        />
+        <div className="flex w-full items-center gap-1">
+          <ComboboxTrigger
+            aria-label={ariaLabel}
+            render={<Button className="flex-1 justify-between" variant="outline" />}
+          >
+            {selectedItem?.label ?? placeholder}
+          </ComboboxTrigger>
+          {selectedItem ? (
+            <Button
+              aria-label={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+              onClick={() => onValueChange(undefined)}
+              size="icon"
+              variant="outline"
+            >
+              <XIcon aria-hidden="true" />
+            </Button>
+          ) : null}
+        </div>
       </div>
       <ComboboxContent
         anchor={anchorRef}
         aria-label={ariaLabel}
         className="w-max min-w-[max(var(--anchor-width),9rem)] max-w-(--available-width) data-[chips=true]:min-w-[max(var(--anchor-width),9rem)]"
       >
+        <ComboboxInput
+          aria-label={`Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+          placeholder="Buscar..."
+          readOnly={!searchable}
+          showClear
+        />
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {(item: DataTableComboboxFilterItem<TValue>) => (
@@ -78,7 +97,7 @@ export function DataTableComboboxFilter<TValue extends string>({
               <span className="min-w-0 flex-1 whitespace-nowrap">
                 {item.label}
               </span>
-              <Badge className="shrink-0 tabular-nums" variant="secondary">
+              <Badge className="shrink-0" variant="secondary">
                 {counts?.[item.value] ?? 0}
               </Badge>
             </ComboboxItem>

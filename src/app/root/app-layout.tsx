@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { Outlet, useMatches } from "react-router"
 
-import { APP_BROWSER_TITLE } from "@/app/app-config"
+import { APP_BROWSER_TITLE } from "@/app/config/app-config"
 import { isAppRouteHandle } from "@/app/routing/route-access"
 
 export function AppLayout() {

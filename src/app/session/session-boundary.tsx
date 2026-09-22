@@ -1,8 +1,8 @@
 import { WifiOffIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
-import { appCopy } from "@/app/app-copy"
-import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { appCopy } from "@/app/config/app-copy"
+import { AppRootLayout } from "@/app/layouts/app-root-layout"
 import { useSession } from "@/app/session/session-context"
 import { AppEmpty } from "@/components/common/app-empty"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ export function SessionUnavailableFallback({
   const feedback = appCopy.feedback.sessionUnavailable
 
   return (
-    <StandaloneLayout>
+    <AppRootLayout>
       <AppEmpty
         description={feedback.description}
         media={{ icon: WifiOffIcon }}
@@ -39,7 +39,7 @@ export function SessionUnavailableFallback({
         }
         title={feedback.title}
       />
-    </StandaloneLayout>
+    </AppRootLayout>
   )
 }
 

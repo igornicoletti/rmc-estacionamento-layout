@@ -1,8 +1,8 @@
 import { TriangleAlertIcon } from "lucide-react"
 import { Component, type ErrorInfo, type ReactNode } from "react"
 
-import { appCopy } from "@/app/app-copy"
-import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { appCopy } from "@/app/config/app-copy"
+import { AppRootLayout } from "@/app/layouts/app-root-layout"
 import { AppEmpty } from "@/components/common/app-empty"
 import { Button } from "@/components/ui/button"
 
@@ -47,7 +47,7 @@ export class AppErrorBoundary extends Component<
     const feedback = appCopy.feedback.applicationFailure
 
     return (
-      <StandaloneLayout>
+      <AppRootLayout>
         <AppEmpty
           description={feedback.description}
           media={{ icon: TriangleAlertIcon }}
@@ -58,7 +58,7 @@ export class AppErrorBoundary extends Component<
           }
           title={feedback.title}
         />
-      </StandaloneLayout>
+      </AppRootLayout>
     )
   }
 }

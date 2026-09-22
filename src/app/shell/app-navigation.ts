@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-import { appPages, type AppPageId } from "@/app/app-config"
+import { appPages, type AppPageId } from "@/app/config/app-config"
 
 function item(routeId: AppPageId, icon: LucideIcon) {
   const page = appPages[routeId]

@@ -1,4 +1,4 @@
-import { appPages } from "@/app/app-config"
+import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 
 export function AccountSecurityPage() {

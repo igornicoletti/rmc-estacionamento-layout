@@ -1,9 +1,9 @@
 import type { ReactNode } from "react"
 
-interface StandaloneLayoutProps {
+interface AppRootLayoutProps {
   children: ReactNode
 }
 
-export function StandaloneLayout({ children }: StandaloneLayoutProps) {
+export function AppRootLayout({ children }: AppRootLayoutProps) {
   return <main className="grid min-h-svh place-items-center p-6">{children}</main>
 }

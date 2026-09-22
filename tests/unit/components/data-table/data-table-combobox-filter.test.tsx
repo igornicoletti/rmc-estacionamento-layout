@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
-import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
+import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 
 const ITEMS = [
   { label: "A", value: "active" },
@@ -45,7 +45,7 @@ describe("DataTableComboboxFilter", () => {
     )
 
     await user.click(screen.getByRole("combobox"))
-    const options = screen.getAllByRole("option")
+    const options = await screen.findAllByRole("option")
     expect(options).toHaveLength(3)
 
     await user.click(options[2])
@@ -62,11 +62,7 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(
-      screen.getByRole("button", {
-        name: /.+/u,
-      }),
-    )
+    await user.click(screen.getByRole("button", { name: "Limpar filter" }))
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 
@@ -84,6 +80,6 @@ describe("DataTableComboboxFilter", () => {
 
     await user.click(screen.getByRole("combobox"))
 
-    expect(screen.getAllByRole("option")).toHaveLength(3)
+    expect(await screen.findAllByRole("option")).toHaveLength(3)
   })
 })

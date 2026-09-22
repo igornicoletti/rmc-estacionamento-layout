@@ -14,7 +14,7 @@ interface DataTableRowActionsProps {
   accessibleLabel: string;
   copyLabel: string;
   onCopy: () => void;
-  onView: () => void;
+  onView?: () => void;
 }
 
 export function DataTableRowActions({
@@ -35,10 +35,12 @@ export function DataTableRowActions({
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuItem onClick={onView}>
-              <EyeIcon aria-hidden="true" />
-              Ver detalhes
-            </DropdownMenuItem>
+            {onView ? (
+              <DropdownMenuItem onClick={onView}>
+                <EyeIcon aria-hidden="true" />
+                Ver detalhes
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem onClick={onCopy}>
               <CopyIcon aria-hidden="true" />
               {copyLabel}

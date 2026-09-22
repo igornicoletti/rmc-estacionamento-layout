@@ -1,17 +1,17 @@
 import { useState, type ReactNode } from "react"
 import { Outlet } from "react-router"
 
-import { appCopy } from "@/app/app-copy"
-import { appPages } from "@/app/app-config"
-import { navigationSections, primaryNavigation } from "@/app/app-navigation"
-import { shellPreviewData } from "@/app/app-preview"
+import { appCopy } from "@/app/config/app-copy"
+import { appPages } from "@/app/config/app-config"
+import { navigationSections, primaryNavigation } from "@/app/shell/app-navigation"
+import { shellPreviewData } from "@/app/shell/app-preview"
 import {
   AppNotifications,
   type AppNotificationItem,
   type AppNotificationsStatus,
-} from "@/app/components/app-notifications"
-import { AppToolbar } from "@/app/components/app-toolbar"
-import { AppUserMenu } from "@/app/components/app-user-menu"
+} from "@/app/shell/components/app-notifications"
+import { AppToolbar } from "@/app/shell/components/app-toolbar"
+import { AppUserMenu } from "@/app/shell/components/app-user-menu"
 import { useSession } from "@/app/session/session-context"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -79,7 +79,7 @@ export function AppShell({
           />
         </AppToolbar>
 
-        <div className="flex flex-1 flex-col p-6">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -1,6 +1,4 @@
 import { ChevronRightIcon } from "lucide-react"
-import { matchPath, useLocation } from "react-router"
-
 import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items"
 import type { SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
 import {
@@ -15,16 +13,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-type SidebarNavGroupProps = Pick<SidebarNavigationSection, "items" | "label">
+type SidebarNavGroupProps = Pick<SidebarNavigationSection, "items" | "label"> & {
+  onOpenChange: (open: boolean) => void
+  open: boolean
+}
 
-export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
-  const { pathname } = useLocation()
+export function SidebarNavGroup({
+  label,
+  items,
+  onOpenChange,
+  open,
+}: SidebarNavGroupProps) {
   const { isMobile, state } = useSidebar()
-  const hasActiveItem = items.some(
-    (item) =>
-      matchPath({ path: item.to, end: item.end ?? false }, pathname) !== null,
-  )
-  const activeStateKey = hasActiveItem ? "active" : "inactive"
 
   if (!isMobile && state === "collapsed") {
     return (
@@ -39,8 +39,8 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
   return (
     <Collapsible
       className="group/collapsible"
-      defaultOpen={hasActiveItem}
-      key={activeStateKey}
+      onOpenChange={onOpenChange}
+      open={open}
     >
       <SidebarGroup className="py-1">
         <SidebarGroupLabel render={<CollapsibleTrigger />}>

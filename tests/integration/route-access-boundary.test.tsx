@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import App from "@/app/app"
+import App from "@/app/root/app"
 import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import type { AppRouteHandle } from "@/app/routing/route-access"
 import { anonymousSession } from "@/app/session/session-types"

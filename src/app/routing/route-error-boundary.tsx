@@ -7,9 +7,9 @@ import {
 import { useEffect } from "react"
 import { useRouteError } from "react-router"
 
-import { appCopy } from "@/app/app-copy"
-import { APP_BROWSER_TITLE } from "@/app/app-config"
-import { StandaloneLayout } from "@/app/layouts/standalone-layout"
+import { appCopy } from "@/app/config/app-copy"
+import { APP_BROWSER_TITLE } from "@/app/config/app-config"
+import { AppRootLayout } from "@/app/layouts/app-root-layout"
 import {
   rootErrorKinds,
   type RootErrorKind,
@@ -29,7 +29,7 @@ export function RootErrorContent({ kind }: { kind: RootErrorKind }) {
   const Icon = errorIcons[kind]
 
   return (
-    <StandaloneLayout>
+    <AppRootLayout>
       <AppEmpty
         description={feedback.description}
         media={{ icon: Icon }}
@@ -42,7 +42,7 @@ export function RootErrorContent({ kind }: { kind: RootErrorKind }) {
         }
         title={feedback.title}
       />
-    </StandaloneLayout>
+    </AppRootLayout>
   )
 }
 

@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { DataTableColumnMeta } from "@/components/data-table/data-table.types";
+import type { DataTableColumnMeta } from "@/components/data-table/core/data-table.types";
 
 interface HideableColumn {
   id: string;
@@ -65,7 +65,7 @@ export function DataTableViewOptions({
         </TooltipTrigger>
         <TooltipContent role="tooltip">Exibir colunas</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Colunas visíveis</DropdownMenuLabel>
           {columns.map((column) => {
