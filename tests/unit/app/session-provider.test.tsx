@@ -213,6 +213,54 @@ describe("SessionProvider", () => {
     expect(queryClient.getQueryData(["shared"])).toBeUndefined()
   })
 
+  it("preserva sessão e cache quando o logout falha", async () => {
+    const queryClient = new QueryClient()
+    queryClient.setQueryData(["private"], "secret")
+    const current = {
+      status: "authenticated",
+      session: {
+        assurance: "aal1",
+        capabilities: [],
+        identity: { displayName: "Usuária", id: "user-1" },
+      },
+    } satisfies ResolvedSessionSnapshot
+    const commands: SessionCommands = {
+      getSession: vi.fn(),
+      refreshSession: vi.fn(),
+      signOut: vi.fn().mockRejectedValue(new Error("offline")),
+    }
+
+    function LogoutProbe() {
+      const { isSigningOut, signOut, snapshot } = useSession()
+
+      return (
+        <>
+          <output>{snapshot.status}</output>
+          <output>{isSigningOut ? "signing-out" : "idle"}</output>
+          <button onClick={() => void signOut().catch(() => undefined)}>
+            Sair
+          </button>
+        </>
+      )
+    }
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider commands={commands} initialSnapshot={current}>
+          <LogoutProbe />
+        </SessionProvider>
+      </QueryClientProvider>,
+    )
+
+    screen.getByRole("button", { name: "Sair" }).click()
+
+    await waitFor(() => expect(commands.signOut).toHaveBeenCalledOnce())
+    await waitFor(() => expect(screen.getByText("idle")).toBeInTheDocument())
+
+    expect(screen.getByText("authenticated")).toBeInTheDocument()
+    expect(queryClient.getQueryData(["private"])).toBe("secret")
+  })
+
   it("limpa cache reaproveitado quando o bootstrap resolve uma nova autoridade", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["stale-user"], "secret")

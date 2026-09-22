@@ -91,16 +91,20 @@ muda, queries em andamento são canceladas e o QueryClient é limpo antes do nov
 snapshot ser publicado, evitando reutilização de dados de outra identidade.
 
 O shell usa os primitives oficiais do shadcn/ui com Base UI e mantém regras de
-dados fora dos componentes visuais. Estados de carregamento, indisponibilidade e
-ações pendentes são contratos de apresentação e podem ser controlados por
-containers quando integrações reais forem adicionadas.
+dados fora dos componentes visuais. `AppShell` recebe dados e comandos por
+contrato; `AppShellRoute` é o adaptador temporário dos fixtures de preview.
+Estados de carregamento, indisponibilidade e ações pendentes continuam
+controlados fora dos componentes visuais.
 
-Antes de adicionar loaders privados, a autorização também deverá ocorrer antes
-da busca dos dados; um bloqueio de renderização por si só não protege loaders.
+Antes de adicionar loaders privados, a autorização deverá migrar para uma
+barreira executada antes dos loaders, como middleware de rota quando a integração
+real estiver definida e a API escolhida estiver estável para o caso de uso.
+O boundary visual atual não deve ser tratado como proteção de dados.
 
 ## Referências oficiais
 
 - [React Router](https://reactrouter.com/)
+- [React Router Middleware](https://reactrouter.com/how-to/middleware)
 - [TanStack Query](https://tanstack.com/query/latest)
 - [shadcn/ui Sidebar](https://ui.shadcn.com/docs/components/base/sidebar)
 - [Base UI](https://base-ui.com/react/overview/quick-start)

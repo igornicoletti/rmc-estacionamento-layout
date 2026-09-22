@@ -4,11 +4,20 @@ import type {
   SessionSnapshot,
 } from "@/app/session/session-types"
 
-export interface RouteAccessPolicy {
+interface AuthenticatedRouteRequirements {
   assurance?: SessionAssurance
-  authentication: "required" | "anonymous-only" | "either"
   capabilities?: readonly SessionCapability[]
 }
+
+export type RouteAccessPolicy =
+  | {
+      authentication: "anonymous-only"
+      assurance?: never
+      capabilities?: never
+    }
+  | ({
+      authentication: "required" | "either"
+    } & AuthenticatedRouteRequirements)
 
 export type RouteAccessDecision =
   | { kind: "allow" }
@@ -47,10 +56,22 @@ export function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy 
   const assurance = "assurance" in value ? value.assurance : undefined
   const capabilities =
     "capabilities" in value ? value.capabilities : undefined
+  const hasAuthenticatedRequirements =
+    assurance !== undefined ||
+    (Array.isArray(capabilities) && capabilities.length > 0)
+
+  if (
+    typeof authentication !== "string" ||
+    !authenticationModes.has(authentication)
+  ) {
+    return false
+  }
+
+  if (authentication === "anonymous-only" && hasAuthenticatedRequirements) {
+    return false
+  }
 
   return (
-    typeof authentication === "string" &&
-    authenticationModes.has(authentication) &&
     (assurance === undefined ||
       (typeof assurance === "string" && assuranceLevels.has(assurance))) &&
     (capabilities === undefined ||
@@ -87,6 +108,7 @@ export function evaluateRouteAccess(
   if (snapshot.status === "anonymous") {
     const hasAuthenticatedRequirements =
       policy.assurance !== undefined || (policy.capabilities?.length ?? 0) > 0
+
     return hasAuthenticatedRequirements ? { kind: "deny" } : { kind: "allow" }
   }
 

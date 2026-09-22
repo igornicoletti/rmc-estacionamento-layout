@@ -49,14 +49,24 @@ describe("evaluateRouteAccess", () => {
     ).toEqual({ kind: "deny" })
   })
 
-  it("nega políticas desconhecidas em runtime", () => {
-    const malformedPolicy = {
+  it("nega políticas desconhecidas ou contraditórias em runtime", () => {
+    const malformedAuthentication = {
       authentication: "unexpected",
     } as unknown as RouteAccessPolicy
+    const contradictoryAnonymousPolicy = {
+      authentication: "anonymous-only",
+      assurance: "aal2",
+    } as unknown as RouteAccessPolicy
 
-    expect(evaluateRouteAccess(authenticated, malformedPolicy)).toEqual({
-      kind: "deny",
-    })
+    expect(
+      evaluateRouteAccess(authenticated, malformedAuthentication),
+    ).toEqual({ kind: "deny" })
+    expect(
+      evaluateRouteAccess(
+        { status: "anonymous" },
+        contradictoryAnonymousPolicy,
+      ),
+    ).toEqual({ kind: "deny" })
   })
 
   it("só redireciona para autenticação quando o destino é configurado", () => {
