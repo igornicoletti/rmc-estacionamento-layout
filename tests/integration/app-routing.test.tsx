@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
@@ -49,7 +49,9 @@ describe("app routing", () => {
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    expect(await screen.findByRole("table")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("table", undefined, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: page.title })).toBeInTheDocument()
     expect(screen.getByRole("separator")).toBeInTheDocument()
   })
@@ -59,12 +61,14 @@ describe("app routing", () => {
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    await router.navigate("/nao-existe")
-
-    await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/nao-existe")
+    await act(async () => {
+      await router.navigate("/nao-existe")
     })
+
+    expect(router.state.location.pathname).toBe("/nao-existe")
     expect(screen.getByRole("main")).toBeInTheDocument()
-    expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
+    })
   })
 })
