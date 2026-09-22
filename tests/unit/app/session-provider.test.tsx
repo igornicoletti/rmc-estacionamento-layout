@@ -3,12 +3,13 @@ import { act, render, renderHook, screen, waitFor } from "@testing-library/react
 import { describe, expect, it, vi } from "vitest"
 
 import type { SessionCommands } from "@/app/session/session-commands"
-import { SessionProvider } from "@/app/session/session-provider"
 import { useSession } from "@/app/session/session-context"
+import { SessionProvider } from "@/app/session/session-provider"
 import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
 
 function SessionProbe() {
   const { refresh, snapshot } = useSession()
+
   return (
     <>
       <output>{snapshot.status}</output>
@@ -32,7 +33,6 @@ function renderSession(commands: SessionCommands) {
 describe("SessionProvider", () => {
   it("descarta refresh cancelado antes de alterar sessão ou limpar cache", async () => {
     const client = new QueryClient()
-    client.setQueryDefaults(["private"], { meta: { identityScoped: true } })
     client.setQueryData(["private"], "current-data")
     const current = {
       status: "authenticated",
@@ -63,8 +63,13 @@ describe("SessionProvider", () => {
       ),
     })
     let first!: Promise<void>
-    act(() => { first = result.current.refresh() })
-    await act(async () => { await result.current.refresh() })
+
+    act(() => {
+      first = result.current.refresh()
+    })
+    await act(async () => {
+      await result.current.refresh()
+    })
     await act(async () => {
       resolveStale({ status: "anonymous" })
       await first
@@ -133,7 +138,6 @@ describe("SessionProvider", () => {
 
   it("preserva a sessão autenticada quando o refresh falha", async () => {
     const queryClient = new QueryClient()
-    queryClient.setQueryDefaults(["private"], { meta: { identityScoped: true } })
     queryClient.setQueryData(["private"], "secret")
     const commands: SessionCommands = {
       getSession: vi.fn(),
@@ -166,11 +170,10 @@ describe("SessionProvider", () => {
     expect(queryClient.getQueryData(["private"])).toBe("secret")
   })
 
-  it("remove somente cache marcado como dependente de identidade", async () => {
+  it("limpa todo o cache ao encerrar uma autoridade autenticada", async () => {
     const queryClient = new QueryClient()
-    queryClient.setQueryDefaults(["private"], { meta: { identityScoped: true } })
     queryClient.setQueryData(["private"], "secret")
-    queryClient.setQueryData(["public"], "shared")
+    queryClient.setQueryData(["shared"], "shared")
     const commands: SessionCommands = {
       getSession: vi.fn(),
       refreshSession: vi.fn(),
@@ -203,7 +206,33 @@ describe("SessionProvider", () => {
     act(() => {
       screen.getByRole("button", { name: "Sair" }).click()
     })
-    await waitFor(() => expect(queryClient.getQueryData(["private"])).toBeUndefined())
-    expect(queryClient.getQueryData(["public"])).toBe("shared")
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["private"])).toBeUndefined(),
+    )
+    expect(queryClient.getQueryData(["shared"])).toBeUndefined()
+  })
+
+  it("limpa cache reaproveitado quando o bootstrap resolve uma nova autoridade", async () => {
+    const queryClient = new QueryClient()
+    queryClient.setQueryData(["stale-user"], "secret")
+    const commands: SessionCommands = {
+      getSession: vi.fn().mockResolvedValue({
+        status: "anonymous",
+      } satisfies ResolvedSessionSnapshot),
+      refreshSession: vi.fn(),
+      signOut: vi.fn(),
+    }
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider commands={commands}>
+          <SessionProbe />
+        </SessionProvider>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText("anonymous")).toBeInTheDocument()
+    expect(queryClient.getQueryData(["stale-user"])).toBeUndefined()
   })
 })

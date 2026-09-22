@@ -20,7 +20,6 @@ export const appQueryClientConfig = {
     queries: {
       gcTime: 10 * MINUTE,
       refetchOnReconnect: true,
-      refetchOnWindowFocus: false,
       retry: shouldRetryQuery,
       retryDelay: (attemptIndex: number) =>
         Math.min(SECOND * 2 ** attemptIndex, 30 * SECOND),

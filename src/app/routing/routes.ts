@@ -1,9 +1,9 @@
 import { createElement, type ComponentType } from "react"
 import type { RouteObject } from "react-router"
 
+import { appPages, type AppPageId } from "@/app/app-config"
 import { AppLayout } from "@/app/app-layout"
 import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
-import { appPages, type AppPageId } from "@/app/app-config"
 import type { AppRouteHandle } from "@/app/routing/route-access"
 import {
   RootErrorBoundary,
@@ -43,7 +43,7 @@ function createPageRoute(id: AppPageId): RouteObject {
   const page = appPages[id]
   const Component = pageComponents[id]
   const handle = {
-    access: { authentication: "either" },
+    access: page.access,
     routeId: id,
     title: page.title,
   } satisfies AppRouteHandle

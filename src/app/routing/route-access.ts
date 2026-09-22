@@ -52,8 +52,7 @@ export function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy 
     typeof authentication === "string" &&
     authenticationModes.has(authentication) &&
     (assurance === undefined ||
-      (typeof assurance === "string" &&
-        assuranceLevels.has(assurance))) &&
+      (typeof assurance === "string" && assuranceLevels.has(assurance))) &&
     (capabilities === undefined ||
       (Array.isArray(capabilities) &&
         capabilities.every((capability) => typeof capability === "string")))
@@ -94,17 +93,45 @@ export function evaluateRouteAccess(
   if (policy.assurance) {
     const actualRank = assuranceRank[snapshot.session.assurance]
     const requiredRank = assuranceRank[policy.assurance]
+
     if (!actualRank || !requiredRank || actualRank < requiredRank) {
       return { kind: "deny" }
     }
   }
 
   const capabilities = new Set(snapshot.session.capabilities)
+
   if (policy.capabilities?.some((capability) => !capabilities.has(capability))) {
     return { kind: "deny" }
   }
 
   return { kind: "allow" }
+}
+
+export function evaluateRouteAccessPolicies(
+  snapshot: SessionSnapshot,
+  policies: readonly RouteAccessPolicy[],
+  options: RouteAccessOptions = {},
+): RouteAccessDecision {
+  if (policies.length === 0) {
+    return { kind: "deny" }
+  }
+
+  let redirect: Extract<RouteAccessDecision, { kind: "redirect" }> | undefined
+
+  for (const policy of policies) {
+    const decision = evaluateRouteAccess(snapshot, policy, options)
+
+    if (decision.kind === "deny" || decision.kind === "pending") {
+      return decision
+    }
+
+    if (decision.kind === "redirect") {
+      redirect ??= decision
+    }
+  }
+
+  return redirect ?? { kind: "allow" }
 }
 
 export interface AppRouteHandle {

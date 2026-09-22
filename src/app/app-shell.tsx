@@ -61,9 +61,9 @@ export function AppShell({ children }: AppShellProps) {
           />
         </SidebarHeaderBar>
 
-        <main className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
+        <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

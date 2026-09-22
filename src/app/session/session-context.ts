@@ -4,6 +4,7 @@ import type { SessionSnapshot } from "@/app/session/session-types"
 
 export interface SessionContextValue {
   isRefreshing: boolean
+  isSigningOut: boolean
   refresh: () => Promise<void>
   signOut: () => Promise<void>
   snapshot: SessionSnapshot

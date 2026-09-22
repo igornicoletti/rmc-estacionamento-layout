@@ -14,12 +14,12 @@ describe("query policy", () => {
     expect(shouldRetryQuery(2, new TypeError("network"))).toBe(false)
   })
 
-  it("declara defaults seguros", () => {
+  it("declara defaults seguros sem desativar revalidação por foco", () => {
     const defaults = createAppQueryClient().getDefaultOptions()
 
     expect(defaults.mutations?.retry).toBe(false)
     expect(defaults.queries?.staleTime).toBe(30_000)
     expect(defaults.queries?.gcTime).toBe(600_000)
-    expect(defaults.queries?.refetchOnWindowFocus).toBe(false)
+    expect(defaults.queries?.refetchOnWindowFocus).toBeUndefined()
   })
 })

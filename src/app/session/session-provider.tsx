@@ -29,8 +29,19 @@ interface SessionProviderProps {
   initialSnapshot?: SessionSnapshot
 }
 
-function isIdentityScoped(meta: Record<string, unknown> | undefined) {
-  return meta?.identityScoped === true
+function isSameAuthority(
+  current: SessionSnapshot,
+  next: ResolvedSessionSnapshot,
+) {
+  if (current.status === "anonymous" && next.status === "anonymous") {
+    return true
+  }
+
+  return (
+    current.status === "authenticated" &&
+    next.status === "authenticated" &&
+    current.session.identity.id === next.session.identity.id
+  )
 }
 
 export function SessionProvider({
@@ -39,12 +50,19 @@ export function SessionProvider({
   initialSnapshot,
 }: SessionProviderProps) {
   const queryClient = useQueryClient()
-  const [snapshot, setSnapshot] = useState<SessionSnapshot>(
+  const [snapshot, setSnapshotState] = useState<SessionSnapshot>(
     initialSnapshot ?? bootstrappingSession,
   )
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const snapshotRef = useRef(snapshot)
   const authorityEpochRef = useRef(0)
   const activeControllerRef = useRef<AbortController | null>(null)
+
+  const setSnapshot = useCallback((next: SessionSnapshot) => {
+    snapshotRef.current = next
+    setSnapshotState(next)
+  }, [])
 
   const beginAuthorityOperation = useCallback(() => {
     activeControllerRef.current?.abort()
@@ -63,14 +81,9 @@ export function SessionProvider({
     [],
   )
 
-  const clearIdentityScopedCache = useCallback(async () => {
-    const filters = {
-      predicate: (query: { meta?: Record<string, unknown> }) =>
-        isIdentityScoped(query.meta),
-    }
-
-    await queryClient.cancelQueries(filters)
-    queryClient.removeQueries(filters)
+  const clearAuthorityCache = useCallback(async () => {
+    await queryClient.cancelQueries()
+    queryClient.clear()
   }, [queryClient])
 
   const commitSnapshot = useCallback(
@@ -83,20 +96,15 @@ export function SessionProvider({
         return
       }
 
-      const previousIdentity =
-        snapshot.status === "authenticated" ? snapshot.session.identity.id : null
-      const nextIdentity =
-        next.status === "authenticated" ? next.session.identity.id : null
-
-      if (previousIdentity && previousIdentity !== nextIdentity) {
-        await clearIdentityScopedCache()
+      if (!isSameAuthority(snapshotRef.current, next)) {
+        await clearAuthorityCache()
       }
 
       if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
         setSnapshot(next)
       }
     },
-    [clearIdentityScopedCache, snapshot],
+    [clearAuthorityCache, setSnapshot],
   )
 
   useEffect(
@@ -118,11 +126,7 @@ export function SessionProvider({
 
     void commands
       .getSession(controller.signal)
-      .then((next) => {
-        if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
-          setSnapshot(next)
-        }
-      })
+      .then((next) => commitSnapshot(next, controller, epoch))
       .catch(() => {
         if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
           setSnapshot({ status: "unavailable" })
@@ -134,21 +138,26 @@ export function SessionProvider({
 
     return () => {
       controller.abort()
+
       if (activeControllerRef.current === controller) {
         activeControllerRef.current = null
       }
+
       authorityEpochRef.current += 1
     }
   }, [
     beginAuthorityOperation,
     commands,
+    commitSnapshot,
     finishAuthorityOperation,
     initialSnapshot,
+    setSnapshot,
   ])
 
   const refresh = useCallback(async () => {
     const controller = beginAuthorityOperation()
     const epoch = ++authorityEpochRef.current
+    setIsSigningOut(false)
     setIsRefreshing(true)
 
     try {
@@ -156,6 +165,7 @@ export function SessionProvider({
       await commitSnapshot(next, controller, epoch)
     } finally {
       finishAuthorityOperation(controller)
+
       if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
         setIsRefreshing(false)
       }
@@ -171,12 +181,13 @@ export function SessionProvider({
     const controller = beginAuthorityOperation()
     const epoch = ++authorityEpochRef.current
     setIsRefreshing(false)
+    setIsSigningOut(true)
 
     try {
       await commands.signOut(controller.signal)
 
       if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
-        await clearIdentityScopedCache()
+        await clearAuthorityCache()
       }
 
       if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
@@ -184,17 +195,28 @@ export function SessionProvider({
       }
     } finally {
       finishAuthorityOperation(controller)
+
+      if (!controller.signal.aborted && epoch === authorityEpochRef.current) {
+        setIsSigningOut(false)
+      }
     }
   }, [
     beginAuthorityOperation,
-    clearIdentityScopedCache,
+    clearAuthorityCache,
     commands,
     finishAuthorityOperation,
+    setSnapshot,
   ])
 
   const value = useMemo<SessionContextValue>(
-    () => ({ isRefreshing, refresh, signOut, snapshot }),
-    [isRefreshing, refresh, signOut, snapshot],
+    () => ({
+      isRefreshing,
+      isSigningOut,
+      refresh,
+      signOut,
+      snapshot,
+    }),
+    [isRefreshing, isSigningOut, refresh, signOut, snapshot],
   )
 
   return (

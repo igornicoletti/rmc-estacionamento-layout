@@ -1,9 +1,12 @@
 import { Navigate, Outlet, useLocation, useMatches } from "react-router"
 
-import { evaluateRouteAccess, isAppRouteHandle } from "@/app/routing/route-access"
+import {
+  evaluateRouteAccessPolicies,
+  isAppRouteHandle,
+} from "@/app/routing/route-access"
+import { RootErrorContent } from "@/app/routing/route-error-boundary"
 import { SessionBootstrapFallback } from "@/app/session/session-boundary"
 import { useSession } from "@/app/session/session-context"
-import { RootErrorContent } from "@/app/routing/route-error-boundary"
 
 interface RouteAccessBoundaryProps {
   authenticationPath?: string
@@ -15,11 +18,11 @@ export function RouteAccessBoundary({
   const location = useLocation()
   const matches = useMatches()
   const { snapshot } = useSession()
-  const handle = [...matches]
-    .reverse()
+  const policies = matches
     .map((match) => match.handle)
-    .find(isAppRouteHandle)
-  const decision = evaluateRouteAccess(snapshot, handle?.access, {
+    .filter(isAppRouteHandle)
+    .map((handle) => handle.access)
+  const decision = evaluateRouteAccessPolicies(snapshot, policies, {
     authenticationPath,
   })
 
