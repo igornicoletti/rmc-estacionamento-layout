@@ -214,7 +214,7 @@ export function UnitsDataTable() {
 
       if (!items.has(value)) {
         items.set(value, {
-          group: unit.stateCode,
+          group: unit.state,
           label: unit.city,
           value,
         });
@@ -315,7 +315,8 @@ export function UnitsDataTable() {
           counts={cityCounts}
           items={cityItems}
           onValueChange={handleCityFilterChange}
-          placeholder="Cidade"
+          placeholder="Todas as cidades"
+          searchPlaceholder="Buscar cidade..."
           value={cityFilter}
         />
       </DataTableToolbar>
