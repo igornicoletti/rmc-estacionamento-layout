@@ -312,10 +312,12 @@ export function UnitsDataTable() {
         />
         <DataTableComboboxFilter
           ariaLabel="Filtrar por cidade"
+          clearAriaLabel="Limpar filtro de cidade"
           counts={cityCounts}
           items={cityItems}
           onValueChange={handleCityFilterChange}
           placeholder="Todas as cidades"
+          searchAriaLabel="Buscar cidade"
           searchPlaceholder="Buscar cidade..."
           value={cityFilter}
         />
