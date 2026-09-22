@@ -1,21 +1,31 @@
-import { useRef } from "react"
+import { Fragment, useRef } from "react"
 import { XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Combobox,
+  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
+  ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
+  ComboboxLabel,
   ComboboxList,
+  ComboboxSeparator,
   ComboboxTrigger,
 } from "@/components/ui/combobox"
-import { Button } from "@/components/ui/button"
 
 export interface DataTableComboboxFilterItem<TValue extends string> {
+  group?: string
   label: string
   value: TValue
+}
+
+interface DataTableComboboxFilterGroup<TValue extends string> {
+  items: DataTableComboboxFilterItem<TValue>[]
+  value: string
 }
 
 interface DataTableComboboxFilterProps<TValue extends string> {
@@ -27,6 +37,31 @@ interface DataTableComboboxFilterProps<TValue extends string> {
   placeholder: string
   searchable?: boolean
   value?: TValue
+}
+
+function groupItems<TValue extends string>(
+  items: DataTableComboboxFilterItem<TValue>[],
+): DataTableComboboxFilterGroup<TValue>[] | null {
+  const groups = new Map<string, DataTableComboboxFilterItem<TValue>[]>()
+
+  for (const item of items) {
+    if (item.group === undefined) {
+      return null
+    }
+
+    const groupItems = groups.get(item.group)
+
+    if (groupItems) {
+      groupItems.push(item)
+    } else {
+      groups.set(item.group, [item])
+    }
+  }
+
+  return Array.from(groups, ([value, groupItems]) => ({
+    items: groupItems,
+    value,
+  }))
 }
 
 export function DataTableComboboxFilter<TValue extends string>({
@@ -47,26 +82,44 @@ export function DataTableComboboxFilter<TValue extends string>({
       (counts[item.value] ?? 0) > 0 ||
       item.value === value,
   )
+  const groupedItems = groupItems(availableItems)
+  const comboboxItems = groupedItems ?? availableItems
+  const renderItem = (item: DataTableComboboxFilterItem<TValue>) => (
+    <ComboboxItem className="pr-10" key={item.value} value={item}>
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      <Badge className="shrink-0" variant="secondary">
+        {counts?.[item.value] ?? 0}
+      </Badge>
+    </ComboboxItem>
+  )
 
   return (
     <Combobox
-      itemToStringValue={(item) => item.label}
-      items={availableItems}
+      items={comboboxItems}
       onValueChange={(item) => onValueChange(item?.value)}
       value={selectedItem}
     >
       <div
-        ref={anchorRef}
         className="w-full min-w-0 @sm/toolbar:w-fit @sm/toolbar:min-w-40 @sm/toolbar:max-w-sm @sm/toolbar:flex-none"
         data-slot="data-table-combobox-filter"
       >
         <div className="flex w-full items-center gap-1">
-          <ComboboxTrigger
-            aria-label={ariaLabel}
-            render={<Button className="flex-1 justify-between" variant="outline" />}
-          >
-            {selectedItem?.label ?? placeholder}
-          </ComboboxTrigger>
+          <div ref={anchorRef} className="min-w-0 flex-1">
+            <ComboboxTrigger
+              aria-label={ariaLabel}
+              render={
+                <Button
+                  className="w-full min-w-0 justify-between"
+                  variant="outline"
+                />
+              }
+            >
+              <span className="min-w-0 flex-1 truncate text-left">
+                {selectedItem?.label ?? placeholder}
+              </span>
+            </ComboboxTrigger>
+          </div>
+
           {selectedItem ? (
             <Button
               aria-label={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
@@ -79,29 +132,33 @@ export function DataTableComboboxFilter<TValue extends string>({
           ) : null}
         </div>
       </div>
+
       <ComboboxContent
         anchor={anchorRef}
         aria-label={ariaLabel}
-        className="w-max min-w-[max(var(--anchor-width),9rem)] max-w-(--available-width) data-[chips=true]:min-w-[max(var(--anchor-width),9rem)]"
+        className="w-(--anchor-width) min-w-(--anchor-width) max-w-(--anchor-width)"
       >
         <ComboboxInput
           aria-label={`Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+          clearAriaLabel="Limpar busca"
           placeholder="Buscar..."
           readOnly={!searchable}
-          showClear
+          showClear={searchable}
+          showTrigger={false}
         />
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
-          {(item: DataTableComboboxFilterItem<TValue>) => (
-            <ComboboxItem className="pr-10" key={item.value} value={item}>
-              <span className="min-w-0 flex-1 whitespace-nowrap">
-                {item.label}
-              </span>
-              <Badge className="shrink-0" variant="secondary">
-                {counts?.[item.value] ?? 0}
-              </Badge>
-            </ComboboxItem>
-          )}
+          {groupedItems
+            ? (group: DataTableComboboxFilterGroup<TValue>, index: number) => (
+                <Fragment key={group.value}>
+                  {index > 0 ? <ComboboxSeparator /> : null}
+                  <ComboboxGroup items={group.items}>
+                    <ComboboxLabel>{group.value}</ComboboxLabel>
+                    <ComboboxCollection>{renderItem}</ComboboxCollection>
+                  </ComboboxGroup>
+                </Fragment>
+              )
+            : renderItem}
         </ComboboxList>
       </ComboboxContent>
     </Combobox>
