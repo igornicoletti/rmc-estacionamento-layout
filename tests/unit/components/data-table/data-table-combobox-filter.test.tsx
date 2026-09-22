@@ -33,7 +33,7 @@ describe("DataTableComboboxFilter", () => {
 
     await user.click(screen.getByRole("combobox"))
 
-    expect(screen.getAllByRole("option")).toHaveLength(2)
+    expect(await screen.findAllByRole("option")).toHaveLength(2)
   })
 
   it("encaminha seleção e limpeza", async () => {
