@@ -1,5 +1,10 @@
 /* eslint-disable react-refresh/only-export-components -- presentation mapper is tested as boundary policy */
-import { FileQuestion, ShieldX, TriangleAlert } from "lucide-react"
+import {
+  FileQuestion,
+  ShieldX,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react"
 import { isRouteErrorResponse, useRouteError } from "react-router"
 
 import { Button } from "@/components/ui/button"
@@ -60,7 +65,7 @@ const rootErrorIcons = {
   forbidden: ShieldX,
   "not-found": FileQuestion,
   unexpected: TriangleAlert,
-} satisfies Record<RootErrorPresentation["kind"], typeof TriangleAlert>
+} satisfies Record<RootErrorPresentation["kind"], LucideIcon>
 
 export function RootErrorContent({
   presentation,
