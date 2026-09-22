@@ -11,7 +11,7 @@ interface SessionBootstrapBoundaryProps {
 export function SessionBootstrapBoundary({
   children,
 }: SessionBootstrapBoundaryProps) {
-  const { refresh, snapshot } = useSession()
+  const { isRefreshing, refresh, snapshot } = useSession()
 
   if (snapshot.status === "bootstrapping") {
     return <SessionBootstrapFallback />
@@ -20,6 +20,7 @@ export function SessionBootstrapBoundary({
   if (snapshot.status === "unavailable") {
     return (
       <SessionUnavailableFallback
+        isRetrying={isRefreshing}
         onRetry={() => void refresh().catch(() => undefined)}
       />
     )

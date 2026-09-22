@@ -1,10 +1,15 @@
 /* eslint-disable react-refresh/only-export-components -- presentation mapper is tested as boundary policy */
+import { FileQuestion, ShieldX, TriangleAlert } from "lucide-react"
 import { isRouteErrorResponse, useRouteError } from "react-router"
 
+import { Button } from "@/components/ui/button"
+
+import { AppEmptyState } from "../../fallbacks/app-empty-state"
 import { StandaloneLayout } from "../../layouts/standalone-layout"
 
 export interface RootErrorPresentation {
   description: string
+  kind: "forbidden" | "not-found" | "unexpected"
   title: string
 }
 
@@ -31,6 +36,7 @@ export function getRootErrorPresentation(error: unknown): RootErrorPresentation 
   if (status === 403) {
     return {
       description: "Você não tem permissão para acessar este conteúdo.",
+      kind: "forbidden",
       title: "Acesso não permitido",
     }
   }
@@ -38,36 +44,45 @@ export function getRootErrorPresentation(error: unknown): RootErrorPresentation 
   if (status === 404) {
     return {
       description: "O conteúdo solicitado não existe ou não está disponível.",
+      kind: "not-found",
       title: "Conteúdo não encontrado",
     }
   }
 
   return {
     description: "Ocorreu um erro inesperado. Tente novamente.",
+    kind: "unexpected",
     title: "Não foi possível carregar esta página",
   }
 }
+
+const rootErrorIcons = {
+  forbidden: ShieldX,
+  "not-found": FileQuestion,
+  unexpected: TriangleAlert,
+} satisfies Record<RootErrorPresentation["kind"], typeof TriangleAlert>
 
 export function RootErrorContent({
   presentation,
 }: {
   presentation: RootErrorPresentation
 }) {
+  const Icon = rootErrorIcons[presentation.kind]
+  const action =
+    presentation.kind === "unexpected" ? (
+      <Button onClick={() => window.location.reload()} type="button">
+        Tentar novamente
+      </Button>
+    ) : undefined
+
   return (
     <StandaloneLayout>
-      <div className="max-w-md text-center">
-        <h1 className="text-2xl font-semibold">{presentation.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {presentation.description}
-        </p>
-        <button
-          className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
-          onClick={() => window.location.reload()}
-          type="button"
-        >
-          Tentar novamente
-        </button>
-      </div>
+      <AppEmptyState
+        action={action}
+        description={presentation.description}
+        icon={Icon}
+        title={presentation.title}
+      />
     </StandaloneLayout>
   )
 }

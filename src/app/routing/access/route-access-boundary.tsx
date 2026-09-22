@@ -1,6 +1,9 @@
+import { ShieldX } from "lucide-react"
 import { Navigate, Outlet, useLocation, useMatches } from "react-router"
 
+import { AppEmptyState } from "../../fallbacks/app-empty-state"
 import { StandaloneLayout } from "../../layouts/standalone-layout"
+import { SessionBootstrapFallback } from "../../session/session-bootstrap-fallback"
 import { useSession } from "../../session/use-session"
 import { isAppRouteHandle } from "../route-metadata"
 import { evaluateRouteAccess } from "./route-access-policy"
@@ -38,17 +41,16 @@ export function RouteAccessBoundary({
   }
 
   if (decision.kind === "pending") {
-    return null
+    return <SessionBootstrapFallback />
   }
 
   return (
     <StandaloneLayout>
-      <div className="max-w-md text-center">
-        <h1 className="text-2xl font-semibold">Acesso não permitido</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Você não tem permissão para acessar este conteúdo.
-        </p>
-      </div>
+      <AppEmptyState
+        description="Você não tem permissão para acessar este conteúdo."
+        icon={ShieldX}
+        title="Acesso não permitido"
+      />
     </StandaloneLayout>
   )
 }

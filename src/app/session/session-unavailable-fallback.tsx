@@ -1,25 +1,40 @@
+import { WifiOff } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
+
+import { AppEmptyState } from "../fallbacks/app-empty-state"
+import { StandaloneLayout } from "../layouts/standalone-layout"
+
 interface SessionUnavailableFallbackProps {
+  isRetrying: boolean
   onRetry: () => void
 }
 
 export function SessionUnavailableFallback({
+  isRetrying,
   onRetry,
 }: SessionUnavailableFallbackProps) {
   return (
-    <main className="grid min-h-svh place-items-center p-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-2xl font-semibold">Sessão indisponível</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Não foi possível confirmar sua sessão. Tente novamente.
-        </p>
-        <button
-          className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
-          onClick={onRetry}
-          type="button"
-        >
-          Tentar novamente
-        </button>
-      </div>
-    </main>
+    <StandaloneLayout>
+      <AppEmptyState
+        action={
+          <Button
+            aria-busy={isRetrying}
+            disabled={isRetrying}
+            onClick={onRetry}
+            type="button"
+          >
+            {isRetrying ? (
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+            ) : null}
+            {isRetrying ? "Tentando novamente" : "Tentar novamente"}
+          </Button>
+        }
+        description="Não foi possível confirmar sua sessão. Tente novamente."
+        icon={WifiOff}
+        title="Sessão indisponível"
+      />
+    </StandaloneLayout>
   )
 }

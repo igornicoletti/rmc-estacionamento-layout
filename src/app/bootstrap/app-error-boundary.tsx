@@ -1,8 +1,14 @@
+import { TriangleAlert } from "lucide-react"
 import {
   Component,
   type ErrorInfo,
   type ReactNode,
 } from "react"
+
+import { Button } from "@/components/ui/button"
+
+import { AppEmptyState } from "../fallbacks/app-empty-state"
+import { StandaloneLayout } from "../layouts/standalone-layout"
 
 interface AppErrorBoundaryProps {
   children: ReactNode
@@ -40,23 +46,18 @@ export class AppErrorBoundary extends Component<
   render() {
     if (this.state.failed) {
       return (
-        <main className="grid min-h-svh place-items-center p-4">
-          <div className="max-w-md text-center">
-            <h1 className="text-2xl font-semibold">
-              Não foi possível iniciar a aplicação
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Recarregue a página para tentar novamente.
-            </p>
-            <button
-              className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
-              onClick={this.reload}
-              type="button"
-            >
-              Recarregar
-            </button>
-          </div>
-        </main>
+        <StandaloneLayout>
+          <AppEmptyState
+            action={
+              <Button onClick={this.reload} type="button">
+                Recarregar
+              </Button>
+            }
+            description="Recarregue a página para tentar novamente."
+            icon={TriangleAlert}
+            title="Não foi possível iniciar a aplicação"
+          />
+        </StandaloneLayout>
       )
     }
 

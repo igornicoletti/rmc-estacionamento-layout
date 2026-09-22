@@ -2,68 +2,128 @@
 
 ## Escopo e baseline
 
-Esta implementação confronta a auditoria arquitetural anexada com o estado do
-`rmc-estacionamento-layout`. O projeto `rmc-estacionamento` foi usado apenas
-como referência comportamental para sessão fail-closed, lifecycle cancelável,
-isolamento de cache e separação entre layout e autorização.
+Auditoria revisada em 21/09/2026 sobre a `main` do
+`rmc-estacionamento-layout`, partindo do commit
+`1c5ce598dee4c7a53df780d27af05a3c60742830`.
 
-Antes da mudança, `src/app` continha somente `app-providers.tsx`, compondo
-tooltip e toast. O entrypoint instalava esses providers diretamente e
-`src/App.tsx` era simultaneamente tratado como raiz e página inicial. Não havia
-router, sessão, Query Client nem boundaries globais.
+O escopo cobre a arquitetura de runtime em `src/app` e as dependências
+transversais necessárias para validar a implementação: React, React Router,
+TanStack Query e os primitives `Empty`, `Spinner` e `Button` já instalados
+em `src/components/ui`. Os primitives de `ui/` não foram personalizados.
 
-## Matriz de conformidade
+## Referências oficiais confrontadas
 
-| Área | Estado | Evidência da implementação |
+- shadcn/ui `Empty`: https://ui.shadcn.com/docs/components/base/empty
+- shadcn/ui `Spinner`: https://ui.shadcn.com/docs/components/base/spinner
+- React Error Boundaries: https://react.dev/reference/react/Component
+- React Router Error Boundaries:
+  https://reactrouter.com/how-to/error-boundary
+- TanStack Query retries:
+  https://tanstack.com/query/latest/docs/framework/react/guides/query-retries
+
+## Inventário de responsabilidades
+
+| Área | Owner | Responsabilidade |
 | --- | --- | --- |
-| Bootstrap | Resolvido | `bootstrap/app.tsx` é o composition root; `main.tsx` mantém apenas DOM e Strict Mode. |
-| Falha acima do router | Resolvido | `bootstrap/app-error-boundary.tsx` usa fallback independente e sanitizado. |
-| Providers | Resolvido | `providers/app-providers.tsx` apenas compõe infraestrutura transversal. |
-| Query | Resolvido | Client estável, defaults explícitos e mutations sem retry. |
-| Sessão | Estruturalmente preparado | Estados discriminados, comandos injetáveis, bootstrap cancelável e indisponibilidade distinta de anonimato. |
-| Routing | Resolvido | Router singleton, factory testável, rotas declarativas e root boundary. |
-| Acesso | Estruturalmente preparado | Policy pura e fail-closed; a única rota real continua pública. |
-| Layouts | Estruturalmente preparado | Layouts não executam fetch, sessão ou guards. |
-| Autorização server-side | Não verificável | Este repositório não contém backend ou endpoints protegidos. |
-| Integração de sessão real | Não verificável | A porta padrão resolve sessão anônima até existir autoridade externa. |
+| Bootstrap | `bootstrap/` | Composition root e erro acima do router. |
+| Fallback visual | `fallbacks/` | Composição visual reutilizável sem regra de sessão ou roteamento. |
+| Layout | `layouts/` | Estrutura visual; não decide autorização nem consulta dados. |
+| Providers | `providers/` | Infraestrutura transversal e Query Client. |
+| Routing | `routing/` | Árvore de rotas, metadata, erros de rota e políticas de acesso. |
+| Session | `session/` | Estado discriminado, lifecycle cancelável, refresh e logout. |
 
-## Decisões críticas
+## Achados da auditoria
 
-- A página `/` mantém `authentication: "either"`; não foi criada uma falsa
-  jornada de login.
-- `SessionProvider` possui estado e comandos, enquanto
-  `SessionBootstrapBoundary` possui a decisão visual.
-- Falha ao consultar a autoridade produz `unavailable`, nunca `anonymous`.
-- Refresh é ortogonal ao snapshot, evitando desmontar uma sessão válida.
-- A porta de autoridade retorna somente estados resolvidos (`anonymous` ou
-  `authenticated`); bootstrap e indisponibilidade pertencem ao provider.
-- Logout e troca de identidade removem apenas queries marcadas com
-  `meta.identityScoped: true`; cache público é preservado.
-- `ProtectedLayout` não é guard. `RouteAccessBoundary` aplica políticas no
-  browser somente para experiência; não concede autorização de backend.
-- `route-access-fallback`, `root-hydrate-fallback` e `public-layout` foram
-  omitidos porque os estados correspondentes ainda não existem.
-- Políticas inválidas são negadas em runtime, e uma rota protegida só pode
-  redirecionar quando o destino de autenticação for configurado explicitamente.
-- Retry de queries é limitado a status HTTP transitórios conhecidos; erros sem
-  classificação falham sem repetição.
+### 1. Fallbacks visuais duplicados
 
-## Riscos residuais e próximos gates
+Antes desta revisão, erro global, erro de rota, acesso negado e sessão
+indisponível repetiam marcação, tipografia e botões HTML dentro de quatro
+boundaries diferentes. A duplicação misturava decisão de estado com
+apresentação e ignorava o primitive `Empty` já presente no projeto.
 
-1. Substituir `anonymousSessionCommands` por uma implementação de autoridade
-   apenas quando existir contrato HTTP definido, timeout, validação de payload e
-   testes positivos/negativos.
-2. Registrar queries privadas com `meta.identityScoped: true`; sem essa marcação
-   não há como inferir com segurança a confidencialidade do cache.
-3. Adicionar rotas protegidas somente com capabilities e assurance reais.
-4. Validar autorização em cada request no backend; esconder rota ou botão não
-   protege recurso.
-5. Criar fallbacks condicionais somente quando hydration ou decisão assíncrona
-   de acesso forem introduzidas.
+**Correção:** `fallbacks/app-empty-state.tsx` passa a compor
+`EmptyHeader`, `EmptyMedia`, `EmptyTitle`, `EmptyDescription` e
+`EmptyContent`. Os callers continuam donos de ícone, mensagem e ação.
+
+### 2. Bootstrap não utilizava indicador de loading
+
+`SessionBootstrapFallback` apresentava apenas o texto `Carregando…`.
+O shadcn/ui define `Spinner` como o primitive para estado de carregamento.
+
+**Correção:** o fallback agora usa `Spinner` com `role="status"` herdado do
+primitive, nome acessível específico e região marcada com `aria-busy`.
+
+### 3. Estado `pending` de acesso podia renderizar vazio
+
+`RouteAccessBoundary` retornava `null` quando a policy devolvia
+`pending`. O `SessionBootstrapBoundary` global normalmente intercepta esse
+estado, mas o boundary isolado ainda possuía um caminho visual vazio.
+
+**Correção:** `pending` reutiliza `SessionBootstrapFallback`.
+
+### 4. Retry de sessão não explicitava concorrência na UI
+
+O provider já abortava a operação de autoridade anterior, porém o fallback
+continuava permitindo interação durante `refresh`.
+
+**Correção:** `SessionBootstrapBoundary` propaga `isRefreshing`; o botão de
+retry fica desabilitado e exibe `Spinner` enquanto a consulta está em curso.
+
+### 5. Ações inadequadas para estados não recuperáveis por reload
+
+O antigo `RootErrorContent` exibia `Tentar novamente` inclusive para 403 e
+404. Recarregar a mesma URL não corrige ausência de permissão nem rota
+inexistente.
+
+**Correção:** retry permanece apenas para erro inesperado. 403 e 404 usam
+`Empty` informativo sem ação artificial.
+
+## Matriz de conformidade após a implementação
+
+| Área | Estado | Evidência |
+| --- | --- | --- |
+| Error Boundary acima do router | Conforme | `AppErrorBoundary` mantém `getDerivedStateFromError`/`componentDidCatch` e delega apenas o visual. |
+| Root route boundary | Conforme | `RootErrorBoundary` usa `useRouteError` e sanitiza 403/404/erro inesperado. |
+| Empty states | Conforme | Estados de erro/indisponibilidade usam `AppEmptyState` sobre o primitive oficial `Empty`. |
+| Loading global | Conforme | `SessionBootstrapFallback` usa `Spinner` e semântica de status. |
+| Retry de sessão | Conforme | Ação é bloqueada durante refresh e expõe estado em progresso. |
+| Policy de acesso | Conforme | Continua pura e fail-closed; visual não concede autorização. |
+| Query retries | Conforme | Retry segue limitado a 408, 429 e 5xx, com máximo de duas repetições e backoff limitado. |
+| Cache por identidade | Conforme | Somente queries marcadas com `meta.identityScoped` são removidas. |
+| Backend authorization | Fora do escopo | Este repositório não contém autoridade server-side. |
+
+## Testes e gates
+
+Foi adicionado teste focado em comportamento de usabilidade para:
+
+- anúncio acessível do bootstrap;
+- bloqueio de novo retry enquanto o refresh está em curso;
+- presença do indicador de progresso durante retry.
+
+Os testes existentes continuam cobrindo sanitização do erro global, recuperação
+manual, política fail-closed, 404 de deep link e lifecycle de sessão.
+
+Gates locais obrigatórios após sincronizar a `main`:
+
+```bash
+npm run check
+npm run test:e2e:deterministic
+```
+
+## Riscos residuais
+
+1. `anonymousSessionCommands` continua sendo uma porta provisória até existir
+   contrato real da autoridade de sessão.
+2. Autorização do frontend continua sendo somente controle de experiência; cada
+   recurso protegido deve ser validado pelo backend.
+3. Queries privadas dependem da marcação explícita
+   `meta.identityScoped: true`.
+4. O repositório não possui workflow de CI versionado; portanto os gates acima
+   dependem de execução local enquanto esse pipeline não existir.
 
 ## Resultado
 
-`src/app` passa a ter owners explícitos para bootstrap, providers, sessão,
-routing, acesso e layouts. A implementação materializa os contratos presentes
-sem deslocar regras de feature para a infraestrutura global e sem representar
-o frontend como autoridade de segurança.
+`src/app` passa a separar decisão de estado e apresentação, utiliza os
+primitives oficiais já instalados para empty/loading states, não duplica
+fallbacks visuais e mantém regras de sessão, roteamento e autorização fora do
+componente de apresentação.
