@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react"
 
 interface SortableColumn {
   getCanSort: () => boolean
@@ -22,7 +22,7 @@ export function DataTableColumnHeader({ column, title }: DataTableColumnHeaderPr
       ? ArrowUpIcon
       : sorted === "desc"
         ? ArrowDownIcon
-        : ChevronsUpDownIcon
+        : ArrowUpDownIcon
 
   return (
     <button
