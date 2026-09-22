@@ -30,12 +30,14 @@ interface DataTableComboboxFilterGroup<TValue extends string> {
 
 interface DataTableComboboxFilterProps<TValue extends string> {
   ariaLabel: string
+  clearAriaLabel?: string
   counts?: Partial<Record<TValue, number>>
   emptyMessage?: string
   items: ReadonlyArray<DataTableComboboxFilterItem<TValue>>
   onValueChange: (value: TValue | undefined) => void
   placeholder: string
   searchable?: boolean
+  searchAriaLabel?: string
   searchPlaceholder?: string
   value?: TValue
 }
@@ -67,12 +69,14 @@ function groupItems<TValue extends string>(
 
 export function DataTableComboboxFilter<TValue extends string>({
   ariaLabel,
+  clearAriaLabel = `Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`,
   counts,
   emptyMessage = "Nenhum resultado.",
   items,
   onValueChange,
   placeholder,
   searchable = true,
+  searchAriaLabel = `Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`,
   searchPlaceholder = "Buscar...",
   value,
 }: DataTableComboboxFilterProps<TValue>) {
@@ -129,7 +133,7 @@ export function DataTableComboboxFilter<TValue extends string>({
 
           {selectedItem ? (
             <Button
-              aria-label={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+              aria-label={clearAriaLabel}
               onClick={() => onValueChange(undefined)}
               size="icon"
               variant="outline"
@@ -146,9 +150,9 @@ export function DataTableComboboxFilter<TValue extends string>({
         className="w-(--anchor-width) min-w-(--anchor-width) max-w-(--available-width)"
       >
         <ComboboxInput
-          aria-label={`Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+          aria-label={searchAriaLabel}
           className="[&_[data-slot=input]]:text-sm"
-          clearAriaLabel={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+          clearAriaLabel={clearAriaLabel}
           placeholder={searchPlaceholder}
           readOnly={!searchable}
           showClear={selectedItem !== null}
