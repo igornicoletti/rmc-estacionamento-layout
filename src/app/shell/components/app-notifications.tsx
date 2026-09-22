@@ -4,7 +4,13 @@ import {
   CheckCheckIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useEffect, useRef, useState, type MouseEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react"
 import { Link, type To } from "react-router"
 
 import {
@@ -80,7 +86,7 @@ export function AppNotifications({
     notificationPreviewLimit,
   )
 
-  const updateMobileAlignOffset = () => {
+  const updateMobileAlignOffset = useCallback(() => {
     if (!isMobile || !triggerRef.current) {
       setMobileAlignOffset(0)
       return
@@ -89,7 +95,7 @@ export function AppNotifications({
     const triggerBounds = triggerRef.current.getBoundingClientRect()
     const triggerCenter = triggerBounds.left + triggerBounds.width / 2
     setMobileAlignOffset(window.innerWidth / 2 - triggerCenter)
-  }
+  }, [isMobile])
 
   useEffect(() => {
     if (!open || !isMobile) {
@@ -100,7 +106,7 @@ export function AppNotifications({
     window.addEventListener("resize", updateMobileAlignOffset)
 
     return () => window.removeEventListener("resize", updateMobileAlignOffset)
-  }, [isMobile, open])
+  }, [isMobile, open, updateMobileAlignOffset])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
