@@ -12,6 +12,11 @@ const ITEMS = [
   { label: "C", value: "suspended" },
 ] as const
 
+const GROUPED_ITEMS = [
+  { group: "PR", label: "Curitiba", value: "pr-curitiba" },
+  { group: "SP", label: "Campinas", value: "sp-campinas" },
+] as const
+
 describe("DataTableComboboxFilter", () => {
   it("omite opções indisponíveis quando recebe facetas", async () => {
     const user = userEvent.setup()
@@ -81,5 +86,30 @@ describe("DataTableComboboxFilter", () => {
     await user.click(screen.getByRole("combobox"))
 
     expect(await screen.findAllByRole("option")).toHaveLength(3)
+  })
+
+  it("renderiza grupos e não duplica o gatilho no campo de busca", async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <DataTableComboboxFilter
+        ariaLabel="filter"
+        items={GROUPED_ITEMS}
+        onValueChange={vi.fn()}
+        placeholder="placeholder"
+      />,
+    )
+
+    await user.click(screen.getByRole("combobox", { name: "filter" }))
+
+    const searchInput = screen.getByLabelText("Buscar em filter")
+    const inputGroup = searchInput.closest('[data-slot="input-group"]')
+
+    expect(screen.getByText("PR")).toBeInTheDocument()
+    expect(screen.getByText("SP")).toBeInTheDocument()
+    expect(inputGroup?.querySelector('[data-slot="combobox-trigger"]')).toBeNull()
+    expect(
+      document.querySelectorAll('[data-slot="combobox-separator"]'),
+    ).toHaveLength(1)
   })
 })

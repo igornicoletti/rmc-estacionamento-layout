@@ -44,6 +44,10 @@ function normalizeSearch(value: string) {
     .toLocaleLowerCase("pt-BR");
 }
 
+function getCityFilterValue(unit: Unit) {
+  return `${unit.stateCode}:${unit.city}`;
+}
+
 async function copyUnitId(id: string) {
   try {
     await navigator.clipboard.writeText(id);
@@ -199,23 +203,40 @@ export function UnitsDataTable() {
       updatedAt: false,
     },
   });
-  const cityItems = useMemo(
-    () =>
-      Array.from(new Set(units.map((unit) => unit.city)))
-        .sort((left, right) => left.localeCompare(right, "pt-BR"))
-        .map((city) => ({ label: city, value: city })),
-    [],
-  );
-  const cityCounts = useMemo(
-    () =>
-      Object.fromEntries(
-        cityItems.map((item) => [
-          item.value,
-          units.filter((unit) => unit.city === item.value).length,
-        ]),
-      ),
-    [cityItems],
-  );
+  const cityItems = useMemo(() => {
+    const items = new Map<
+      string,
+      { group: string; label: string; value: string }
+    >();
+
+    for (const unit of units) {
+      const value = getCityFilterValue(unit);
+
+      if (!items.has(value)) {
+        items.set(value, {
+          group: unit.stateCode,
+          label: unit.city,
+          value,
+        });
+      }
+    }
+
+    return Array.from(items.values()).sort(
+      (left, right) =>
+        left.group.localeCompare(right.group, "pt-BR") ||
+        left.label.localeCompare(right.label, "pt-BR"),
+    );
+  }, []);
+  const cityCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    for (const unit of units) {
+      const value = getCityFilterValue(unit);
+      counts[value] = (counts[value] ?? 0) + 1;
+    }
+
+    return counts;
+  }, []);
   const handleCityFilterChange = (value: string | undefined) => {
     setCityFilter(value);
     state.onPaginationChange((current) => ({ ...current, pageIndex: 0 }));
@@ -223,7 +244,7 @@ export function UnitsDataTable() {
   const filteredUnits = useMemo(() => {
     const search = normalizeSearch(state.globalFilter);
     return units.filter((unit) => {
-      if (cityFilter && unit.city !== cityFilter) return false;
+      if (cityFilter && getCityFilterValue(unit) !== cityFilter) return false;
       if (!search) return true;
 
       return normalizeSearch(
