@@ -17,16 +17,14 @@ describe("ClientsDataTable", () => {
       screen.getByRole("combobox", { name: "Filtrar por cidade" }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("columnheader", { name: /Nome/u }),
+      screen.getByRole("button", { name: "Ordenar por Nome" }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("columnheader", { name: /CPF\/CNPJ/u }),
+      screen.getByRole("button", { name: "Ordenar por CPF/CNPJ" }),
     ).toBeInTheDocument()
     expect(
       screen.queryByRole("columnheader", { name: "Hash da origem" }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole("heading", { name: "Nenhum cliente disponível" }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole("status")).toBeInTheDocument()
   })
 })
