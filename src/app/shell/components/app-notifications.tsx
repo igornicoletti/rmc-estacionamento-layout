@@ -31,6 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export interface AppNotificationItem {
   dateTime: string
@@ -69,6 +70,7 @@ export function AppNotifications({
   viewAllTo,
 }: AppNotificationsProps) {
   const [open, setOpen] = useState(false)
+  const isMobile = useIsMobile()
   const copy = appCopy.toolbar.notifications
   const unreadCount = status === "ready" ? unreadNotifications.length : 0
   const previewNotifications = unreadNotifications.slice(
@@ -113,7 +115,10 @@ export function AppNotifications({
         ) : null}
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-96">
+      <PopoverContent
+        align={isMobile ? "center" : "end"}
+        className="w-[calc(100vw-2rem)] sm:w-96"
+      >
         <PopoverHeader className="flex-row items-center justify-between">
           <PopoverTitle>{copy.title}</PopoverTitle>
 
@@ -176,7 +181,7 @@ export function AppNotifications({
                     </ItemMedia>
                     <ItemContent>
                       <ItemTitle>{notification.title}</ItemTitle>
-                      <ItemDescription>
+                      <ItemDescription className="text-xs">
                         {notification.message}
                       </ItemDescription>
                     </ItemContent>
