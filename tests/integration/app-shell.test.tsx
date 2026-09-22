@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
@@ -8,6 +9,7 @@ import { anonymousSession } from "@/app/session/session-types"
 
 describe("app shell", () => {
   it("monta sidebar e abre grupos inativos sob demanda", async () => {
+    const user = userEvent.setup()
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
@@ -15,9 +17,11 @@ describe("app shell", () => {
     expect(
       await screen.findByRole("navigation", { name: "Navegação principal" }),
     ).toBeInTheDocument()
-    expect(screen.queryByRole("link", { name: "Unidades" })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("link", { name: "Unidades" }),
+    ).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByText("CADASTROS"))
+    await user.click(screen.getByRole("button", { name: "CADASTROS" }))
 
     expect(
       await screen.findByRole("link", { name: "Unidades" }),
@@ -37,6 +41,7 @@ describe("app shell", () => {
   })
 
   it("atualiza o preview de notificações sem duplicar ação", async () => {
+    const user = userEvent.setup()
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
@@ -44,9 +49,9 @@ describe("app shell", () => {
     const trigger = await screen.findByRole("button", {
       name: "Abrir notificações, 3 não lidas",
     })
-    fireEvent.click(trigger)
+    await user.click(trigger)
 
-    fireEvent.click(
+    await user.click(
       await screen.findByRole("button", { name: "Marcar todas como lidas" }),
     )
 

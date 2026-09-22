@@ -57,8 +57,7 @@ export function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy 
   const capabilities =
     "capabilities" in value ? value.capabilities : undefined
   const hasAuthenticatedRequirements =
-    assurance !== undefined ||
-    (Array.isArray(capabilities) && capabilities.length > 0)
+    assurance !== undefined || capabilities !== undefined
 
   if (
     typeof authentication !== "string" ||

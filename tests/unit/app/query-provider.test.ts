@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   createAppQueryClient,
+  getQueryRetryDelay,
   shouldRetryQuery,
 } from "@/app/query-client"
 
@@ -14,6 +15,17 @@ describe("query policy", () => {
     expect(shouldRetryQuery(2, new TypeError("network"))).toBe(false)
   })
 
+  it("respeita Retry-After antes de usar backoff exponencial", () => {
+    const throttled = new Response(null, {
+      headers: { "Retry-After": "7" },
+      status: 429,
+    })
+
+    expect(getQueryRetryDelay(0, throttled)).toBe(7_000)
+    expect(getQueryRetryDelay(0, new Error("offline"))).toBe(1_000)
+    expect(getQueryRetryDelay(10, new Error("offline"))).toBe(30_000)
+  })
+
   it("declara defaults seguros sem desativar revalidação por foco", () => {
     const defaults = createAppQueryClient().getDefaultOptions()
 
@@ -21,5 +33,6 @@ describe("query policy", () => {
     expect(defaults.queries?.staleTime).toBe(30_000)
     expect(defaults.queries?.gcTime).toBe(600_000)
     expect(defaults.queries?.refetchOnWindowFocus).toBeUndefined()
+    expect(defaults.queries?.retryDelay).toBe(getQueryRetryDelay)
   })
 })
