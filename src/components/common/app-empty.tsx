@@ -16,6 +16,7 @@ type AppEmptyMedia =
 
 interface AppEmptyProps extends Omit<ComponentProps<typeof Empty>, "title"> {
   description?: ReactNode
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
   media?: AppEmptyMedia
   primaryAction?: ReactNode
   secondaryAction?: ReactNode
@@ -24,6 +25,7 @@ interface AppEmptyProps extends Omit<ComponentProps<typeof Empty>, "title"> {
 
 export function AppEmpty({
   description,
+  headingLevel = 1,
   media,
   primaryAction,
   secondaryAction,
@@ -41,7 +43,7 @@ export function AppEmpty({
             {Icon ? <Icon aria-hidden="true" /> : media.avatar}
           </EmptyMedia>
         ) : null}
-        <EmptyTitle aria-level={1} role="heading">
+        <EmptyTitle aria-level={headingLevel} role="heading">
           {title}
         </EmptyTitle>
         {description ? (

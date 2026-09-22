@@ -1,0 +1,70 @@
+import { ChevronRightIcon } from "lucide-react"
+import { useState } from "react"
+import { matchPath, useLocation } from "react-router"
+
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import type { SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
+
+import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items"
+
+type SidebarNavGroupProps = Pick<SidebarNavigationSection, "items" | "label">
+
+export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
+  const { pathname } = useLocation()
+  const { isMobile, state } = useSidebar()
+  const hasActiveItem = items.some(
+    (item) =>
+      matchPath({ path: item.to, end: item.end ?? false }, pathname) !== null,
+  )
+  const [manualOpen, setManualOpen] = useState(true)
+  const open = hasActiveItem || manualOpen
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!hasActiveItem) {
+      setManualOpen(nextOpen)
+    }
+  }
+
+  if (!isMobile && state === "collapsed") {
+    return (
+      <SidebarGroup className="py-0.5">
+        <SidebarGroupContent>
+          <SidebarNavItems items={items} />
+        </SidebarGroupContent>
+      </SidebarGroup>
+    )
+  }
+
+  return (
+    <Collapsible
+      className="group/collapsible"
+      onOpenChange={handleOpenChange}
+      open={open}
+    >
+      <SidebarGroup className="py-0.5">
+        <SidebarGroupLabel render={<CollapsibleTrigger />}>
+          {label}
+          <ChevronRightIcon
+            aria-hidden="true"
+            className="ml-auto transition-transform motion-reduce:transition-none group-data-open/collapsible:rotate-90"
+          />
+        </SidebarGroupLabel>
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <SidebarNavItems items={items} />
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
+  )
+}

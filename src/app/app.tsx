@@ -1,19 +1,10 @@
-import type { QueryClient } from "@tanstack/react-query"
-import type { ComponentProps } from "react"
-import { RouterProvider } from "react-router/dom"
+import { RouterProvider, type RouterProviderProps } from "react-router/dom"
 
 import { AppErrorBoundary } from "@/app/app-error-boundary"
-import { AppProviders } from "@/app/app-providers"
-import type { SessionCommands } from "@/app/session/session-commands"
-import type { SessionSnapshot } from "@/app/session/session-types"
+import { AppProviders, type AppProvidersProps } from "@/app/app-providers"
 
-type RouterInstance = ComponentProps<typeof RouterProvider>["router"]
-
-interface AppProps {
-  initialSessionSnapshot?: SessionSnapshot
-  queryClient?: QueryClient
-  router: RouterInstance
-  sessionCommands?: SessionCommands
+interface AppProps extends Omit<AppProvidersProps, "children"> {
+  router: RouterProviderProps["router"]
 }
 
 export default function App({
