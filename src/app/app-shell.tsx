@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react"
+import { Outlet } from "react-router"
 
 import { appPages } from "@/app/app-config"
 import { navigationSections, primaryNavigation } from "@/app/app-navigation"
@@ -66,5 +67,13 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+export function AppShellRoute() {
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
   )
 }

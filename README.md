@@ -50,8 +50,8 @@ uma jornada E2E em Chromium.
 
 - `src/app/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
 - `src/app/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
-- `src/app/app-layout.tsx`: título da navegação e montagem do shell.
-- `src/app/app-shell.tsx`: composição do sidebar, header e conteúdo roteado.
+- `src/app/app-layout.tsx`: título da navegação e outlet raiz.
+- `src/app/app-shell.tsx`: composição do sidebar, header e conteúdo das rotas liberadas.
 - `src/app/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
 - `src/app/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
 - `src/app/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.

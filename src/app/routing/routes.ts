@@ -3,6 +3,7 @@ import type { RouteObject } from "react-router"
 
 import { appPages, type AppPageId } from "@/app/app-config"
 import { AppLayout } from "@/app/app-layout"
+import { AppShellRoute } from "@/app/app-shell"
 import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
 import type { AppRouteHandle } from "@/app/routing/route-access"
 import {
@@ -68,7 +69,13 @@ export const routes = [
       {
         id: "access-boundary",
         Component: RouteAccessBoundary,
-        children: (Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+        children: [
+          {
+            id: "app-shell",
+            Component: AppShellRoute,
+            children: (Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+          },
+        ],
       },
       {
         id: "not-found",

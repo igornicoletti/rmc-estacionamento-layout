@@ -53,5 +53,8 @@ describe("app routing", () => {
     expect(
       await screen.findByRole("heading", { name: "Conteúdo não encontrado" }),
     ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("navigation", { name: "Navegação principal" }),
+    ).not.toBeInTheDocument()
   })
 })
