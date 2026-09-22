@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { act, render, renderHook, screen, waitFor } from "@testing-library/react"
+import { act, renderHook, waitFor } from "@testing-library/react"
+import type { ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import type { SessionCommands } from "@/app/session/session-commands"
@@ -7,33 +8,35 @@ import { useSession } from "@/app/session/session-context"
 import { SessionProvider } from "@/app/session/session-provider"
 import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
 
-function SessionProbe() {
-  const { refresh, snapshot } = useSession()
-
-  return (
-    <>
-      <output>{snapshot.status}</output>
-      <button onClick={() => void refresh().catch(() => undefined)}>
-        Atualizar
-      </button>
-    </>
-  )
+interface SessionHarnessOptions {
+  commands: SessionCommands
+  initialSnapshot?: ResolvedSessionSnapshot
+  queryClient?: QueryClient
 }
 
-function renderSession(commands: SessionCommands) {
-  return render(
-    <QueryClientProvider client={new QueryClient()}>
-      <SessionProvider commands={commands}>
-        <SessionProbe />
+function renderSessionHook({
+  commands,
+  initialSnapshot,
+  queryClient = new QueryClient(),
+}: SessionHarnessOptions) {
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider commands={commands} initialSnapshot={initialSnapshot}>
+        {children}
       </SessionProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   )
+
+  return {
+    queryClient,
+    ...renderHook(() => useSession(), { wrapper }),
+  }
 }
 
 describe("SessionProvider", () => {
   it("descarta refresh cancelado antes de alterar sessão ou limpar cache", async () => {
-    const client = new QueryClient()
-    client.setQueryData(["private"], "current-data")
+    const queryClient = new QueryClient()
+    queryClient.setQueryData(["private"], "current-data")
     const current = {
       status: "authenticated",
       session: {
@@ -53,14 +56,10 @@ describe("SessionProvider", () => {
         .mockResolvedValueOnce(current),
       signOut: vi.fn(),
     }
-    const { result } = renderHook(() => useSession(), {
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={client}>
-          <SessionProvider commands={commands} initialSnapshot={current}>
-            {children}
-          </SessionProvider>
-        </QueryClientProvider>
-      ),
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: current,
+      queryClient,
     })
     let first!: Promise<void>
 
@@ -76,20 +75,23 @@ describe("SessionProvider", () => {
     })
 
     expect(result.current.snapshot).toEqual(current)
-    expect(client.getQueryData(["private"])).toBe("current-data")
+    expect(queryClient.getQueryData(["private"])).toBe("current-data")
     expect(result.current.isRefreshing).toBe(false)
   })
 
-  it("diferencia sessão anônima de autoridade indisponível", async () => {
+  it("diferencia bootstrap de autoridade indisponível", async () => {
     const commands: SessionCommands = {
       getSession: vi.fn().mockRejectedValue(new Error("offline")),
       refreshSession: vi.fn(),
       signOut: vi.fn(),
     }
+    const { result } = renderSessionHook({ commands })
 
-    renderSession(commands)
-    expect(screen.getByText("bootstrapping")).toBeInTheDocument()
-    expect(await screen.findByText("unavailable")).toBeInTheDocument()
+    expect(result.current.snapshot.status).toBe("bootstrapping")
+
+    await waitFor(() => {
+      expect(result.current.snapshot.status).toBe("unavailable")
+    })
   })
 
   it("cancela o bootstrap ao desmontar", () => {
@@ -102,9 +104,10 @@ describe("SessionProvider", () => {
       refreshSession: vi.fn(),
       signOut: vi.fn(),
     }
+    const { unmount } = renderSessionHook({ commands })
 
-    const view = renderSession(commands)
-    view.unmount()
+    unmount()
+
     expect(observedSignal?.aborted).toBe(true)
   })
 
@@ -118,55 +121,46 @@ describe("SessionProvider", () => {
       },
       signOut: vi.fn(),
     }
+    const { result, unmount } = renderSessionHook({
+      commands,
+      initialSnapshot: { status: "anonymous" },
+    })
 
-    const view = render(
-      <QueryClientProvider client={new QueryClient()}>
-        <SessionProvider
-          commands={commands}
-          initialSnapshot={{ status: "anonymous" }}
-        >
-          <SessionProbe />
-        </SessionProvider>
-      </QueryClientProvider>,
-    )
-
-    screen.getByRole("button", { name: "Atualizar" }).click()
-    view.unmount()
+    act(() => {
+      void result.current.refresh()
+    })
+    unmount()
 
     expect(observedSignal?.aborted).toBe(true)
   })
 
-  it("preserva a sessão autenticada quando o refresh falha", async () => {
+  it("preserva sessão e cache quando o refresh falha", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["private"], "secret")
+    const current = {
+      status: "authenticated",
+      session: {
+        assurance: "aal1",
+        capabilities: [],
+        identity: { displayName: "Usuária", id: "user-1" },
+      },
+    } satisfies ResolvedSessionSnapshot
     const commands: SessionCommands = {
       getSession: vi.fn(),
       refreshSession: vi.fn().mockRejectedValue(new Error("offline")),
       signOut: vi.fn(),
     }
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: current,
+      queryClient,
+    })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SessionProvider
-          commands={commands}
-          initialSnapshot={{
-            status: "authenticated",
-            session: {
-              assurance: "aal1",
-              capabilities: [],
-              identity: { displayName: "Usuária", id: "user-1" },
-            },
-          }}
-        >
-          <SessionProbe />
-        </SessionProvider>
-      </QueryClientProvider>,
-    )
+    await act(async () => {
+      await expect(result.current.refresh()).rejects.toThrow()
+    })
 
-    screen.getByRole("button", { name: "Atualizar" }).click()
-
-    await waitFor(() => expect(commands.refreshSession).toHaveBeenCalledOnce())
-    expect(screen.getByText("authenticated")).toBeInTheDocument()
+    expect(result.current.snapshot).toEqual(current)
     expect(queryClient.getQueryData(["private"])).toBe("secret")
   })
 
@@ -179,38 +173,26 @@ describe("SessionProvider", () => {
       refreshSession: vi.fn(),
       signOut: vi.fn().mockResolvedValue(undefined),
     }
-
-    function LogoutProbe() {
-      const { signOut } = useSession()
-      return <button onClick={() => void signOut()}>Sair</button>
-    }
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SessionProvider
-          commands={commands}
-          initialSnapshot={{
-            status: "authenticated",
-            session: {
-              assurance: "aal1",
-              capabilities: [],
-              identity: { displayName: "Usuária", id: "user-1" },
-            },
-          }}
-        >
-          <LogoutProbe />
-        </SessionProvider>
-      </QueryClientProvider>,
-    )
-
-    act(() => {
-      screen.getByRole("button", { name: "Sair" }).click()
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: {
+        status: "authenticated",
+        session: {
+          assurance: "aal1",
+          capabilities: [],
+          identity: { displayName: "Usuária", id: "user-1" },
+        },
+      },
+      queryClient,
     })
 
-    await waitFor(() =>
-      expect(queryClient.getQueryData(["private"])).toBeUndefined(),
-    )
+    await act(async () => {
+      await result.current.signOut()
+    })
+
+    expect(queryClient.getQueryData(["private"])).toBeUndefined()
     expect(queryClient.getQueryData(["shared"])).toBeUndefined()
+    expect(result.current.snapshot.status).toBe("anonymous")
   })
 
   it("preserva sessão e cache quando o logout falha", async () => {
@@ -229,39 +211,22 @@ describe("SessionProvider", () => {
       refreshSession: vi.fn(),
       signOut: vi.fn().mockRejectedValue(new Error("offline")),
     }
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: current,
+      queryClient,
+    })
 
-    function LogoutProbe() {
-      const { isSigningOut, signOut, snapshot } = useSession()
+    await act(async () => {
+      await expect(result.current.signOut()).rejects.toThrow()
+    })
 
-      return (
-        <>
-          <output>{snapshot.status}</output>
-          <output>{isSigningOut ? "signing-out" : "idle"}</output>
-          <button onClick={() => void signOut().catch(() => undefined)}>
-            Sair
-          </button>
-        </>
-      )
-    }
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SessionProvider commands={commands} initialSnapshot={current}>
-          <LogoutProbe />
-        </SessionProvider>
-      </QueryClientProvider>,
-    )
-
-    screen.getByRole("button", { name: "Sair" }).click()
-
-    await waitFor(() => expect(commands.signOut).toHaveBeenCalledOnce())
-    await waitFor(() => expect(screen.getByText("idle")).toBeInTheDocument())
-
-    expect(screen.getByText("authenticated")).toBeInTheDocument()
+    expect(result.current.isSigningOut).toBe(false)
+    expect(result.current.snapshot).toEqual(current)
     expect(queryClient.getQueryData(["private"])).toBe("secret")
   })
 
-  it("limpa cache reaproveitado quando o bootstrap resolve uma nova autoridade", async () => {
+  it("limpa cache reaproveitado quando bootstrap resolve nova autoridade", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["stale-user"], "secret")
     const commands: SessionCommands = {
@@ -271,16 +236,11 @@ describe("SessionProvider", () => {
       refreshSession: vi.fn(),
       signOut: vi.fn(),
     }
+    const { result } = renderSessionHook({ commands, queryClient })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SessionProvider commands={commands}>
-          <SessionProbe />
-        </SessionProvider>
-      </QueryClientProvider>,
-    )
-
-    expect(await screen.findByText("anonymous")).toBeInTheDocument()
+    await waitFor(() => {
+      expect(result.current.snapshot.status).toBe("anonymous")
+    })
     expect(queryClient.getQueryData(["stale-user"])).toBeUndefined()
   })
 })
