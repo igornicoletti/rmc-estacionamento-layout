@@ -34,10 +34,6 @@ const clients = mapLegacyClients(erpClientsLegacyFixture)
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<Client>()
 
-function displayNullable(value: string | null) {
-  return value ?? "Não informado"
-}
-
 function formatDate(value: string | null) {
   return value
     ? dateFormatter.format(new Date(`${value}T00:00:00.000Z`))
