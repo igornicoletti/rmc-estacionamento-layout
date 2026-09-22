@@ -1,6 +1,6 @@
 import { appPages } from "@/app/app-config"
-import { AppPage } from "@/components/common/app-page"
+import { AppPageLayout } from "@/app/layouts/app-page-layout"
 
 export function DashboardPage() {
-  return <AppPage page={appPages["dashboard"]} />
+  return <AppPageLayout page={appPages["dashboard"]} />
 }
