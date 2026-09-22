@@ -1,12 +1,18 @@
 import { expect, test } from "@playwright/test"
 
-test("abre o dashboard e publica a identidade do portal na aba", async ({
+test("abre o dashboard com o shell e publica a identidade do portal", async ({
   page,
 }) => {
   await page.goto("/")
 
   await expect(
     page.getByRole("heading", { name: "Dashboard" }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole("navigation", { name: "Navegação principal" }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "Abrir menu do usuário" }),
   ).toBeVisible()
   await expect(page).toHaveTitle(
     "Dashboard | Portal Estacionamento — Rede Monte Carlo",

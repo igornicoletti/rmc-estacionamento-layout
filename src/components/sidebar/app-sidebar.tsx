@@ -1,3 +1,14 @@
+import { SidebarNavGroup } from "@/components/sidebar/sidebar-nav-group"
+import { SidebarPrimaryNavigation } from "@/components/sidebar/sidebar-primary-navigation"
+import type {
+  SidebarNavigationItem,
+  SidebarNavigationSection,
+} from "@/components/sidebar/sidebar-types"
+import {
+  SidebarUnitsSwitcher,
+  type SidebarUnitOption,
+  type SidebarUnitsStatus,
+} from "@/components/sidebar/sidebar-units-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -6,39 +17,27 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import type { SidebarNavigationItem, SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
-
-import { SidebarNavGroup } from "@/components/sidebar/sidebar-nav-group"
-import { SidebarPrimaryNavigation } from "@/components/sidebar/sidebar-primary-navigation"
-import {
-  SidebarUnitsSwitcher,
-  type SidebarUnitOption,
-  type SidebarUnitsStatus,
-} from "@/components/sidebar/sidebar-units-switcher"
 
 interface AppSidebarProps {
-  primaryItems: readonly SidebarNavigationItem[]
-  sections: readonly SidebarNavigationSection[]
   activeUnitId: string | undefined
   onActiveUnitChange: (unitId: string) => void
+  primaryItems: readonly SidebarNavigationItem[]
   profile: string
+  sections: readonly SidebarNavigationSection[]
   units: readonly SidebarUnitOption[]
   unitsStatus?: SidebarUnitsStatus
 }
 
 export function AppSidebar({
-  primaryItems,
-  sections,
   activeUnitId,
   onActiveUnitChange,
+  primaryItems,
   profile,
+  sections,
   units,
   unitsStatus = "ready",
 }: AppSidebarProps) {
   const { state } = useSidebar()
-  const resolvedActiveUnitId = units.some((unit) => unit.id === activeUnitId)
-    ? activeUnitId
-    : units[0]?.id
   const triggerLabel =
     state === "expanded" ? "Recolher menu lateral" : "Expandir menu lateral"
 
@@ -49,16 +48,13 @@ export function AppSidebar({
           onValueChange={onActiveUnitChange}
           status={unitsStatus}
           units={units}
-          value={resolvedActiveUnitId}
+          value={activeUnitId}
         />
       </SidebarHeader>
 
       <SidebarContent className="gap-0">
         <nav aria-label="Navegação principal">
-          <SidebarPrimaryNavigation
-            items={primaryItems}
-            profile={profile}
-          />
+          <SidebarPrimaryNavigation items={primaryItems} profile={profile} />
 
           {sections.map((section) => (
             <SidebarNavGroup

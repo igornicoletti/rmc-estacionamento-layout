@@ -13,13 +13,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Spinner } from "@/components/ui/spinner"
 
 export interface SidebarUnitOption {
   id: string
   name: string
 }
 
-export type SidebarUnitsStatus = "ready" | "unavailable"
+export type SidebarUnitsStatus = "loading" | "ready" | "unavailable"
 
 interface SidebarUnitsSwitcherProps {
   onValueChange: (unitId: string) => void
@@ -60,6 +61,19 @@ export function SidebarUnitsSwitcher({
     if (typeof unitId === "string" && units.some((unit) => unit.id === unitId)) {
       onValueChange(unitId)
     }
+  }
+
+  if (status === "loading") {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton aria-busy="true" disabled size="lg">
+            <SidebarUnitIdentity unitName="Carregando unidades" />
+            <Spinner aria-label="Carregando unidades" className="ml-auto" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
   }
 
   if (status === "unavailable") {
@@ -124,7 +138,6 @@ export function SidebarUnitsSwitcher({
             }
           >
             <SidebarUnitIdentity unitName={activeUnit.name} />
-
             <ChevronsUpDownIcon
               aria-hidden="true"
               className="ml-auto text-muted-foreground"

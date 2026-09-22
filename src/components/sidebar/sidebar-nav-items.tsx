@@ -1,12 +1,12 @@
 import { NavLink, useMatch } from "react-router"
 
+import type { SidebarNavigationItem } from "@/components/sidebar/sidebar-types"
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import type { SidebarNavigationItem } from "@/components/sidebar/sidebar-types"
 
 interface SidebarNavItemsProps {
   items: readonly SidebarNavigationItem[]
@@ -26,7 +26,7 @@ function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
-        className="rounded-full data-active:bg-sidebar-primary! data-active:text-sidebar-primary-foreground! data-active:hover:bg-sidebar-primary!"
+        className="data-active:bg-transparent! data-active:text-primary! data-active:hover:bg-sidebar-accent! data-active:hover:text-primary!"
         isActive={active}
         render={<NavLink end={end} onClick={onNavigate} to={item.to} />}
         tooltip={item.label}
@@ -35,11 +35,10 @@ function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
           aria-hidden="true"
           className={
             active
-              ? "text-sidebar-primary-foreground"
+              ? "text-primary"
               : "text-muted-foreground group-hover/menu-button:text-inherit"
           }
         />
-
         <span>{item.label}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>

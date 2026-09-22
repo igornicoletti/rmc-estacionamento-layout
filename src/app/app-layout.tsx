@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import { Outlet, useMatches } from "react-router"
 
 import { APP_BROWSER_TITLE } from "@/app/app-config"
+import { AppShell } from "@/app/app-shell"
 import { isAppRouteHandle } from "@/app/routing/route-access"
 
 export function AppLayout() {
@@ -18,5 +19,9 @@ export function AppLayout() {
     }
   }, [title])
 
-  return <Outlet />
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  )
 }

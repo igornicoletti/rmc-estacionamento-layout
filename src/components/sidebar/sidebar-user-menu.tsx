@@ -6,7 +6,7 @@ import {
   SunMoonIcon,
   UserRoundIcon,
 } from "lucide-react"
-import { Link } from "react-router"
+import { Link, type To } from "react-router"
 
 import { isTheme } from "@/components/theme/theme-context"
 import { useTheme } from "@/components/theme/use-theme"
@@ -26,25 +26,24 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { To } from "react-router"
 import { getUserInitials } from "@/lib/user-initials"
 
 export interface SidebarUserMenuProps {
   avatarSrc?: string
-  name: string
   email?: string
-  profileTo: To
   isSigningOut?: boolean
+  name: string
   onLogout: () => void
+  profileTo: To
 }
 
 export function SidebarUserMenu({
   avatarSrc,
-  name,
   email,
+  isSigningOut = false,
+  name,
   onLogout,
   profileTo,
-  isSigningOut = false,
 }: SidebarUserMenuProps) {
   const { theme, setTheme } = useTheme()
   const normalizedEmail = email?.trim()
@@ -75,7 +74,6 @@ export function SidebarUserMenu({
 
         <span className="hidden min-w-0 text-center leading-tight md:block">
           <span className="block max-w-48 truncate">{name}</span>
-
           {normalizedEmail ? (
             <span className="block max-w-48 truncate text-xs font-normal text-muted-foreground">
               {normalizedEmail}
@@ -122,12 +120,10 @@ export function SidebarUserMenu({
                 <SunIcon aria-hidden="true" />
                 Claro
               </DropdownMenuRadioItem>
-
               <DropdownMenuRadioItem value="dark">
                 <MoonIcon aria-hidden="true" />
                 Escuro
               </DropdownMenuRadioItem>
-
               <DropdownMenuRadioItem value="system">
                 <MonitorIcon aria-hidden="true" />
                 Sistema
@@ -139,9 +135,13 @@ export function SidebarUserMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem disabled={isSigningOut} onClick={onLogout} variant="destructive">
+          <DropdownMenuItem
+            disabled={isSigningOut}
+            onClick={onLogout}
+            variant="destructive"
+          >
             <LogOutIcon aria-hidden="true" />
-            Sair
+            {isSigningOut ? "Saindo" : "Sair"}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
