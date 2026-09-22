@@ -37,19 +37,19 @@ export function AppSidebar({
       <SidebarHeader className="h-12 items-center justify-center border-b bg-background p-1">
         <div className="group-data-[collapsible=icon]:hidden">
           <img
-            alt="Rede Monte Carlo"
+            alt={appCopy.brand.name}
             className="h-9 w-auto dark:hidden"
             src={rmcLogoBlack}
           />
           <img
-            alt="Rede Monte Carlo"
+            alt={appCopy.brand.name}
             className="hidden h-9 w-auto dark:block"
             src={rmcLogoWhite}
           />
         </div>
 
         <img
-          alt="Rede Monte Carlo"
+          alt={appCopy.brand.name}
           className="hidden size-8 group-data-[collapsible=icon]:block"
           src={rmcSymbol}
         />

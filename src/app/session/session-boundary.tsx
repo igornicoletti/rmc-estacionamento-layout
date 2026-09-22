@@ -36,7 +36,7 @@ export function SessionUnavailableFallback({ isRetrying, onRetry }: SessionUnava
 export function SessionBootstrapFallback() {
   return (
     <main aria-busy="true" className="grid min-h-svh place-items-center p-6">
-      <Spinner aria-label="Inicializando aplicação" />
+      <Spinner aria-label={appCopy.feedback.sessionBootstrap.label} />
     </main>
   )
 }

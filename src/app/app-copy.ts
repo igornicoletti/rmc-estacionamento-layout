@@ -1,4 +1,7 @@
 export const appCopy = {
+  brand: {
+    name: "Rede Monte Carlo",
+  },
   feedback: {
     applicationFailure: {
       action: "Recarregar",
@@ -21,6 +24,9 @@ export const appCopy = {
       description:
         "Este módulo está reservado para uma próxima etapa do projeto.",
       title: "Página em preparação",
+    },
+    sessionBootstrap: {
+      label: "Inicializando aplicação",
     },
     sessionUnavailable: {
       action: "Tentar novamente",
@@ -90,4 +96,8 @@ export function getNotificationsTriggerLabel(
   return count === 1
     ? `${copy.trigger}, 1 não lida`
     : `${copy.trigger}, ${count} não lidas`
+}
+
+export function getUserAvatarAlt(name: string) {
+  return `Foto de perfil de ${name}`
 }

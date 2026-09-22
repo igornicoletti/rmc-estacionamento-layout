@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { Link, type To } from "react-router"
 
-import { appCopy } from "@/app/app-copy"
+import { appCopy, getUserAvatarAlt } from "@/app/app-copy"
 import { isTheme } from "@/components/theme/theme-context"
 import { useTheme } from "@/components/theme/use-theme"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -63,7 +63,7 @@ export function AppUserMenu({
       >
         <Avatar>
           {avatarSrc ? (
-            <AvatarImage alt={`Foto de perfil de ${name}`} src={avatarSrc} />
+            <AvatarImage alt={getUserAvatarAlt(name)} src={avatarSrc} />
           ) : null}
           <AvatarFallback>{getUserInitials(name)}</AvatarFallback>
         </Avatar>
