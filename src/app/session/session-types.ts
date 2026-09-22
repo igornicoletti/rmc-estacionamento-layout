@@ -24,8 +24,10 @@ export type ResolvedSessionSnapshot = Extract<
   { status: "anonymous" | "authenticated" }
 >
 
-export const bootstrappingSession: SessionSnapshot = {
+export const bootstrappingSession = {
   status: "bootstrapping",
-}
+} satisfies SessionSnapshot
 
-export const anonymousSession: SessionSnapshot = { status: "anonymous" }
+export const anonymousSession = {
+  status: "anonymous",
+} satisfies ResolvedSessionSnapshot
