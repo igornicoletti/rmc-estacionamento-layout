@@ -12,10 +12,7 @@ import {
   type SidebarNotificationItem,
   type SidebarNotificationsStatus,
 } from "@/components/sidebar/sidebar-notifications"
-import {
-  SidebarUserMenu,
-  type SidebarUserMenuProps,
-} from "@/components/sidebar/sidebar-user-menu"
+import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu"
 import type {
   SidebarUnitOption,
   SidebarUnitsStatus,
@@ -23,11 +20,10 @@ import type {
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { toast } from "@/components/ui/toast"
 
-interface AppShellUser
-  extends Pick<
-    SidebarUserMenuProps,
-    "avatarSrc" | "email" | "name"
-  > {
+interface AppShellUser {
+  avatarSrc?: string
+  email?: string
+  name: string
   profile: string
 }
 

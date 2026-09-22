@@ -34,7 +34,9 @@ export function RouteAccessBoundary({
     return (
       <Navigate
         replace
-        state={{ returnTo: `${location.pathname}${location.search}` }}
+        state={{
+          returnTo: `${location.pathname}${location.search}${location.hash}`,
+        }}
         to={decision.to}
       />
     )

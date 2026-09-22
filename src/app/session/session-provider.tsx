@@ -26,7 +26,7 @@ import {
 interface SessionProviderProps {
   children: ReactNode
   commands?: SessionCommands
-  initialSnapshot?: SessionSnapshot
+  initialSnapshot?: ResolvedSessionSnapshot
 }
 
 function isSameAuthority(

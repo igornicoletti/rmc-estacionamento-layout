@@ -1,8 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { SessionBootstrapFallback } from "@/app/session/session-boundary"
-import { SessionUnavailableFallback } from "@/app/session/session-boundary"
+import {
+  SessionBootstrapFallback,
+  SessionUnavailableFallback,
+} from "@/app/session/session-boundary"
 
 describe("session fallbacks", () => {
   it("anuncia o bootstrap como estado de carregamento", () => {
@@ -13,13 +16,14 @@ describe("session fallbacks", () => {
     ).toBeInTheDocument()
   })
 
-  it("bloqueia novo retry enquanto a sessão está sendo consultada", () => {
+  it("bloqueia novo retry enquanto a sessão está sendo consultada", async () => {
+    const user = userEvent.setup()
     const onRetry = vi.fn()
     const view = render(
       <SessionUnavailableFallback isRetrying={false} onRetry={onRetry} />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }))
+    await user.click(screen.getByRole("button", { name: "Tentar novamente" }))
     expect(onRetry).toHaveBeenCalledOnce()
 
     view.rerender(
@@ -30,7 +34,7 @@ describe("session fallbacks", () => {
     expect(retry).toBeDisabled()
     expect(retry).toHaveAttribute("aria-busy", "true")
 
-    fireEvent.click(retry)
+    await user.click(retry)
     expect(onRetry).toHaveBeenCalledOnce()
   })
 })
