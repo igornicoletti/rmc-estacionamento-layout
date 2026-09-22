@@ -33,25 +33,32 @@ function renderSessionHook({
   }
 }
 
+function createAuthenticatedSession(
+  capabilities: readonly string[] = [],
+): ResolvedSessionSnapshot {
+  return {
+    status: "authenticated",
+    session: {
+      assurance: "aal1",
+      capabilities,
+      identity: { displayName: "Usuária", id: "user-1" },
+    },
+  }
+}
+
 describe("SessionProvider", () => {
   it("descarta refresh cancelado antes de alterar sessão ou limpar cache", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["private"], "current-data")
-    const current = {
-      status: "authenticated",
-      session: {
-        assurance: "aal1",
-        capabilities: [],
-        identity: { displayName: "Usuária", id: "current-user" },
-      },
-    } satisfies ResolvedSessionSnapshot
+    const current = createAuthenticatedSession()
     let resolveStale!: (value: ResolvedSessionSnapshot) => void
     const stale = new Promise<ResolvedSessionSnapshot>((resolve) => {
       resolveStale = resolve
     })
     const commands: SessionCommands = {
       getSession: vi.fn(),
-      refreshSession: vi.fn()
+      refreshSession: vi
+        .fn()
         .mockReturnValueOnce(stale)
         .mockResolvedValueOnce(current),
       signOut: vi.fn(),
@@ -77,6 +84,128 @@ describe("SessionProvider", () => {
     expect(result.current.snapshot).toEqual(current)
     expect(queryClient.getQueryData(["private"])).toBe("current-data")
     expect(result.current.isRefreshing).toBe(false)
+  })
+
+  it("impede operação obsoleta de limpar cache criado por operação mais recente", async () => {
+    const queryClient = new QueryClient()
+    const current = createAuthenticatedSession()
+    let resolveStale!: (value: ResolvedSessionSnapshot) => void
+    let releaseCancellation!: () => void
+    const stale = new Promise<ResolvedSessionSnapshot>((resolve) => {
+      resolveStale = resolve
+    })
+    const cancellationGate = new Promise<void>((resolve) => {
+      releaseCancellation = resolve
+    })
+    const cancelQueries = vi
+      .spyOn(queryClient, "cancelQueries")
+      .mockReturnValueOnce(cancellationGate)
+    const clear = vi.spyOn(queryClient, "clear")
+    const commands: SessionCommands = {
+      getSession: vi.fn(),
+      refreshSession: vi
+        .fn()
+        .mockReturnValueOnce(stale)
+        .mockResolvedValueOnce(current),
+      signOut: vi.fn(),
+    }
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: current,
+      queryClient,
+    })
+    let first!: Promise<void>
+
+    act(() => {
+      first = result.current.refresh()
+    })
+    await act(async () => {
+      resolveStale({ status: "anonymous" })
+      await Promise.resolve()
+    })
+    await waitFor(() => {
+      expect(cancelQueries).toHaveBeenCalledOnce()
+    })
+
+    queryClient.setQueryData(["fresh"], "fresh-data")
+
+    await act(async () => {
+      await result.current.refresh()
+    })
+    await act(async () => {
+      releaseCancellation()
+      await first
+    })
+
+    expect(clear).not.toHaveBeenCalled()
+    expect(queryClient.getQueryData(["fresh"])).toBe("fresh-data")
+  })
+
+  it("limpa cache quando a autoridade do mesmo usuário muda", async () => {
+    const queryClient = new QueryClient()
+    queryClient.setQueryData(["private"], "old-authority-data")
+    const current = createAuthenticatedSession(["yard:read"])
+    const next = createAuthenticatedSession(["yard:read", "yard:manage"])
+    const commands: SessionCommands = {
+      getSession: vi.fn(),
+      refreshSession: vi.fn().mockResolvedValue(next),
+      signOut: vi.fn(),
+    }
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: current,
+      queryClient,
+    })
+
+    await act(async () => {
+      await result.current.refresh()
+    })
+
+    expect(result.current.snapshot).toEqual(next)
+    expect(queryClient.getQueryData(["private"])).toBeUndefined()
+  })
+
+  it("não permite que refresh interrompa logout em andamento", async () => {
+    const current = createAuthenticatedSession()
+    let releaseSignOut!: () => void
+    let signOutSignal: AbortSignal | undefined
+    const signOutGate = new Promise<void>((resolve) => {
+      releaseSignOut = resolve
+    })
+    const commands: SessionCommands = {
+      getSession: vi.fn(),
+      refreshSession: vi.fn().mockResolvedValue(current),
+      signOut: vi.fn((signal) => {
+        signOutSignal = signal
+        return signOutGate
+      }),
+    }
+    const { result } = renderSessionHook({
+      commands,
+      initialSnapshot: current,
+    })
+    let signOut!: Promise<void>
+
+    act(() => {
+      signOut = result.current.signOut()
+    })
+    await waitFor(() => {
+      expect(commands.signOut).toHaveBeenCalledOnce()
+    })
+
+    await act(async () => {
+      await result.current.refresh()
+    })
+
+    expect(commands.refreshSession).not.toHaveBeenCalled()
+    expect(signOutSignal?.aborted).toBe(false)
+
+    await act(async () => {
+      releaseSignOut()
+      await signOut
+    })
+
+    expect(result.current.snapshot.status).toBe("anonymous")
   })
 
   it("diferencia bootstrap de autoridade indisponível", async () => {
@@ -137,14 +266,7 @@ describe("SessionProvider", () => {
   it("preserva sessão e cache quando o refresh falha", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["private"], "secret")
-    const current = {
-      status: "authenticated",
-      session: {
-        assurance: "aal1",
-        capabilities: [],
-        identity: { displayName: "Usuária", id: "user-1" },
-      },
-    } satisfies ResolvedSessionSnapshot
+    const current = createAuthenticatedSession()
     const commands: SessionCommands = {
       getSession: vi.fn(),
       refreshSession: vi.fn().mockRejectedValue(new Error("offline")),
@@ -175,14 +297,7 @@ describe("SessionProvider", () => {
     }
     const { result } = renderSessionHook({
       commands,
-      initialSnapshot: {
-        status: "authenticated",
-        session: {
-          assurance: "aal1",
-          capabilities: [],
-          identity: { displayName: "Usuária", id: "user-1" },
-        },
-      },
+      initialSnapshot: createAuthenticatedSession(),
       queryClient,
     })
 
@@ -198,14 +313,7 @@ describe("SessionProvider", () => {
   it("preserva sessão e cache quando o logout falha", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["private"], "secret")
-    const current = {
-      status: "authenticated",
-      session: {
-        assurance: "aal1",
-        capabilities: [],
-        identity: { displayName: "Usuária", id: "user-1" },
-      },
-    } satisfies ResolvedSessionSnapshot
+    const current = createAuthenticatedSession()
     const commands: SessionCommands = {
       getSession: vi.fn(),
       refreshSession: vi.fn(),

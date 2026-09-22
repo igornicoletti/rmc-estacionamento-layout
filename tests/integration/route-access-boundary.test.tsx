@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
@@ -9,6 +9,10 @@ import { anonymousSession } from "@/app/session/session-types"
 
 function EmptyRoute() {
   return null
+}
+
+function PrivateRoute() {
+  return <button type="button" />
 }
 
 describe("route access boundary", () => {
@@ -49,5 +53,38 @@ describe("route access boundary", () => {
     expect(router.state.location.state).toEqual({
       returnTo: "/private?tab=security#passkeys",
     })
+  })
+
+  it("nega acesso quando um match contém handle inválido", async () => {
+    const validHandle = {
+      access: { authentication: "either" },
+      routeId: "access",
+    } satisfies AppRouteHandle
+    const router = createMemoryRouter(
+      [
+        {
+          Component: RouteAccessBoundary,
+          handle: validHandle,
+          children: [
+            {
+              path: "/private",
+              Component: PrivateRoute,
+              handle: {
+                access: { authentication: "invalid" },
+                routeId: "private",
+              },
+            },
+          ],
+        },
+      ],
+      {
+        initialEntries: ["/private"],
+      },
+    )
+
+    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+    expect(await screen.findByRole("main")).toBeInTheDocument()
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 })

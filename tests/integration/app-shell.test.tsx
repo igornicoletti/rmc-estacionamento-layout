@@ -48,4 +48,29 @@ describe("app shell", () => {
 
     expect(activeLink).toBeDefined()
   })
+
+  it("permite recolher manualmente o grupo da rota ativa", async () => {
+    const user = userEvent.setup()
+    const router = createMemoryRouter(routes, {
+      initialEntries: ["/usuarios"],
+    })
+
+    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+    const navigation = await screen.findByRole("navigation")
+    const activeGroupTrigger = within(navigation)
+      .getAllByRole("button")
+      .find((button) => button.getAttribute("aria-expanded") === "true")
+
+    expect(activeGroupTrigger).toBeDefined()
+    if (!activeGroupTrigger) {
+      return
+    }
+
+    await user.click(activeGroupTrigger)
+
+    await waitFor(() => {
+      expect(activeGroupTrigger).toHaveAttribute("aria-expanded", "false")
+    })
+  })
 })

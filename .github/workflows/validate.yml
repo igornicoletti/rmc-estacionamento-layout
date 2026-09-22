@@ -34,5 +34,6 @@ jobs:
 
       - run: npm ci
       - run: npm run check
+      - run: npm run test:coverage
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --project=chromium --workers=1
+      - run: npm run test:e2e -- --project=chromium --workers=1
