@@ -17,7 +17,7 @@ describe("app shell", () => {
     await user.click(
       await screen.findByRole("button", { name: /Abrir notificações/ }),
     )
-    await user.click(screen.getByRole("button", { name: "Marcar todas como lidas" }))
+    await user.click(screen.getByRole("button", { name: "Marcar como lidas" }))
 
     expect(
       await screen.findByRole("heading", { name: "Sem novas notificações" }),
