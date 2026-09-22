@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest"
 import App from "@/app/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
+import { SidebarHeaderBar } from "@/components/sidebar/sidebar-header"
+import { SidebarProvider } from "@/components/ui/sidebar"
 
 describe("app shell", () => {
   it("monta sidebar e abre grupos inativos sob demanda", async () => {
@@ -57,6 +59,25 @@ describe("app shell", () => {
 
     expect(
       screen.getByRole("button", { name: "Abrir notificações" }),
+    ).toBeInTheDocument()
+  })
+
+  it("mantém o nome acessível do trigger coerente com o estado", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <SidebarProvider defaultOpen={false}>
+        <SidebarHeaderBar>
+          <span>ações</span>
+        </SidebarHeaderBar>
+      </SidebarProvider>,
+    )
+
+    const trigger = screen.getByRole("button", { name: "Abrir menu lateral" })
+    await user.click(trigger)
+
+    expect(
+      screen.getByRole("button", { name: "Fechar menu lateral" }),
     ).toBeInTheDocument()
   })
 })
