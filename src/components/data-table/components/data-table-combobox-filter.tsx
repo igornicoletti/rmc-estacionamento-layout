@@ -1,4 +1,4 @@
-import { Fragment, useRef } from "react"
+import { useRef } from "react"
 import { XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -95,6 +95,8 @@ export function DataTableComboboxFilter<TValue extends string>({
 
   return (
     <Combobox
+      itemToStringLabel={(item) => item.label}
+      itemToStringValue={(item) => item.value}
       items={comboboxItems}
       onValueChange={(item) => onValueChange(item?.value)}
       value={selectedItem}
@@ -150,13 +152,11 @@ export function DataTableComboboxFilter<TValue extends string>({
         <ComboboxList>
           {groupedItems
             ? (group: DataTableComboboxFilterGroup<TValue>, index: number) => (
-                <Fragment key={group.value}>
+                <ComboboxGroup key={group.value} items={group.items}>
                   {index > 0 ? <ComboboxSeparator /> : null}
-                  <ComboboxGroup items={group.items}>
-                    <ComboboxLabel>{group.value}</ComboboxLabel>
-                    <ComboboxCollection>{renderItem}</ComboboxCollection>
-                  </ComboboxGroup>
-                </Fragment>
+                  <ComboboxLabel>{group.value}</ComboboxLabel>
+                  <ComboboxCollection>{renderItem}</ComboboxCollection>
+                </ComboboxGroup>
               )
             : renderItem}
         </ComboboxList>
