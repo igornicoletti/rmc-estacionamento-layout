@@ -47,7 +47,7 @@ describe("UnitsDataTable", () => {
     expect(screen.getByText("Interior Eventos")).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "Limpar filtrar por cidade" }))
+    await user.click(screen.getByRole("button", { name: "Limpar filtro de cidade" }))
     expect(screen.getByText("15 unidades")).toBeInTheDocument()
   })
 })
