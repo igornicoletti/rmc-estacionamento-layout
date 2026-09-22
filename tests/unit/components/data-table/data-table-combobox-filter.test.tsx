@@ -102,7 +102,7 @@ describe("DataTableComboboxFilter", () => {
 
     await user.click(screen.getByRole("combobox", { name: "filter" }))
 
-    const searchInput = screen.getByLabelText("Buscar em filter")
+    const searchInput = await screen.findByLabelText("Buscar em filter")
     const inputGroup = searchInput.closest('[data-slot="input-group"]')
 
     expect(screen.getByText("PR")).toBeInTheDocument()
