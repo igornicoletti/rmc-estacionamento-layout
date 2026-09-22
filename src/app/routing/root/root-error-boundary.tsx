@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- presentation mapper is tested as boundary policy */
 import {
-  FileQuestion,
+  SearchX,
   ShieldX,
   TriangleAlert,
   type LucideIcon,
@@ -63,7 +63,7 @@ export function getRootErrorPresentation(error: unknown): RootErrorPresentation 
 
 const rootErrorIcons = {
   forbidden: ShieldX,
-  "not-found": FileQuestion,
+  "not-found": SearchX,
   unexpected: TriangleAlert,
 } satisfies Record<RootErrorPresentation["kind"], LucideIcon>
 
