@@ -16,7 +16,10 @@ interface AppErrorBoundaryState {
   failed: boolean
 }
 
-export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
+export class AppErrorBoundary extends Component<
+  AppErrorBoundaryProps,
+  AppErrorBoundaryState
+> {
   state: AppErrorBoundaryState = { failed: false }
 
   static getDerivedStateFromError(): AppErrorBoundaryState {

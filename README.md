@@ -43,24 +43,29 @@ tests/
 ```
 
 O Vitest executa as suítes `unit` e `integration`; o Playwright fica restrito
-a `tests/e2e`. O workflow `validate` executa lint, typecheck, testes, build e
-uma jornada E2E em Chromium.
+a `tests/e2e`. Os testes priorizam comportamento e contratos da aplicação, sem
+fixar copy visual, cores ou detalhes internos de primitives de terceiros. O
+workflow `validate` executa lint, typecheck, testes, build e uma jornada E2E
+em Chromium.
 
 ## Organização do código
 
 - `src/app/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
 - `src/app/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
+- `src/app/app-copy.ts`: copy estática de feedback, acessibilidade e ações do shell.
 - `src/app/app-layout.tsx`: título da navegação e outlet raiz.
-- `src/app/app-shell.tsx`: composição do sidebar, header e conteúdo das rotas liberadas.
+- `src/app/app-shell.tsx`: composição do sidebar, toolbar e conteúdo das rotas liberadas.
 - `src/app/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
 - `src/app/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
 - `src/app/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
+- `src/app/components/`: apresentação específica do shell da aplicação.
+- `src/app/layouts/`: layouts estruturais específicos da aplicação.
 - `src/app/query-client.ts`: política de cache/retry e fábrica do QueryClient.
 - `src/app/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
 - `src/app/routing/`: rotas, política pura de acesso, bloqueio visual e erros de rota.
 - `src/app/session/`: contratos, comandos, contexto, provider e estados de bootstrap.
-- `src/components/common/`: composições visuais sem regra de negócio.
-- `src/components/sidebar/`: apresentação e interações do shell lateral.
+- `src/components/common/`: wrappers reutilizáveis sobre primitives de `ui/`, sem regra de negócio.
+- `src/components/sidebar/`: composição e navegação exclusivas do sidebar.
 - `src/pages/<page>/<page>.layout.tsx`: único arquivo de entrada de cada página.
 
 Cada página reserva `components/` para UI local, `contracts/` para contratos

@@ -13,7 +13,10 @@ interface SessionUnavailableFallbackProps {
   onRetry: () => void
 }
 
-export function SessionUnavailableFallback({ isRetrying, onRetry }: SessionUnavailableFallbackProps) {
+export function SessionUnavailableFallback({
+  isRetrying,
+  onRetry,
+}: SessionUnavailableFallbackProps) {
   const feedback = appCopy.feedback.sessionUnavailable
 
   return (
@@ -22,8 +25,15 @@ export function SessionUnavailableFallback({ isRetrying, onRetry }: SessionUnava
         description={feedback.description}
         media={{ icon: WifiOffIcon }}
         primaryAction={
-          <Button aria-busy={isRetrying} disabled={isRetrying} onClick={onRetry} type="button">
-            {isRetrying ? <Spinner aria-hidden="true" data-icon="inline-start" /> : null}
+          <Button
+            aria-busy={isRetrying}
+            disabled={isRetrying}
+            onClick={onRetry}
+            type="button"
+          >
+            {isRetrying ? (
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+            ) : null}
             {isRetrying ? feedback.pendingAction : feedback.action}
           </Button>
         }
@@ -45,7 +55,9 @@ interface SessionBootstrapBoundaryProps {
   children: ReactNode
 }
 
-export function SessionBootstrapBoundary({ children }: SessionBootstrapBoundaryProps) {
+export function SessionBootstrapBoundary({
+  children,
+}: SessionBootstrapBoundaryProps) {
   const { isRefreshing, refresh, snapshot } = useSession()
 
   if (snapshot.status === "bootstrapping") {

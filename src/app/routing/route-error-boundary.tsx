@@ -1,4 +1,9 @@
-import { SearchXIcon, ShieldXIcon, TriangleAlertIcon, type LucideIcon } from "lucide-react"
+import {
+  SearchXIcon,
+  ShieldXIcon,
+  TriangleAlertIcon,
+  type LucideIcon,
+} from "lucide-react"
 import { useEffect } from "react"
 import { useRouteError } from "react-router"
 
