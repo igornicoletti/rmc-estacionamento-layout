@@ -4,7 +4,7 @@ import {
   CheckCheckIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useState, type MouseEvent } from "react"
+import { useEffect, useRef, useState, type MouseEvent } from "react"
 import { Link, type To } from "react-router"
 
 import {
@@ -70,6 +70,8 @@ export function AppNotifications({
   viewAllTo,
 }: AppNotificationsProps) {
   const [open, setOpen] = useState(false)
+  const [mobileAlignOffset, setMobileAlignOffset] = useState(0)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const isMobile = useIsMobile()
   const copy = appCopy.toolbar.notifications
   const unreadCount = status === "ready" ? unreadNotifications.length : 0
@@ -77,6 +79,36 @@ export function AppNotifications({
     0,
     notificationPreviewLimit,
   )
+
+  const updateMobileAlignOffset = () => {
+    if (!isMobile || !triggerRef.current) {
+      setMobileAlignOffset(0)
+      return
+    }
+
+    const triggerBounds = triggerRef.current.getBoundingClientRect()
+    const triggerCenter = triggerBounds.left + triggerBounds.width / 2
+    setMobileAlignOffset(window.innerWidth / 2 - triggerCenter)
+  }
+
+  useEffect(() => {
+    if (!open || !isMobile) {
+      return
+    }
+
+    updateMobileAlignOffset()
+    window.addEventListener("resize", updateMobileAlignOffset)
+
+    return () => window.removeEventListener("resize", updateMobileAlignOffset)
+  }, [isMobile, open])
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      updateMobileAlignOffset()
+    }
+
+    setOpen(nextOpen)
+  }
 
   const handleNotificationClick = (
     event: MouseEvent<HTMLAnchorElement>,
@@ -92,10 +124,11 @@ export function AppNotifications({
   }
 
   return (
-    <Popover onOpenChange={setOpen} open={open}>
+    <Popover onOpenChange={handleOpenChange} open={open}>
       <PopoverTrigger
         render={
           <Button
+            ref={triggerRef}
             aria-label={getNotificationsTriggerLabel(unreadCount, status)}
             className="relative"
             size="icon"
@@ -117,6 +150,7 @@ export function AppNotifications({
 
       <PopoverContent
         align={isMobile ? "center" : "end"}
+        alignOffset={isMobile ? mobileAlignOffset : 0}
         className="w-[calc(100vw-2rem)] sm:w-96"
       >
         <PopoverHeader className="flex-row items-center justify-between">
