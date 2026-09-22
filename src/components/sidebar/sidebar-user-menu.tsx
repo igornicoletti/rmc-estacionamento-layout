@@ -58,11 +58,7 @@ export function SidebarUserMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            aria-label="Abrir menu do usuário"
-            className="hover:bg-transparent! aria-expanded:bg-transparent!"
-            variant="ghost"
-          />
+          <Button aria-label="Abrir menu do usuário" variant="ghost" />
         }
       >
         <Avatar>

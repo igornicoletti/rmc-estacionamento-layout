@@ -1,3 +1,5 @@
+import rmcLogoWhite from "@/assets/rmc-logo-white.webp"
+import rmcSymbolMono from "@/assets/rmc-simbolo-mono.svg"
 import { SidebarNavGroup } from "@/components/sidebar/sidebar-nav-group"
 import { SidebarPrimaryNavigation } from "@/components/sidebar/sidebar-primary-navigation"
 import type {
@@ -13,6 +15,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
@@ -42,17 +46,32 @@ export function AppSidebar({
     state === "expanded" ? "Recolher menu lateral" : "Expandir menu lateral"
 
   return (
-    <Sidebar className="border-r-0!" collapsible="icon" variant="sidebar">
-      <SidebarHeader className="h-(--shell-header-height) shrink-0 border-b bg-background p-1 transition-[padding] ease-linear group-data-[collapsible=icon]:p-2">
-        <SidebarUnitsSwitcher
-          onValueChange={onActiveUnitChange}
-          status={unitsStatus}
-          units={units}
-          value={activeUnitId}
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="items-center">
+        <img
+          alt="Rede Monte Carlo"
+          className="h-8 w-auto group-data-[collapsible=icon]:hidden"
+          src={rmcLogoWhite}
+        />
+        <img
+          alt=""
+          className="hidden size-8 group-data-[collapsible=icon]:block"
+          src={rmcSymbolMono}
         />
       </SidebarHeader>
 
-      <SidebarContent className="gap-0">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarUnitsSwitcher
+              onValueChange={onActiveUnitChange}
+              status={unitsStatus}
+              units={units}
+              value={activeUnitId}
+            />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <nav aria-label="Navegação principal">
           <SidebarPrimaryNavigation items={primaryItems} profile={profile} />
 

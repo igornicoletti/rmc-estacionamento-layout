@@ -6,7 +6,6 @@ import { navigationSections, primaryNavigation } from "@/app/app-navigation"
 import { shellPreviewData } from "@/app/app-preview"
 import { useSession } from "@/app/session/session-context"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
-import { SidebarHeaderBar } from "@/components/sidebar/sidebar-header"
 import {
   SidebarNotifications,
   type SidebarNotificationItem,
@@ -17,7 +16,12 @@ import type {
   SidebarUnitOption,
   SidebarUnitsStatus,
 } from "@/components/sidebar/sidebar-units-switcher"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar"
 import { toast } from "@/components/ui/toast"
 
 interface AppShellUser {
@@ -44,6 +48,19 @@ export interface AppShellProps {
   unitsStatus?: SidebarUnitsStatus
 }
 
+function AppToolbar({ children }: { children: ReactNode }) {
+  const { isMobile, openMobile, state } = useSidebar()
+  const isOpen = isMobile ? openMobile : state === "expanded"
+  const triggerLabel = isOpen ? "Fechar menu lateral" : "Abrir menu lateral"
+
+  return (
+    <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+      <SidebarTrigger aria-label={triggerLabel} className="md:hidden" />
+      <div className="ml-auto flex items-center gap-1">{children}</div>
+    </div>
+  )
+}
+
 export function AppShell({
   activeUnitId,
   children,
@@ -61,7 +78,7 @@ export function AppShell({
   unitsStatus = "ready",
 }: AppShellProps) {
   return (
-    <SidebarProvider className="[--shell-header-height:3rem]">
+    <SidebarProvider>
       <AppSidebar
         activeUnitId={activeUnitId}
         onActiveUnitChange={onActiveUnitChange}
@@ -73,7 +90,7 @@ export function AppShell({
       />
 
       <SidebarInset>
-        <SidebarHeaderBar>
+        <AppToolbar>
           <SidebarNotifications
             isMarkingAllAsRead={isMarkingAllAsRead}
             onMarkAllAsRead={onMarkAllAsRead}
@@ -92,11 +109,9 @@ export function AppShell({
             onLogout={onLogout}
             profileTo={appPages.profile.path}
           />
-        </SidebarHeaderBar>
+        </AppToolbar>
 
-        <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
-          {children}
-        </div>
+        <div className="flex flex-1 flex-col p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

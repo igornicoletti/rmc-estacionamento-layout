@@ -10,7 +10,7 @@ import { Link, type To } from "react-router"
 
 import { AppEmpty } from "@/components/common/app-empty"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Item,
   ItemContent,
@@ -26,7 +26,6 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { useSidebar } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
 
 export interface SidebarNotificationItem {
@@ -87,7 +86,6 @@ export function SidebarNotifications({
   unreadNotifications,
   viewAllTo,
 }: SidebarNotificationsProps) {
-  const { isMobile } = useSidebar()
   const [open, setOpen] = useState(false)
   const unreadCount = status === "ready" ? unreadNotifications.length : 0
   const previewNotifications = unreadNotifications.slice(
@@ -109,11 +107,9 @@ export function SidebarNotifications({
   }
 
   const handleMarkAllAsRead = () => {
-    if (isMarkingAllAsRead) {
-      return
+    if (!isMarkingAllAsRead) {
+      onMarkAllAsRead()
     }
-
-    onMarkAllAsRead()
   }
 
   return (
@@ -133,7 +129,7 @@ export function SidebarNotifications({
         {status === "ready" && unreadCount > 0 ? (
           <Badge
             aria-hidden="true"
-            className="absolute -top-1 -right-1 h-4 min-w-4 bg-destructive px-1 py-0 text-[0.625rem] leading-none text-destructive-foreground tabular-nums"
+            className="absolute -top-1 -right-1 h-4 min-w-4 bg-destructive px-1 py-0 text-[0.625rem] text-destructive-foreground"
           >
             {formatBadgeCount(unreadCount)}
           </Badge>
@@ -141,17 +137,11 @@ export function SidebarNotifications({
       </PopoverTrigger>
 
       <PopoverContent
-        align={isMobile ? "center" : "end"}
-        className={
-          isMobile
-            ? "w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)]"
-            : "w-96 max-w-[calc(100vw-2rem)]"
-        }
+        align="end"
+        className="w-96 max-w-[calc(100vw-2rem)]"
       >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <PopoverHeader>
-            <PopoverTitle>Notificações</PopoverTitle>
-          </PopoverHeader>
+        <PopoverHeader className="flex-row items-center justify-between">
+          <PopoverTitle>Notificações</PopoverTitle>
 
           {status === "ready" && unreadCount > 0 ? (
             <Button
@@ -169,12 +159,12 @@ export function SidebarNotifications({
               Marcar todas como lidas
             </Button>
           ) : null}
-        </div>
+        </PopoverHeader>
 
         {status === "loading" ? (
           <div
             aria-busy="true"
-            className="grid min-h-32 place-items-center"
+            className="flex min-h-32 items-center justify-center"
             role="status"
           >
             <Spinner aria-hidden="true" />
@@ -208,23 +198,20 @@ export function SidebarNotifications({
                       />
                     }
                     size="xs"
-                    variant="muted"
                   >
                     <ItemMedia className="text-muted-foreground" variant="icon">
                       <Icon aria-hidden="true" />
                     </ItemMedia>
 
                     <ItemContent className="min-w-0">
-                      <ItemTitle className="w-full truncate">
-                        {notification.title}
-                      </ItemTitle>
-                      <ItemDescription className="line-clamp-none truncate">
+                      <ItemTitle>{notification.title}</ItemTitle>
+                      <ItemDescription className="line-clamp-1">
                         {notification.description}
                       </ItemDescription>
                     </ItemContent>
 
                     <time
-                      className="shrink-0 self-start whitespace-nowrap text-right text-xs text-muted-foreground"
+                      className="shrink-0 text-xs text-muted-foreground"
                       dateTime={notification.dateTime}
                     >
                       {notification.timeLabel}
@@ -235,13 +222,13 @@ export function SidebarNotifications({
             </ItemGroup>
 
             {viewAllTo ? (
-              <Link
-                className={buttonVariants({ size: "sm", variant: "default" })}
+              <Button
+                className="w-full"
                 onClick={() => setOpen(false)}
-                to={viewAllTo}
+                render={<Link to={viewAllTo} />}
               >
                 {viewAllNotificationsLabel}
-              </Link>
+              </Button>
             ) : null}
           </>
         ) : (

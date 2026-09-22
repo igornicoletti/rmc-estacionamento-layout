@@ -26,19 +26,12 @@ function SidebarNavItem({ item, onNavigate }: SidebarNavItemProps) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
-        className="data-active:bg-transparent! data-active:text-primary! data-active:hover:bg-sidebar-accent! data-active:hover:text-primary!"
+        className="data-active:bg-background data-active:text-primary data-active:hover:bg-background"
         isActive={active}
         render={<NavLink end={end} onClick={onNavigate} to={item.to} />}
         tooltip={item.label}
       >
-        <Icon
-          aria-hidden="true"
-          className={
-            active
-              ? "text-primary"
-              : "text-muted-foreground group-hover/menu-button:text-inherit"
-          }
-        />
+        <Icon aria-hidden="true" />
         <span>{item.label}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>

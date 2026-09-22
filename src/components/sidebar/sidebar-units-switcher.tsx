@@ -1,4 +1,4 @@
-import { ChevronsUpDownIcon } from "lucide-react"
+import { Building2Icon, ChevronsUpDownIcon } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -32,18 +32,8 @@ interface SidebarUnitsSwitcherProps {
 function SidebarUnitIdentity({ unitName }: { unitName: string }) {
   return (
     <>
-      <div className="flex aspect-square size-8 items-center justify-center">
-        <img alt="" className="h-full" src="/favicon.svg" />
-      </div>
-
-      <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-medium text-foreground">
-          Rede Monte Carlo
-        </span>
-        <span className="truncate text-xs text-muted-foreground">
-          {unitName}
-        </span>
-      </div>
+      <Building2Icon aria-hidden="true" />
+      <span className="truncate">{unitName}</span>
     </>
   )
 }
@@ -67,9 +57,9 @@ export function SidebarUnitsSwitcher({
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton aria-busy="true" disabled size="lg">
+          <SidebarMenuButton aria-busy="true" disabled>
             <SidebarUnitIdentity unitName="Carregando unidades" />
-            <Spinner aria-label="Carregando unidades" className="ml-auto" />
+            <Spinner aria-hidden="true" className="ml-auto" />
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -80,11 +70,7 @@ export function SidebarUnitsSwitcher({
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            aria-label="Unidades indisponíveis"
-            disabled
-            size="lg"
-          >
+          <SidebarMenuButton disabled>
             <SidebarUnitIdentity unitName="Unidades indisponíveis" />
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -96,11 +82,7 @@ export function SidebarUnitsSwitcher({
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            aria-label="Nenhuma unidade disponível"
-            disabled
-            size="lg"
-          >
+          <SidebarMenuButton disabled>
             <SidebarUnitIdentity unitName="Nenhuma unidade disponível" />
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -113,9 +95,8 @@ export function SidebarUnitsSwitcher({
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
-            className="hover:bg-transparent active:bg-transparent"
+            className="hover:bg-transparent"
             render={<div />}
-            size="lg"
           >
             <SidebarUnitIdentity unitName={activeUnit.name} />
           </SidebarMenuButton>
@@ -132,23 +113,14 @@ export function SidebarUnitsSwitcher({
             render={
               <SidebarMenuButton
                 aria-label={`Selecionar unidade. Unidade atual: ${activeUnit.name}`}
-                className="hover:bg-transparent active:bg-transparent data-open:bg-transparent data-open:hover:bg-transparent"
-                size="lg"
               />
             }
           >
             <SidebarUnitIdentity unitName={activeUnit.name} />
-            <ChevronsUpDownIcon
-              aria-hidden="true"
-              className="ml-auto text-muted-foreground"
-            />
+            <ChevronsUpDownIcon aria-hidden="true" className="ml-auto" />
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            align="start"
-            side={isMobile ? "bottom" : "right"}
-            sideOffset={4}
-          >
+          <DropdownMenuContent side={isMobile ? "bottom" : "right"}>
             <DropdownMenuRadioGroup
               onValueChange={handleValueChange}
               value={activeUnit.id}

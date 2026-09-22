@@ -6,8 +6,6 @@ import { describe, expect, it } from "vitest"
 import App from "@/app/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
-import { SidebarHeaderBar } from "@/components/sidebar/sidebar-header"
-import { SidebarProvider } from "@/components/ui/sidebar"
 
 describe("app shell", () => {
   it("monta sidebar e abre grupos inativos sob demanda", async () => {
@@ -18,6 +16,9 @@ describe("app shell", () => {
 
     expect(
       await screen.findByRole("navigation", { name: "Navegação principal" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("img", { name: "Rede Monte Carlo" }),
     ).toBeInTheDocument()
     expect(
       screen.queryByRole("link", { name: "Unidades" }),
@@ -64,20 +65,17 @@ describe("app shell", () => {
 
   it("mantém o nome acessível do trigger coerente com o estado", async () => {
     const user = userEvent.setup()
+    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
-    render(
-      <SidebarProvider defaultOpen={false}>
-        <SidebarHeaderBar>
-          <span>ações</span>
-        </SidebarHeaderBar>
-      </SidebarProvider>,
-    )
+    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    const trigger = screen.getByRole("button", { name: "Abrir menu lateral" })
+    const trigger = await screen.findByRole("button", {
+      name: "Fechar menu lateral",
+    })
     await user.click(trigger)
 
     expect(
-      screen.getByRole("button", { name: "Fechar menu lateral" }),
+      screen.getByRole("button", { name: "Abrir menu lateral" }),
     ).toBeInTheDocument()
   })
 })

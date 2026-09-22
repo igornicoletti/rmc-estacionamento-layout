@@ -36,7 +36,7 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
 
   if (!isMobile && state === "collapsed") {
     return (
-      <SidebarGroup className="py-0.5">
+      <SidebarGroup>
         <SidebarGroupContent>
           <SidebarNavItems items={items} />
         </SidebarGroupContent>
@@ -50,12 +50,12 @@ export function SidebarNavGroup({ label, items }: SidebarNavGroupProps) {
       onOpenChange={handleOpenChange}
       open={open}
     >
-      <SidebarGroup className="py-0.5">
+      <SidebarGroup>
         <SidebarGroupLabel render={<CollapsibleTrigger />}>
           {label}
           <ChevronRightIcon
             aria-hidden="true"
-            className="ml-auto transition-transform motion-reduce:transition-none group-data-open/collapsible:rotate-90"
+            className="ml-auto transition-transform group-data-open/collapsible:rotate-90 motion-reduce:transition-none"
           />
         </SidebarGroupLabel>
 
