@@ -38,6 +38,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 })
 
+const EMPTY_CLIENTS: Client[] = []
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<Client>()
 
@@ -239,7 +240,7 @@ export function ClientsDataTable() {
     queryFn: loadMockClients,
     staleTime: Number.POSITIVE_INFINITY,
   })
-  const clients = clientsQuery.data ?? []
+  const clients = clientsQuery.data ?? EMPTY_CLIENTS
   const [cityFilter, setCityFilter] = useState<string>()
   const state = useDataTableState({
     initialColumnVisibility: {
