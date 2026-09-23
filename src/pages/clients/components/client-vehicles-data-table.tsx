@@ -253,8 +253,11 @@ export function ClientVehiclesDataTable({
         [
           vehicle.id,
           vehicle.plate,
+          formatLicensePlate(vehicle.plate),
           vehicle.description,
+          formatVehicleDescription(vehicle.description),
           showDriver ? vehicle.driverName : "",
+          showDriver ? formatErpName(vehicle.driverName) : "",
         ].join(" "),
       ).includes(search)
     })
@@ -273,10 +276,24 @@ export function ClientVehiclesDataTable({
     }
 
     return [...filteredVehicles].sort((left, right) => {
-      const leftValue = left[sort.id as keyof ClientVehicle]
-      const rightValue = right[sort.id as keyof ClientVehicle]
-      const comparison = String(leftValue ?? "").localeCompare(
-        String(rightValue ?? ""),
+      const sortValue = (vehicle: ClientVehicle) => {
+        if (sort.id === "description") {
+          return formatVehicleDescription(vehicle.description)
+        }
+
+        if (sort.id === "plate") {
+          return formatLicensePlate(vehicle.plate)
+        }
+
+        if (sort.id === "driverName") {
+          return formatErpName(vehicle.driverName)
+        }
+
+        return String(vehicle[sort.id as keyof ClientVehicle] ?? "")
+      }
+
+      const comparison = sortValue(left).localeCompare(
+        sortValue(right),
         "pt-BR",
         { numeric: true, sensitivity: "base" },
       )

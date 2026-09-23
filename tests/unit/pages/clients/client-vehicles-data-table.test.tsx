@@ -70,6 +70,8 @@ describe("ClientVehiclesDataTable", () => {
     expect(
       screen.queryByRole("columnheader", { name: /Motorista/u }),
     ).not.toBeInTheDocument()
+    expect(screen.getByText("FSL-8590")).toBeInTheDocument()
+    expect(screen.getByText("Scania")).toBeInTheDocument()
     expect(
       screen.getByRole("button", { name: "Ordenar por Placa" }),
     ).toBeInTheDocument()
