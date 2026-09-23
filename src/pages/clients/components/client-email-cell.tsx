@@ -7,7 +7,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
-import { copyClientValue } from "@/pages/clients/lib/copy-client-value"
+import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import {
   formatOptionalText,
   splitEmails,
@@ -62,9 +62,10 @@ export function ClientEmailCell({ value }: ClientEmailCellProps) {
                   <Button
                     aria-label={`Copiar ${email}`}
                     onClick={() =>
-                      void copyClientValue({
+                      void copyToClipboard({
                         errorDescription:
                           "Não foi possível copiar o endereço de e-mail.",
+                        successDescription: email,
                         successTitle: "E-mail copiado",
                         value: email,
                       })

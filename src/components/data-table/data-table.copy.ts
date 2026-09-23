@@ -1,5 +1,9 @@
 export const dataTableCopy = {
-  search: { clear: "Limpar busca", defaultAriaLabel: "Buscar registros", defaultPlaceholder: "Buscar registros..." },
+  search: {
+    clear: "Limpar busca",
+    defaultAriaLabel: "Buscar registros",
+    defaultPlaceholder: "Buscar registros...",
+  },
   pagination: {
     rowsPerPage: "Linhas por página",
     page: "Página",
@@ -12,17 +16,36 @@ export const dataTableCopy = {
   },
   empty: {
     defaultTitle: "Nenhum registro disponível",
-    defaultDescription: "Os registros aparecerão aqui quando estiverem disponíveis.",
+    defaultDescription:
+      "Os registros aparecerão aqui quando estiverem disponíveis.",
     filteredTitle: "Nenhum resultado encontrado",
-    filteredDescription: "Revise os termos de busca ou remova os filtros aplicados.",
+    filteredDescription:
+      "Revise os termos de busca ou remova os filtros aplicados.",
     clearFilters: "Limpar filtros",
   },
   error: {
     defaultTitle: "Não foi possível carregar os registros",
-    defaultDescription: "Tente novamente. Se o problema persistir, contate o suporte.",
+    defaultDescription:
+      "Tente novamente. Se o problema persistir, contate o suporte.",
     retry: "Tentar novamente",
   },
   updating: "Atualizando",
-  rowActions: { label: "Ações", view: "Ver detalhes" },
-  columns: { trigger: "Colunas", tooltip: "Exibir colunas", label: "Colunas visíveis", lastVisible: "última coluna visível" },
+  rowActions: {
+    label: "Ações",
+    details: "Detalhes",
+    copyData: "Copiar dados",
+    copySuccessTitle: "Dados copiados",
+    copySuccessDescription: "Os dados do registro foram copiados.",
+    copyErrorDescription: "Não foi possível copiar os dados do registro.",
+  },
+  export: {
+    trigger: "Exportar CSV",
+    tooltip: "Exportar dados filtrados em CSV",
+  },
+  columns: {
+    trigger: "Colunas",
+    tooltip: "Exibir colunas",
+    label: "Colunas visíveis",
+    lastVisible: "última coluna visível",
+  },
 } as const

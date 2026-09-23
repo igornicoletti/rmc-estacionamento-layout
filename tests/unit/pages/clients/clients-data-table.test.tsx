@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
@@ -27,6 +27,9 @@ describe("ClientsDataTable", () => {
     expect(
       screen.queryByRole("columnheader", { name: "Telefone" }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Exportar CSV" }),
+    ).toBeInTheDocument()
   })
 
   it("permite copiar e-mails adicionais", async () => {
@@ -51,6 +54,48 @@ describe("ClientsDataTable", () => {
     await expect(navigator.clipboard.readText()).resolves.toBe(
       "financeiro@example.invalid",
     )
+  })
+
+  it("abre os detalhes do cliente pelo menu de ações", async () => {
+    const user = userEvent.setup()
+    renderClientsDataTable()
+
+    const actions = await screen.findAllByRole("button", {
+      name: /Ações do cliente/u,
+    })
+
+    await user.click(actions[0])
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Detalhes" }),
+    )
+
+    const sheet = await screen.findByRole("dialog")
+    expect(within(sheet).getByRole("button", { name: "Fechar" })).toBeInTheDocument()
+    expect(within(sheet).getByText("Contato")).toBeInTheDocument()
+    expect(
+      within(sheet).getByText(
+        "cliente1@example.invalid, financeiro@example.invalid, frota@example.invalid",
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it("copia os dados completos do cliente", async () => {
+    const user = userEvent.setup()
+    renderClientsDataTable()
+
+    const actions = await screen.findAllByRole("button", {
+      name: /Ações do cliente/u,
+    })
+
+    await user.click(actions[0])
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Copiar dados" }),
+    )
+
+    const copied = await navigator.clipboard.readText()
+    expect(copied).toContain("Código: 1001")
+    expect(copied).toContain("E-mail: cliente1@example.invalid")
+    expect(copied.split("\n").length).toBeGreaterThan(10)
   })
 
   it("expõe as cidades disponíveis no filtro", async () => {

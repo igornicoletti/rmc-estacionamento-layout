@@ -1,23 +1,22 @@
 import { useMemo } from "react"
 
 import { DataTable } from "@/components/data-table/components/data-table"
-import {
-  DataTableEmpty,
-} from "@/components/data-table/components/data-table-state"
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
-import {
-  DataTableRoot,
-} from "@/components/data-table/components/data-table-root"
+import { DataTableRoot } from "@/components/data-table/components/data-table-root"
 import {
   DataTableRowActions,
   DataTableRowActionsHeader,
 } from "@/components/data-table/components/data-table-row-actions"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
+import {
+  DataTableEmpty,
+} from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
-import { toast } from "@/components/ui/toast"
+import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { copyToClipboard } from "@/lib/copy-to-clipboard"
 
 interface PreviewRecord {
   id: string
@@ -36,17 +35,13 @@ const PREVIEW_RECORD_COUNT = 28
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<PreviewRecord>()
 
-async function copyId(id: string) {
-  try {
-    await navigator.clipboard.writeText(id)
-    toast.add({ description: id, title: "ID copiado", type: "success" })
-  } catch {
-    toast.add({
-      description: "Não foi possível copiar o ID.",
-      title: "Falha ao copiar",
-      type: "error",
-    })
-  }
+function copyPreviewRecord(record: PreviewRecord) {
+  void copyToClipboard({
+    errorDescription: dataTableCopy.rowActions.copyErrorDescription,
+    successDescription: dataTableCopy.rowActions.copySuccessDescription,
+    successTitle: dataTableCopy.rowActions.copySuccessTitle,
+    value: `ID: ${record.id}`,
+  })
 }
 
 const columns = columnHelper.columns([
@@ -60,8 +55,7 @@ const columns = columnHelper.columns([
     cell: ({ row }) => (
       <DataTableRowActions
         accessibleLabel={`Ações do ID ${row.original.id}`}
-        copyLabel="Copiar ID"
-        onCopy={() => void copyId(row.original.id)}
+        onCopyData={() => copyPreviewRecord(row.original)}
       />
     ),
     enableHiding: false,

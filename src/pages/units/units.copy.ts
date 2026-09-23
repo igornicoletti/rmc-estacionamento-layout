@@ -11,11 +11,5 @@ export const unitsCopy = {
     clearAriaLabel: "Limpar filtro de cidade",
     placeholder: "Todas as cidades",
   },
-  actions: {
-    copyLabel: "Copiar código",
-    copySuccessTitle: "Código copiado",
-    copyErrorTitle: "Falha ao copiar",
-    copyErrorDescription: "Não foi possível copiar o código da unidade.",
-  },
-  notInformed: "Não informado",
+  notInformed: "—",
 } as const

@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
+import { AppRecordDetails } from "@/components/common/app-record-details"
+import { AppSheet } from "@/components/common/app-sheet"
 import { DataTable } from "@/components/data-table/components/data-table"
-import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
+import { DataTableExport } from "@/components/data-table/components/data-table-export"
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/components/data-table-root"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
@@ -18,20 +20,29 @@ import {
   paginateRows,
   sortRows,
 } from "@/components/data-table/core/table-data-utils"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
+import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import { clientsCopy } from "@/pages/clients/clients.copy"
+import {
+  clientVehiclesTableApi,
+  createClientVehiclesTableColumns,
+} from "@/pages/clients/components/client-vehicles-table-columns"
 import {
   clientPreviewQueryKeys,
   loadPreviewClientVehicles,
 } from "@/pages/clients/data/client-preview-data"
 import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
-  formatDateTime,
+  clientVehicleRecordCsvColumns,
+  clientVehicleRecordSections,
+} from "@/pages/clients/model/client-vehicle-record-presentation"
+import {
   formatErpName,
   formatLicensePlate,
   formatVehicleDescription,
-  formatYesNo,
 } from "@/pages/clients/model/client-presentation"
 
 interface ClientVehiclesDataTableProps {
@@ -39,121 +50,6 @@ interface ClientVehiclesDataTableProps {
 }
 
 const EMPTY_CLIENT_VEHICLES: ClientVehicle[] = []
-const tableApi = createServerTableHook<Record<string, never>>()
-const columnHelper = tableApi.createAppColumnHelper<ClientVehicle>()
-
-function createColumns(showDriver: boolean) {
-  return columnHelper.columns([
-    columnHelper.accessor("id", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">{getValue()}</span>
-      ),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Código" />
-      ),
-      meta: { visibilityLabel: "Código" },
-    }),
-    columnHelper.accessor("clientId", {
-      enableHiding: true,
-      enableSorting: false,
-      header: "Código do cliente",
-      meta: { visibilityLabel: "Código do cliente" },
-    }),
-    columnHelper.accessor("clientName", {
-      cell: ({ getValue }) => formatErpName(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Nome do cliente",
-      meta: { visibilityLabel: "Nome do cliente" },
-    }),
-    columnHelper.accessor("clientTradeName", {
-      cell: ({ getValue }) => formatErpName(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Nome fantasia",
-      meta: { visibilityLabel: "Nome fantasia" },
-    }),
-    columnHelper.accessor("clientTaxId", {
-      enableHiding: true,
-      enableSorting: false,
-      header: "CPF/CNPJ",
-      meta: { visibilityLabel: "CPF/CNPJ" },
-    }),
-    columnHelper.accessor("plate", {
-      cell: ({ getValue }) => formatLicensePlate(getValue()),
-      enableHiding: false,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Placa" />
-      ),
-      meta: { visibilityLabel: "Placa" },
-    }),
-    columnHelper.accessor("description", {
-      cell: ({ getValue }) => formatVehicleDescription(getValue()),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Veículo" />
-      ),
-      meta: { visibilityLabel: "Veículo" },
-    }),
-    ...(showDriver
-      ? [
-          columnHelper.accessor("driverName", {
-            cell: ({ getValue }) => formatErpName(getValue()),
-            enableHiding: true,
-            enableSorting: true,
-            header: ({ column }) => (
-              <DataTableColumnHeader column={column} title="Motorista" />
-            ),
-            meta: { visibilityLabel: "Motorista" },
-          }),
-        ]
-      : []),
-    columnHelper.accessor("clientActiveWithin120Days", {
-      cell: ({ getValue }) => formatYesNo(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Cliente ativo em 120 dias",
-      meta: { visibilityLabel: "Cliente ativo em 120 dias" },
-    }),
-    columnHelper.accessor("synchronizedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Sincronização",
-      meta: { visibilityLabel: "Sincronização" },
-    }),
-    columnHelper.accessor("createdAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Criação",
-      meta: { visibilityLabel: "Criação" },
-    }),
-    columnHelper.accessor("updatedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Atualização",
-      meta: { visibilityLabel: "Atualização" },
-    }),
-  ])
-}
 
 export function ClientVehiclesDataTable({
   clientId,
@@ -165,6 +61,8 @@ export function ClientVehiclesDataTable({
   })
   const allVehicles = vehiclesQuery.data ?? EMPTY_CLIENT_VEHICLES
   const [descriptionFilter, setDescriptionFilter] = useState<string>()
+  const [selectedVehicle, setSelectedVehicle] =
+    useState<ClientVehicle | null>(null)
   const state = useDataTableState({
     initialColumnVisibility: {
       clientActiveWithin120Days: false,
@@ -175,6 +73,18 @@ export function ClientVehiclesDataTable({
     },
   })
 
+  const handleCopyData = useCallback((vehicle: ClientVehicle) => {
+    void copyToClipboard({
+      errorDescription: dataTableCopy.rowActions.copyErrorDescription,
+      successDescription: dataTableCopy.rowActions.copySuccessDescription,
+      successTitle: dataTableCopy.rowActions.copySuccessTitle,
+      value: serializeRecordForClipboard(
+        vehicle,
+        clientVehicleRecordSections,
+      ),
+    })
+  }, [])
+
   const clientVehicles = useMemo(
     () => allVehicles.filter((vehicle) => vehicle.clientId === clientId),
     [allVehicles, clientId],
@@ -183,7 +93,14 @@ export function ClientVehiclesDataTable({
     () => clientVehicles.some((vehicle) => vehicle.driverName !== ""),
     [clientVehicles],
   )
-  const columns = useMemo(() => createColumns(showDriver), [showDriver])
+  const columns = useMemo(
+    () =>
+      createClientVehiclesTableColumns(showDriver, {
+        onCopyData: handleCopyData,
+        onDetails: setSelectedVehicle,
+      }),
+    [handleCopyData, showDriver],
+  )
 
   const descriptionFacet = useMemo(() => {
     const descriptions = new Set<string>()
@@ -276,7 +193,7 @@ export function ClientVehiclesDataTable({
     [sortedVehicles, state.pagination],
   )
 
-  const table = tableApi.useAppTable({
+  const table = clientVehiclesTableApi.useAppTable({
     columns,
     data: paginatedVehicles,
     getRowId: (vehicle) => vehicle.id,
@@ -303,61 +220,101 @@ export function ClientVehiclesDataTable({
   }
 
   return (
-    <DataTableRoot isBusy={vehiclesQuery.isPending || vehiclesQuery.isFetching}>
-      <DataTableToolbar
-        actions={<DataTableViewOptions table={table} />}
-        activeFilterCount={
-          Number(Boolean(state.searchDraft.trim())) +
-          Number(Boolean(descriptionFilter))
-        }
-        onClearFilters={clearFilters}
+    <>
+      <DataTableRoot
+        isBusy={vehiclesQuery.isPending || vehiclesQuery.isFetching}
       >
-        <DataTableSearch
-          ariaLabel={clientsCopy.vehicles.searchAriaLabel}
-          onChange={state.handleSearchChange}
-          onClear={state.clearSearch}
-          onSubmit={state.submitSearch}
-          placeholder={
-            showDriver
-              ? clientsCopy.vehicles.searchWithDriverPlaceholder
-              : clientsCopy.vehicles.searchWithoutDriverPlaceholder
+        <DataTableToolbar
+          actions={
+            <>
+              <DataTableExport
+                disabled={sortedVehicles.length === 0}
+                onExport={() =>
+                  downloadCsv(
+                    `veiculos-cliente-${clientId}.csv`,
+                    serializeCsv(
+                      sortedVehicles,
+                      clientVehicleRecordCsvColumns,
+                    ),
+                  )
+                }
+              />
+              <DataTableViewOptions table={table} />
+            </>
           }
-          value={state.searchDraft}
-        />
-        {descriptionFacet.items.length > 1 ? (
-          <DataTableComboboxFilter
-            ariaLabel={clientsCopy.vehicles.filterAriaLabel}
-            clearAriaLabel={clientsCopy.vehicles.filterClearAriaLabel}
-            counts={descriptionFacet.counts}
-            items={descriptionFacet.items}
-            onValueChange={handleDescriptionFilterChange}
-            placeholder={clientsCopy.vehicles.filterPlaceholder}
-            value={descriptionFilter}
+          activeFilterCount={
+            Number(Boolean(state.searchDraft.trim())) +
+            Number(Boolean(descriptionFilter))
+          }
+          onClearFilters={clearFilters}
+        >
+          <DataTableSearch
+            ariaLabel={clientsCopy.vehicles.searchAriaLabel}
+            onChange={state.handleSearchChange}
+            onClear={state.clearSearch}
+            onSubmit={state.submitSearch}
+            placeholder={
+              showDriver
+                ? clientsCopy.vehicles.searchWithDriverPlaceholder
+                : clientsCopy.vehicles.searchWithoutDriverPlaceholder
+            }
+            value={state.searchDraft}
           />
-        ) : null}
-      </DataTableToolbar>
+          {descriptionFacet.items.length > 1 ? (
+            <DataTableComboboxFilter
+              ariaLabel={clientsCopy.vehicles.filterAriaLabel}
+              clearAriaLabel={clientsCopy.vehicles.filterClearAriaLabel}
+              counts={descriptionFacet.counts}
+              items={descriptionFacet.items}
+              onValueChange={handleDescriptionFilterChange}
+              placeholder={clientsCopy.vehicles.filterPlaceholder}
+              value={descriptionFilter}
+            />
+          ) : null}
+        </DataTableToolbar>
 
-      <DataTable
-        caption={clientsCopy.vehicles.caption}
-        emptyState={
-          <DataTableEmpty
-            emptyDescription={clientsCopy.vehicles.emptyDescription}
-            emptyTitle={clientsCopy.vehicles.emptyTitle}
-            hasFilters={hasActiveFilters}
-            onClearFilters={clearFilters}
-          />
-        }
-        isInitialLoading={vehiclesQuery.isPending}
-        table={table}
-      />
-
-      {!vehiclesQuery.isPending ? (
-        <DataTablePagination
-          itemLabel={clientsCopy.vehicles.itemLabel}
-          rowCount={filteredVehicles.length}
+        <DataTable
+          caption={clientsCopy.vehicles.caption}
+          emptyState={
+            <DataTableEmpty
+              emptyDescription={clientsCopy.vehicles.emptyDescription}
+              emptyTitle={clientsCopy.vehicles.emptyTitle}
+              hasFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
+            />
+          }
+          isInitialLoading={vehiclesQuery.isPending}
           table={table}
         />
+
+        {!vehiclesQuery.isPending ? (
+          <DataTablePagination
+            itemLabel={clientsCopy.vehicles.itemLabel}
+            rowCount={filteredVehicles.length}
+            table={table}
+          />
+        ) : null}
+      </DataTableRoot>
+
+      {selectedVehicle ? (
+        <AppSheet
+          description={
+            selectedVehicle.description
+              ? formatVehicleDescription(selectedVehicle.description)
+              : `Código ${selectedVehicle.id}`
+          }
+          onOpenChange={(open) => {
+            if (!open) setSelectedVehicle(null)
+          }}
+          open
+          title={formatLicensePlate(selectedVehicle.plate)}
+        >
+          <AppRecordDetails
+            record={selectedVehicle}
+            sections={clientVehicleRecordSections}
+          />
+        </AppSheet>
       ) : null}
-    </DataTableRoot>
+    </>
   )
 }
