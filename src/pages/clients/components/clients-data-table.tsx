@@ -22,11 +22,18 @@ import { createServerTableHook } from "@/components/data-table/hooks/create-serv
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
 import { toast } from "@/components/ui/toast"
 import { getClientDetailsPath } from "@/pages/clients/client-routes"
+import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
 import {
   clientMockQueryKeys,
   loadMockClients,
 } from "@/pages/clients/data/client-mock-data"
 import type { Client } from "@/pages/clients/model/client"
+import {
+  formatCityName,
+  formatErpName,
+  formatPhone,
+  formatYesNo,
+} from "@/pages/clients/model/client-presentation"
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
@@ -91,7 +98,7 @@ const columns = columnHelper.columns([
         className="font-medium underline-offset-4 hover:underline"
         to={getClientDetailsPath(row.original.id)}
       >
-        {getValue()}
+        {formatErpName(getValue())}
       </Link>
     ),
     enableHiding: true,
@@ -102,6 +109,7 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Nome" },
   }),
   columnHelper.accessor("tradeName", {
+    cell: ({ getValue }) => formatErpName(getValue()),
     enableHiding: true,
     enableSorting: true,
     header: ({ column }) => (
@@ -116,18 +124,21 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "CPF/CNPJ" },
   }),
   columnHelper.accessor("email", {
+    cell: ({ getValue }) => <ClientEmailCell value={getValue()} />,
     enableHiding: true,
     enableSorting: false,
     header: "E-mail",
     meta: { visibilityLabel: "E-mail" },
   }),
   columnHelper.accessor("phone", {
+    cell: ({ getValue }) => formatPhone(getValue()),
     enableHiding: true,
     enableSorting: false,
     header: "Telefone",
     meta: { visibilityLabel: "Telefone" },
   }),
   columnHelper.accessor("city", {
+    cell: ({ getValue }) => formatCityName(getValue()),
     enableHiding: true,
     enableSorting: true,
     header: ({ column }) => (
@@ -151,12 +162,14 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Cadastro" },
   }),
   columnHelper.accessor("personActiveStatus", {
+    cell: ({ getValue }) => formatYesNo(getValue()),
     enableHiding: true,
     enableSorting: false,
     header: "Pessoa ativa",
     meta: { visibilityLabel: "Pessoa ativa" },
   }),
   columnHelper.accessor("financialBlockStatus", {
+    cell: ({ getValue }) => formatYesNo(getValue()),
     enableHiding: true,
     enableSorting: false,
     header: "Bloqueio financeiro",
@@ -180,7 +193,7 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Última compra" },
   }),
   columnHelper.accessor("activeWithin120Days", {
-    cell: ({ getValue }) => (getValue() ? "Sim" : "Não"),
+    cell: ({ getValue }) => formatYesNo(getValue()),
     enableHiding: true,
     enableSorting: false,
     header: "Ativo em 120 dias",
@@ -223,7 +236,7 @@ const columns = columnHelper.columns([
   columnHelper.display({
     cell: ({ row }) => (
       <DataTableRowActions
-        accessibleLabel={`Ações do cliente ${row.original.name}`}
+        accessibleLabel={`Ações do cliente ${formatErpName(row.original.name)}`}
         copyLabel="Copiar código"
         onCopy={() => void copyClientId(row.original.id)}
       />
@@ -245,7 +258,6 @@ export function ClientsDataTable() {
   const state = useDataTableState({
     initialColumnVisibility: {
       createdAt: false,
-      email: false,
       phone: false,
       sourceHash: false,
       sourceUpdatedAt: false,
@@ -266,7 +278,7 @@ export function ClientsDataTable() {
       if (!items.has(value)) {
         items.set(value, {
           group: client.state,
-          label: client.city,
+          label: formatCityName(client.city),
           value,
         })
       }
