@@ -3,6 +3,9 @@
 Base frontend criada com Vite, React e TypeScript, usando Tailwind CSS v4 e
 shadcn/ui com Base UI no estilo Luma.
 
+Este repositório é uma SPA cliente em React executada pelo Vite. Não utiliza
+Next.js nem React Server Components.
+
 ## Requisitos
 
 - Node.js 24.18.1 (fixado em `.node-version`; versões compatíveis 24.x são aceitas por `engines`)
@@ -27,7 +30,8 @@ npx playwright install
 
 - Vite 8, React 19 e TypeScript 6
 - Tailwind CSS 4 via plugin oficial para Vite
-- shadcn/ui Luma sobre Base UI
+- shadcn/ui Luma sobre Base UI, sem RSC
+- React Router em Data Mode
 - TanStack Query 5 e TanStack Table 9
 - Vitest, Testing Library e cobertura V8
 - Playwright em Chromium, Firefox e WebKit
@@ -50,20 +54,21 @@ em Chromium.
 
 ## Organização do código
 
-- `src/app/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
-- `src/app/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
-- `src/app/app-copy.ts`: copy estática de feedback, acessibilidade e ações do shell.
-- `src/app/app-layout.tsx`: título da navegação e outlet raiz.
-- `src/app/app-shell.tsx`: composição do sidebar, toolbar e conteúdo das rotas liberadas.
-- `src/app/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
-- `src/app/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
-- `src/app/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
-- `src/app/components/`: apresentação específica do shell da aplicação.
-- `src/app/layouts/`: layouts estruturais específicos da aplicação.
-- `src/app/query-client.ts`: política de cache/retry e fábrica do QueryClient.
-- `src/app/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
+- `src/main.tsx`: entry point do Vite; cria o Data Router uma única vez, fora da árvore React.
+- `src/app/root/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
+- `src/app/config/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
+- `src/app/config/app-copy.ts`: copy estática de feedback, acessibilidade e ações do shell.
+- `src/app/root/app-layout.tsx`: título da navegação e outlet raiz.
+- `src/app/root/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
+- `src/app/root/query-client.ts`: política de cache/retry e fábrica do QueryClient.
+- `src/app/root/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
 - `src/app/routing/`: rotas, política pura de acesso, bloqueio visual e erros de rota.
 - `src/app/session/`: contratos, comandos, contexto, provider e estados de bootstrap.
+- `src/app/shell/app-shell.tsx`: composição do sidebar, toolbar e conteúdo das rotas liberadas.
+- `src/app/shell/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
+- `src/app/shell/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
+- `src/app/shell/components/`: apresentação específica do shell da aplicação.
+- `src/app/layouts/`: layouts estruturais específicos da aplicação.
 - `src/components/common/`: wrappers reutilizáveis sobre primitives de `ui/`, sem regra de negócio.
 - `src/components/sidebar/`: composição e navegação exclusivas do sidebar.
 - `src/pages/<page>/<page>.layout.tsx`: único arquivo de entrada de cada página.
@@ -108,13 +113,16 @@ O boundary visual atual não deve ser tratado como proteção de dados.
 
 ## Referências oficiais
 
+- [React](https://react.dev/)
+- [React com TypeScript](https://react.dev/learn/typescript)
 - [React Router](https://reactrouter.com/)
 - [React Router Middleware](https://reactrouter.com/how-to/middleware)
+- [Vite](https://vite.dev/guide/)
 - [TanStack Query](https://tanstack.com/query/latest)
+- [shadcn/ui](https://ui.shadcn.com/)
 - [shadcn/ui Sidebar](https://ui.shadcn.com/docs/components/base/sidebar)
 - [Base UI](https://base-ui.com/react/overview/quick-start)
-- [Vite](https://vite.dev/guide/)
-- [React com TypeScript](https://react.dev/learn/typescript)
 - [Tailwind CSS com Vite](https://tailwindcss.com/docs/installation/using-vite)
 - [Vitest](https://vitest.dev/)
 - [Playwright](https://playwright.dev/docs/intro)
+- [ESLint](https://eslint.org/docs/latest/)
