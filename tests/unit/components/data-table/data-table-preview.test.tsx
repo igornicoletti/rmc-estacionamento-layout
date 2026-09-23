@@ -7,7 +7,7 @@ import { renderWithProviders } from "@tests/support/render"
 import { DataTablePreview } from "@/components/data-table/components/data-table-preview"
 
 describe("DataTablePreview", () => {
-  it("compõe busca, colunas, paginação e cópia de ID", async () => {
+  it("compõe busca, colunas, paginação e cópia dos dados disponíveis", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -18,14 +18,25 @@ describe("DataTablePreview", () => {
       />,
     )
 
-    expect(screen.getByRole("searchbox", { name: "Buscar registros" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("searchbox", { name: "Buscar registros" }),
+    ).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Colunas" })).toBeInTheDocument()
     expect(screen.getByText("28 usuários")).toBeInTheDocument()
     expect(screen.getByText("Página 1 de 3")).toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "Ações do ID usr-001" }))
-    await user.click(await screen.findByRole("menuitem", { name: "Copiar ID" }))
+    await user.click(
+      screen.getByRole("button", { name: "Ações do ID usr-001" }),
+    )
 
-    await expect(navigator.clipboard.readText()).resolves.toBe("usr-001")
+    expect(
+      screen.queryByRole("menuitem", { name: "Detalhes" }),
+    ).not.toBeInTheDocument()
+
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Copiar dados" }),
+    )
+
+    await expect(navigator.clipboard.readText()).resolves.toBe("ID: usr-001")
   })
 })

@@ -14,7 +14,7 @@ import { dataTableCopy } from "@/components/data-table/data-table.copy"
 interface DataTableRowActionsProps {
   accessibleLabel: string
   onCopyData: () => void
-  onDetails: () => void
+  onDetails?: () => void
 }
 
 export function DataTableRowActions({
@@ -34,10 +34,12 @@ export function DataTableRowActions({
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
             <DropdownMenuLabel>{dataTableCopy.rowActions.label}</DropdownMenuLabel>
-            <DropdownMenuItem onClick={onDetails}>
-              <EyeIcon aria-hidden="true" />
-              {dataTableCopy.rowActions.details}
-            </DropdownMenuItem>
+            {onDetails ? (
+              <DropdownMenuItem onClick={onDetails}>
+                <EyeIcon aria-hidden="true" />
+                {dataTableCopy.rowActions.details}
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem onClick={onCopyData}>
               <CopyIcon aria-hidden="true" />
               {dataTableCopy.rowActions.copyData}
