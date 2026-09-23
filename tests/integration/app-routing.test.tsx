@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter } from "react-router"
-import { describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
 
 import App from "@/app/root/app"
 import { appPages } from "@/app/config/app-config"
@@ -19,6 +19,14 @@ const dataTablePages = [
 ] as const
 
 describe("app routing", () => {
+  beforeAll(async () => {
+    await Promise.all([
+      import("@/components/data-table/components/data-table-preview"),
+      import("@/pages/clients/components/clients-data-table"),
+      import("@/pages/units/components/units-data-table"),
+    ])
+  })
+
   it("monta o shell na rota raiz", async () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
