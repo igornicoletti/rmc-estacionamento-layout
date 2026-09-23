@@ -1,5 +1,5 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
-import { createMemoryRouter } from "react-router"
+import { createMemoryRouter, matchRoutes } from "react-router"
 import { beforeAll, describe, expect, it } from "vitest"
 
 import App from "@/app/root/app"
@@ -51,6 +51,14 @@ describe("app routing", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
+  it("resolve a rota dinâmica de detalhe do cliente", () => {
+    const matches = matchRoutes(routes, "/clientes/3492")
+
+    expect(matches?.some((match) => match.route.id === "client-details")).toBe(
+      true,
+    )
+  })
+
   it.each(dataTablePages)("renderiza a tabela mínima em %s", async (pageId) => {
     const page = appPages[pageId]
     const router = createMemoryRouter(routes, { initialEntries: [page.path] })
@@ -96,4 +104,4 @@ describe("app routing", () => {
       expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
     })
   })
-})
+}

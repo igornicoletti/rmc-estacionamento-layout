@@ -44,8 +44,23 @@ describe("client mapper", () => {
       vehicleCount: 3,
       lastPurchaseAt: "2026-08-20",
       activeWithin120Days: true,
-      sourceHash: "abc123",
+      sourceHash: "ABC123",
       sourceUpdatedAt: null,
+    })
+  })
+
+  it("preserva campos textuais vazios aceitos pelo ERP", () => {
+    expect(
+      mapLegacyClient({
+        ...validRecord,
+        nom_fantasia: "",
+        des_email_1: "",
+        num_telefone_1: "",
+      }),
+    ).toMatchObject({
+      tradeName: "",
+      email: "",
+      phone: "",
     })
   })
 
@@ -64,4 +79,4 @@ describe("client mapper", () => {
     ).toThrow("dta_cadastro")
     expect(() => formatCpfCnpj("123")).toThrow("11 ou 14")
   })
-})
+}

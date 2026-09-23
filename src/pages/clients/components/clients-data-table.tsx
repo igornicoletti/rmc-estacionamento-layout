@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { Link } from "react-router"
 
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
@@ -10,14 +12,20 @@ import {
   DataTableRowActionsHeader,
 } from "@/components/data-table/components/data-table-row-actions"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
-import { DataTableEmpty } from "@/components/data-table/components/data-table-state"
+import {
+  DataTableEmpty,
+  DataTableError,
+} from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
 import { toast } from "@/components/ui/toast"
-import { erpClientsLegacyFixture } from "@/pages/clients/mocks/erp-clients.mock"
-import { mapLegacyClients } from "@/pages/clients/model/client-mapper"
+import { getClientDetailsPath } from "@/pages/clients/client-routes"
+import {
+  clientMockQueryKeys,
+  loadMockClients,
+} from "@/pages/clients/data/client-mock-data"
 import type { Client } from "@/pages/clients/model/client"
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -30,24 +38,23 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 })
 
-const clients = mapLegacyClients(erpClientsLegacyFixture)
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<Client>()
 
 function formatDate(value: string | null) {
   return value
     ? dateFormatter.format(new Date(`${value}T00:00:00.000Z`))
-    : "Não informado"
+    : "—"
 }
 
 function formatDateTime(value: string | null) {
-  return value ? dateTimeFormatter.format(new Date(value)) : "Não informado"
+  return value ? dateTimeFormatter.format(new Date(value)) : "—"
 }
 
 function normalizeSearch(value: string) {
   return value
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/gu, "")
     .toLocaleLowerCase("pt-BR")
 }
 
@@ -78,6 +85,14 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Código" },
   }),
   columnHelper.accessor("name", {
+    cell: ({ getValue, row }) => (
+      <Link
+        className="font-medium underline-offset-4 hover:underline"
+        to={getClientDetailsPath(row.original.id)}
+      >
+        {getValue()}
+      </Link>
+    ),
     enableHiding: true,
     enableSorting: true,
     header: ({ column }) => (
@@ -95,18 +110,14 @@ const columns = columnHelper.columns([
   }),
   columnHelper.accessor("taxId", {
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="CPF/CNPJ" />
-    ),
+    enableSorting: false,
+    header: "CPF/CNPJ",
     meta: { visibilityLabel: "CPF/CNPJ" },
   }),
   columnHelper.accessor("email", {
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="E-mail" />
-    ),
+    enableSorting: false,
+    header: "E-mail",
     meta: { visibilityLabel: "E-mail" },
   }),
   columnHelper.accessor("phone", {
@@ -126,10 +137,8 @@ const columns = columnHelper.columns([
   }),
   columnHelper.accessor("state", {
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
-    ),
+    enableSorting: false,
+    header: "Estado",
     meta: { visibilityLabel: "Estado" },
   }),
   columnHelper.accessor("registeredAt", {
@@ -143,18 +152,14 @@ const columns = columnHelper.columns([
   }),
   columnHelper.accessor("personActiveStatus", {
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Pessoa ativa" />
-    ),
+    enableSorting: false,
+    header: "Pessoa ativa",
     meta: { visibilityLabel: "Pessoa ativa" },
   }),
   columnHelper.accessor("financialBlockStatus", {
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Bloqueio financeiro" />
-    ),
+    enableSorting: false,
+    header: "Bloqueio financeiro",
     meta: { visibilityLabel: "Bloqueio financeiro" },
   }),
   columnHelper.accessor("vehicleCount", {
@@ -177,10 +182,8 @@ const columns = columnHelper.columns([
   columnHelper.accessor("activeWithin120Days", {
     cell: ({ getValue }) => (getValue() ? "Sim" : "Não"),
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ativo em 120 dias" />
-    ),
+    enableSorting: false,
+    header: "Ativo em 120 dias",
     meta: { visibilityLabel: "Ativo em 120 dias" },
   }),
   columnHelper.accessor("sourceHash", {
@@ -199,28 +202,22 @@ const columns = columnHelper.columns([
   columnHelper.accessor("synchronizedAt", {
     cell: ({ getValue }) => formatDateTime(getValue()),
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Sincronização" />
-    ),
+    enableSorting: false,
+    header: "Sincronização",
     meta: { visibilityLabel: "Sincronização" },
   }),
   columnHelper.accessor("createdAt", {
     cell: ({ getValue }) => formatDateTime(getValue()),
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Criação" />
-    ),
+    enableSorting: false,
+    header: "Criação",
     meta: { visibilityLabel: "Criação" },
   }),
   columnHelper.accessor("updatedAt", {
     cell: ({ getValue }) => formatDateTime(getValue()),
     enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Atualização" />
-    ),
+    enableSorting: false,
+    header: "Atualização",
     meta: { visibilityLabel: "Atualização" },
   }),
   columnHelper.display({
@@ -238,10 +235,18 @@ const columns = columnHelper.columns([
 ])
 
 export function ClientsDataTable() {
+  const clientsQuery = useQuery({
+    queryKey: clientMockQueryKeys.clients,
+    queryFn: loadMockClients,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+  const clients = clientsQuery.data ?? []
   const [cityFilter, setCityFilter] = useState<string>()
   const state = useDataTableState({
     initialColumnVisibility: {
       createdAt: false,
+      email: false,
+      phone: false,
       sourceHash: false,
       sourceUpdatedAt: false,
       state: false,
@@ -273,7 +278,7 @@ export function ClientsDataTable() {
         left.group.localeCompare(right.group, "pt-BR") ||
         left.label.localeCompare(right.label, "pt-BR"),
     )
-  }, [])
+  }, [clients])
 
   const cityCounts = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -284,11 +289,16 @@ export function ClientsDataTable() {
     }
 
     return counts
-  }, [])
+  }, [clients])
 
   const handleCityFilterChange = (value: string | undefined) => {
     setCityFilter(value)
     state.onPaginationChange((current) => ({ ...current, pageIndex: 0 }))
+  }
+
+  const clearFilters = () => {
+    state.clearFilters()
+    setCityFilter(undefined)
   }
 
   const filteredClients = useMemo(() => {
@@ -319,10 +329,11 @@ export function ClientsDataTable() {
         ].join(" "),
       ).includes(search)
     })
-  }, [cityFilter, state.globalFilter])
+  }, [cityFilter, clients, state.globalFilter])
 
   const sortedClients = useMemo(() => {
     const sort = state.sorting[0]
+
     if (!sort) {
       return filteredClients
     }
@@ -360,12 +371,21 @@ export function ClientsDataTable() {
     },
   })
 
+  if (clientsQuery.isError) {
+    return (
+      <DataTableError
+        description="Não foi possível carregar o mock local de clientes."
+        onRetry={() => void clientsQuery.refetch()}
+      />
+    )
+  }
+
   return (
-    <DataTableRoot isBusy={false}>
+    <DataTableRoot isBusy={clientsQuery.isPending || clientsQuery.isFetching}>
       <DataTableToolbar
         actions={<DataTableViewOptions table={table} />}
-        hasActiveFilters={false}
-        onClearFilters={() => handleCityFilterChange(undefined)}
+        hasActiveFilters={state.hasFilters || Boolean(cityFilter)}
+        onClearFilters={clearFilters}
       >
         <DataTableSearch
           ariaLabel="Buscar clientes"
@@ -392,24 +412,23 @@ export function ClientsDataTable() {
         caption="Lista de clientes"
         emptyState={
           <DataTableEmpty
-            emptyDescription="Os clientes aparecerão aqui quando os dados forem carregados."
+            emptyDescription="Nenhum cliente foi carregado no mock local."
             emptyTitle="Nenhum cliente disponível"
             hasFilters={state.hasFilters || Boolean(cityFilter)}
-            onClearFilters={() => {
-              state.clearFilters()
-              setCityFilter(undefined)
-            }}
+            onClearFilters={clearFilters}
           />
         }
-        isInitialLoading={false}
+        isInitialLoading={clientsQuery.isPending}
         table={table}
       />
 
-      <DataTablePagination
-        itemLabel={{ singular: "cliente", plural: "clientes" }}
-        rowCount={filteredClients.length}
-        table={table}
-      />
+      {!clientsQuery.isPending ? (
+        <DataTablePagination
+          itemLabel={{ singular: "cliente", plural: "clientes" }}
+          rowCount={filteredClients.length}
+          table={table}
+        />
+      ) : null}
     </DataTableRoot>
   )
 }

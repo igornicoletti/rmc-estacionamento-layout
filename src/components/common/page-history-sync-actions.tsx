@@ -1,23 +1,28 @@
-import { HistoryIcon, RefreshCwIcon } from "lucide-react"
+import { ArrowLeftIcon, HistoryIcon, RefreshCwIcon } from "lucide-react"
+import { Link } from "react-router"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 
 interface PageHistorySyncActionsProps {
-  onHistory?: () => void
-  onSync?: () => void
+  backTo?: string
 }
 
 export function PageHistorySyncActions({
-  onHistory,
-  onSync,
+  backTo,
 }: PageHistorySyncActionsProps) {
   return (
     <>
-      <Button onClick={onHistory} type="button" variant="outline">
+      {backTo ? (
+        <Link className={buttonVariants({ variant: "outline" })} to={backTo}>
+          <ArrowLeftIcon aria-hidden="true" data-icon="inline-start" />
+          Voltar
+        </Link>
+      ) : null}
+      <Button type="button" variant="outline">
         <HistoryIcon aria-hidden="true" data-icon="inline-start" />
         Histórico
       </Button>
-      <Button onClick={onSync} type="button">
+      <Button type="button">
         <RefreshCwIcon aria-hidden="true" data-icon="inline-start" />
         Sincronizar
       </Button>

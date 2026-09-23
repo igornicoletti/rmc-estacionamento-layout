@@ -17,11 +17,11 @@ import {
 
 import { appPages, type AppPageId } from "@/app/config/app-config"
 
-function item(routeId: AppPageId, icon: LucideIcon) {
+function item(routeId: AppPageId, icon: LucideIcon, end = true) {
   const page = appPages[routeId]
 
   return {
-    end: true,
+    end,
     icon,
     label: page.title,
     routeId,
@@ -41,7 +41,7 @@ export const navigationSections = [
     label: "CADASTROS",
     items: [
       item("units", Building2Icon),
-      item("clients", TruckIcon),
+      item("clients", TruckIcon, false),
       item("prices", DollarSignIcon),
       item("rules", ListChecksIcon),
     ],

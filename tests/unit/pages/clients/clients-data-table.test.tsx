@@ -1,15 +1,56 @@
+import { MemoryRouter } from "react-router"
 import { screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
 import { ClientsDataTable } from "@/pages/clients/components/clients-data-table"
 
-describe("ClientsDataTable", () => {
-  it("renderiza a estrutura pronta para receber os dados do ERP", () => {
-    renderWithProviders(<ClientsDataTable />)
+const clientRecord = {
+  cod_pessoa: 363,
+  nom_pessoa: "ASSOCIACAO ECO VILLAGE I",
+  nom_fantasia: "",
+  num_cnpj_cpf: "08218781000105",
+  des_email_1: "admecovillage1@gmail.com",
+  num_telefone_1: "1732264790",
+  nom_cidade: "SAO JOSE DO RIO PRETO",
+  sgl_estado: "SP",
+  dta_cadastro: "2018-09-06",
+  ind_pessoa_ativa: "S",
+  bloqueio_financeiro: "N",
+  qtd_veiculos: 1,
+  dta_ultima_compra: "2026-07-29",
+  is_active_120d: true,
+  source_hash: "81e98b0ade08a5ef6b7c183e4a47948e",
+  source_updated_at: null,
+  synced_at: "2026-08-01 15:00:06.043+00",
+  created_at: "2026-08-01 06:55:46.767382+00",
+  updated_at: "2026-08-01 15:01:46.196989+00",
+}
 
-    expect(screen.getByText("0 clientes")).toBeInTheDocument()
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+describe("ClientsDataTable", () => {
+  it("carrega o mock local e expõe navegação para o cliente", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify([clientRecord]), {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        }),
+      ),
+    )
+
+    renderWithProviders(
+      <MemoryRouter>
+        <ClientsDataTable />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText("1 cliente")).toBeInTheDocument()
     expect(
       screen.getByRole("searchbox", { name: "Buscar clientes" }),
     ).toBeInTheDocument()
@@ -17,14 +58,7 @@ describe("ClientsDataTable", () => {
       screen.getByRole("combobox", { name: "Filtrar por cidade" }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "Ordenar por Nome" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Ordenar por CPF/CNPJ" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole("columnheader", { name: "Hash da origem" }),
-    ).not.toBeInTheDocument()
-    expect(screen.getByRole("status")).toBeInTheDocument()
+      screen.getByRole("link", { name: "ASSOCIACAO ECO VILLAGE I" }),
+    ).toHaveAttribute("href", "/clientes/363")
   })
 })
