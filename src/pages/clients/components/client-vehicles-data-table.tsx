@@ -20,6 +20,12 @@ import {
   loadMockClientVehicles,
 } from "@/pages/clients/data/client-mock-data"
 import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
+import {
+  formatErpName,
+  formatLicensePlate,
+  formatVehicleDescription,
+  formatYesNo,
+} from "@/pages/clients/model/client-presentation"
 
 interface ClientVehiclesDataTableProps {
   clientId: string
@@ -98,6 +104,7 @@ function createColumns(showDriver: boolean) {
     ...(showDriver
       ? [
           columnHelper.accessor("driverName", {
+            cell: ({ getValue }) => formatErpName(getValue()),
             enableHiding: true,
             enableSorting: true,
             header: ({ column }) => (
@@ -108,7 +115,7 @@ function createColumns(showDriver: boolean) {
         ]
       : []),
     columnHelper.accessor("clientActiveWithin120Days", {
-      cell: ({ getValue }) => (getValue() ? "Sim" : "Não"),
+      cell: ({ getValue }) => formatYesNo(getValue()),
       enableHiding: true,
       enableSorting: false,
       header: "Cliente ativo em 120 dias",
@@ -191,7 +198,7 @@ export function ClientVehiclesDataTable({
 
     for (const vehicle of clientVehicles) {
       if (vehicle.description !== "") {
-        descriptions.add(vehicle.description)
+        descriptions.add(formatVehicleDescription(vehicle.description))
       }
     }
 
@@ -205,7 +212,8 @@ export function ClientVehiclesDataTable({
 
     for (const vehicle of clientVehicles) {
       if (vehicle.description !== "") {
-        counts[vehicle.description] = (counts[vehicle.description] ?? 0) + 1
+        const value = formatVehicleDescription(vehicle.description)
+        counts[value] = (counts[value] ?? 0) + 1
       }
     }
 
