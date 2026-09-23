@@ -76,5 +76,11 @@ describe("ClientsDataTable", () => {
 
     expect(await screen.findByText("financeiro@example.com")).toBeInTheDocument()
     expect(screen.getByText("frota@example.com")).toBeInTheDocument()
+
+    await user.click(screen.getByRole("combobox", { name: "Filtrar por cidade" }))
+
+    expect(
+      await screen.findByText("São José do Rio Preto"),
+    ).toBeInTheDocument()
   })
 })
