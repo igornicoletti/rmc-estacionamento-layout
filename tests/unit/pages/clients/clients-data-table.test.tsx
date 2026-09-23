@@ -1,5 +1,6 @@
 import { MemoryRouter } from "react-router"
 import { screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
@@ -11,7 +12,8 @@ const clientRecord = {
   nom_pessoa: "ASSOCIACAO ECO VILLAGE I",
   nom_fantasia: "",
   num_cnpj_cpf: "08218781000105",
-  des_email_1: "admecovillage1@gmail.com",
+  des_email_1:
+    "principal@example.com;financeiro@example.com;frota@example.com",
   num_telefone_1: "1732264790",
   nom_cidade: "SAO JOSE DO RIO PRETO",
   sgl_estado: "SP",
@@ -33,7 +35,8 @@ afterEach(() => {
 })
 
 describe("ClientsDataTable", () => {
-  it("carrega o mock local e expõe navegação para o cliente", async () => {
+  it("carrega o mock local, resume e-mails e expõe navegação", async () => {
+    const user = userEvent.setup()
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -60,7 +63,18 @@ describe("ClientsDataTable", () => {
       screen.getByRole("combobox", { name: "Filtrar por cidade" }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("link", { name: "ASSOCIACAO ECO VILLAGE I" }),
+      screen.getByRole("link", { name: "Associação Eco Village I" }),
     ).toHaveAttribute("href", "/clientes/363")
+    expect(screen.getByText("principal@example.com")).toBeInTheDocument()
+
+    const additionalEmails = screen.getByRole("button", {
+      name: "2 e-mails adicionais",
+    })
+    expect(additionalEmails).toHaveTextContent("+2")
+
+    await user.hover(additionalEmails)
+
+    expect(await screen.findByText("financeiro@example.com")).toBeInTheDocument()
+    expect(screen.getByText("frota@example.com")).toBeInTheDocument()
   })
 })
