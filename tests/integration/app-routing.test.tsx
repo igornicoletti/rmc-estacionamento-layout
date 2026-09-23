@@ -1,8 +1,11 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter, matchRoutes } from "react-router"
-import { beforeAll, describe, expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import App from "@/app/root/app"
+import "@/components/data-table/components/data-table-preview"
+import "@/pages/clients/components/clients-data-table"
+import "@/pages/units/components/units-data-table"
 import { appPages } from "@/app/config/app-config"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
@@ -19,14 +22,6 @@ const dataTablePages = [
 ] as const
 
 describe("app routing", () => {
-  beforeAll(async () => {
-    await Promise.all([
-      import("@/components/data-table/components/data-table-preview"),
-      import("@/pages/clients/components/clients-data-table"),
-      import("@/pages/units/components/units-data-table"),
-    ])
-  })
-
   it("monta o shell na rota raiz", async () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
