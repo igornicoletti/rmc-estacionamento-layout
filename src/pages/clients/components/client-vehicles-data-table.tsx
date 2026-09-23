@@ -30,6 +30,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 })
 
+const EMPTY_CLIENT_VEHICLES: ClientVehicle[] = []
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<ClientVehicle>()
 
@@ -158,7 +159,7 @@ export function ClientVehiclesDataTable({
     queryFn: loadMockClientVehicles,
     staleTime: Number.POSITIVE_INFINITY,
   })
-  const allVehicles = vehiclesQuery.data ?? []
+  const allVehicles = vehiclesQuery.data ?? EMPTY_CLIENT_VEHICLES
   const [descriptionFilter, setDescriptionFilter] = useState<string>()
   const state = useDataTableState({
     initialColumnVisibility: {
