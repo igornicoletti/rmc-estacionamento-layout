@@ -55,4 +55,4 @@ describe("client vehicle mapper", () => {
   it("rejeita uma resposta que não seja lista", () => {
     expect(() => mapLegacyClientVehicles({})).toThrow("deve ser um array")
   })
-}
+})
