@@ -127,19 +127,18 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Telefone" },
   }),
   columnHelper.accessor("city", {
-    cell: ({ getValue, row }) => `${getValue()} — ${row.original.stateCode}`,
     enableHiding: true,
     enableSorting: true,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cidade/UF" />
+      <DataTableColumnHeader column={column} title="Cidade" />
     ),
-    meta: { visibilityLabel: "Cidade/UF" },
+    meta: { visibilityLabel: "Cidade" },
   }),
-  columnHelper.accessor("state", {
+  columnHelper.accessor("stateCode", {
     enableHiding: true,
     enableSorting: false,
-    header: "Estado",
-    meta: { visibilityLabel: "Estado" },
+    header: "UF",
+    meta: { visibilityLabel: "UF" },
   }),
   columnHelper.accessor("registeredAt", {
     cell: ({ getValue }) => formatDate(getValue()),
@@ -249,7 +248,6 @@ export function ClientsDataTable() {
       phone: false,
       sourceHash: false,
       sourceUpdatedAt: false,
-      state: false,
       synchronizedAt: false,
       updatedAt: false,
     },

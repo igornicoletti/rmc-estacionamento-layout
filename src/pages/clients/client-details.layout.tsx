@@ -6,7 +6,6 @@ import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AppEmpty } from "@/components/common/app-empty"
 import { PageHistorySyncActions } from "@/components/common/page-history-sync-actions"
-import { CLIENT_DETAILS_ROUTE_PATH } from "@/pages/clients/client-routes"
 import { LazyClientVehiclesDataTable } from "@/pages/clients/components/lazy-client-vehicles-data-table"
 import {
   clientMockQueryKeys,
@@ -46,7 +45,7 @@ export function ClientDetailsPage() {
         page={{
           ...clientPageBase,
           title: "Cliente",
-          subtitle: CLIENT_DETAILS_ROUTE_PATH,
+          subtitle: "Cliente não disponível.",
         }}
       >
         <AppEmpty
