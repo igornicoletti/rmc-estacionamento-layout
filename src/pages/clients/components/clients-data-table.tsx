@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router"
 
+import { AppSheet } from "@/components/common/app-sheet"
+import { RecordDetails } from "@/components/common/record-details"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
+import { DataTableExport } from "@/components/data-table/components/data-table-export"
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/components/data-table-root"
 import {
@@ -25,6 +28,10 @@ import {
 } from "@/components/data-table/core/table-data-utils"
 import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { downloadCsv, serializeCsv } from "@/lib/csv"
+import { serializeRecordForClipboard } from "@/lib/record-data"
 import { getClientDetailsPath } from "@/pages/clients/client-routes"
 import { clientsCopy } from "@/pages/clients/clients.copy"
 import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
@@ -32,8 +39,11 @@ import {
   clientPreviewQueryKeys,
   loadPreviewClients,
 } from "@/pages/clients/data/client-preview-data"
-import { copyClientValue } from "@/pages/clients/lib/copy-client-value"
 import type { Client } from "@/pages/clients/model/client"
+import {
+  clientRecordCsvColumns,
+  clientRecordSections,
+} from "@/pages/clients/model/client-record"
 import {
   formatCityName,
   formatDate,
@@ -47,171 +57,175 @@ const EMPTY_CLIENTS: Client[] = []
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<Client>()
 
+interface ClientColumnActions {
+  onCopyData: (client: Client) => void
+  onDetails: (client: Client) => void
+}
+
 function getCityFilterValue(client: Client) {
   return `${client.stateCode}:${client.city}`
 }
 
-const columns = columnHelper.columns([
-  columnHelper.accessor("id", {
-    cell: ({ getValue }) => (
-      <span className="tabular-nums text-muted-foreground">{getValue()}</span>
-    ),
-    enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Código" />
-    ),
-    meta: { visibilityLabel: "Código" },
-  }),
-  columnHelper.accessor("name", {
-    cell: ({ getValue, row }) => (
-      <Link
-        className="block max-w-64 truncate font-medium underline-offset-4 hover:underline"
-        to={getClientDetailsPath(row.original.id)}
-      >
-        {formatErpName(getValue())}
-      </Link>
-    ),
-    enableHiding: false,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nome" />
-    ),
-    meta: { visibilityLabel: "Nome" },
-  }),
-  columnHelper.accessor("tradeName", {
-    cell: ({ getValue }) => formatErpName(getValue()),
-    enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nome fantasia" />
-    ),
-    meta: { visibilityLabel: "Nome fantasia" },
-  }),
-  columnHelper.accessor("taxId", {
-    cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span>,
-    enableHiding: true,
-    enableSorting: false,
-    header: "CPF/CNPJ",
-    meta: { visibilityLabel: "CPF/CNPJ" },
-  }),
-  columnHelper.accessor("email", {
-    cell: ({ getValue }) => <ClientEmailCell value={getValue()} />,
-    enableHiding: true,
-    enableSorting: false,
-    header: "E-mail",
-    meta: { visibilityLabel: "E-mail" },
-  }),
-  columnHelper.accessor("phone", {
-    cell: ({ getValue }) => formatPhone(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Telefone",
-    meta: { visibilityLabel: "Telefone" },
-  }),
-  columnHelper.accessor("city", {
-    cell: ({ getValue }) => formatCityName(getValue()),
-    enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cidade" />
-    ),
-    meta: { visibilityLabel: "Cidade" },
-  }),
-  columnHelper.accessor("stateCode", {
-    enableHiding: true,
-    enableSorting: false,
-    header: "UF",
-    meta: { visibilityLabel: "UF" },
-  }),
-  columnHelper.accessor("registeredAt", {
-    cell: ({ getValue }) => formatDate(getValue()),
-    enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cadastro" />
-    ),
-    meta: { visibilityLabel: "Cadastro" },
-  }),
-  columnHelper.accessor("personActiveStatus", {
-    cell: ({ getValue }) => formatYesNo(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Pessoa ativa",
-    meta: { visibilityLabel: "Pessoa ativa" },
-  }),
-  columnHelper.accessor("financialBlockStatus", {
-    cell: ({ getValue }) => formatYesNo(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Bloqueio financeiro",
-    meta: { visibilityLabel: "Bloqueio financeiro" },
-  }),
-  columnHelper.accessor("vehicleCount", {
-    cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span>,
-    enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Veículos" />
-    ),
-    meta: { visibilityLabel: "Veículos" },
-  }),
-  columnHelper.accessor("lastPurchaseAt", {
-    cell: ({ getValue }) => formatDate(getValue()),
-    enableHiding: true,
-    enableSorting: true,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Última compra" />
-    ),
-    meta: { visibilityLabel: "Última compra" },
-  }),
-  columnHelper.accessor("activeWithin120Days", {
-    cell: ({ getValue }) => formatYesNo(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Ativo em 120 dias",
-    meta: { visibilityLabel: "Ativo em 120 dias" },
-  }),
-  columnHelper.accessor("synchronizedAt", {
-    cell: ({ getValue }) => formatDateTime(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Sincronização",
-    meta: { visibilityLabel: "Sincronização" },
-  }),
-  columnHelper.accessor("createdAt", {
-    cell: ({ getValue }) => formatDateTime(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Criação",
-    meta: { visibilityLabel: "Criação" },
-  }),
-  columnHelper.accessor("updatedAt", {
-    cell: ({ getValue }) => formatDateTime(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Atualização",
-    meta: { visibilityLabel: "Atualização" },
-  }),
-  columnHelper.display({
-    cell: ({ row }) => (
-      <DataTableRowActions
-        accessibleLabel={`Ações do cliente ${formatErpName(row.original.name)}`}
-        copyLabel="Copiar código"
-        onCopy={() =>
-          void copyClientValue({
-            errorDescription: "Não foi possível copiar o código do cliente.",
-            successTitle: "Código copiado",
-            value: row.original.id,
-          })
-        }
-      />
-    ),
-    enableHiding: false,
-    header: DataTableRowActionsHeader,
-    id: "actions",
-  }),
-])
+function createColumns({
+  onCopyData,
+  onDetails,
+}: ClientColumnActions) {
+  return columnHelper.columns([
+    columnHelper.accessor("id", {
+      cell: ({ getValue }) => (
+        <span className="tabular-nums text-muted-foreground">{getValue()}</span>
+      ),
+      enableHiding: true,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Código" />
+      ),
+      meta: { visibilityLabel: "Código" },
+    }),
+    columnHelper.accessor("name", {
+      cell: ({ getValue, row }) => (
+        <Link
+          className="block max-w-64 truncate font-medium underline-offset-4 hover:underline"
+          to={getClientDetailsPath(row.original.id)}
+        >
+          {formatErpName(getValue())}
+        </Link>
+      ),
+      enableHiding: false,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nome" />
+      ),
+      meta: { visibilityLabel: "Nome" },
+    }),
+    columnHelper.accessor("tradeName", {
+      cell: ({ getValue }) => formatErpName(getValue()),
+      enableHiding: true,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nome fantasia" />
+      ),
+      meta: { visibilityLabel: "Nome fantasia" },
+    }),
+    columnHelper.accessor("taxId", {
+      cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span>,
+      enableHiding: true,
+      enableSorting: false,
+      header: "CPF/CNPJ",
+      meta: { visibilityLabel: "CPF/CNPJ" },
+    }),
+    columnHelper.accessor("email", {
+      cell: ({ getValue }) => <ClientEmailCell value={getValue()} />,
+      enableHiding: true,
+      enableSorting: false,
+      header: "E-mail",
+      meta: { visibilityLabel: "E-mail" },
+    }),
+    columnHelper.accessor("phone", {
+      cell: ({ getValue }) => formatPhone(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Telefone",
+      meta: { visibilityLabel: "Telefone" },
+    }),
+    columnHelper.accessor("city", {
+      cell: ({ getValue }) => formatCityName(getValue()),
+      enableHiding: true,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Cidade" />
+      ),
+      meta: { visibilityLabel: "Cidade" },
+    }),
+    columnHelper.accessor("stateCode", {
+      enableHiding: true,
+      enableSorting: false,
+      header: "UF",
+      meta: { visibilityLabel: "UF" },
+    }),
+    columnHelper.accessor("registeredAt", {
+      cell: ({ getValue }) => formatDate(getValue()),
+      enableHiding: true,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Cadastro" />
+      ),
+      meta: { visibilityLabel: "Cadastro" },
+    }),
+    columnHelper.accessor("personActiveStatus", {
+      cell: ({ getValue }) => formatYesNo(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Pessoa ativa",
+      meta: { visibilityLabel: "Pessoa ativa" },
+    }),
+    columnHelper.accessor("financialBlockStatus", {
+      cell: ({ getValue }) => formatYesNo(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Bloqueio financeiro",
+      meta: { visibilityLabel: "Bloqueio financeiro" },
+    }),
+    columnHelper.accessor("vehicleCount", {
+      cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span>,
+      enableHiding: true,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Veículos" />
+      ),
+      meta: { visibilityLabel: "Veículos" },
+    }),
+    columnHelper.accessor("lastPurchaseAt", {
+      cell: ({ getValue }) => formatDate(getValue()),
+      enableHiding: true,
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Última compra" />
+      ),
+      meta: { visibilityLabel: "Última compra" },
+    }),
+    columnHelper.accessor("activeWithin120Days", {
+      cell: ({ getValue }) => formatYesNo(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Ativo em 120 dias",
+      meta: { visibilityLabel: "Ativo em 120 dias" },
+    }),
+    columnHelper.accessor("synchronizedAt", {
+      cell: ({ getValue }) => formatDateTime(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Sincronização",
+      meta: { visibilityLabel: "Sincronização" },
+    }),
+    columnHelper.accessor("createdAt", {
+      cell: ({ getValue }) => formatDateTime(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Criação",
+      meta: { visibilityLabel: "Criação" },
+    }),
+    columnHelper.accessor("updatedAt", {
+      cell: ({ getValue }) => formatDateTime(getValue()),
+      enableHiding: true,
+      enableSorting: false,
+      header: "Atualização",
+      meta: { visibilityLabel: "Atualização" },
+    }),
+    columnHelper.display({
+      cell: ({ row }) => (
+        <DataTableRowActions
+          accessibleLabel={`Ações do cliente ${formatErpName(row.original.name)}`}
+          onCopyData={() => onCopyData(row.original)}
+          onDetails={() => onDetails(row.original)}
+        />
+      ),
+      enableHiding: false,
+      header: DataTableRowActionsHeader,
+      id: "actions",
+    }),
+  ])
+}
 
 export function ClientsDataTable() {
   const clientsQuery = useQuery({
@@ -221,6 +235,7 @@ export function ClientsDataTable() {
   })
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
   const [cityFilter, setCityFilter] = useState<string>()
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const state = useDataTableState({
     initialColumnVisibility: {
       activeWithin120Days: false,
@@ -235,6 +250,24 @@ export function ClientsDataTable() {
       updatedAt: false,
     },
   })
+
+  const handleCopyData = useCallback((client: Client) => {
+    void copyToClipboard({
+      errorDescription: dataTableCopy.rowActions.copyErrorDescription,
+      successDescription: dataTableCopy.rowActions.copySuccessDescription,
+      successTitle: dataTableCopy.rowActions.copySuccessTitle,
+      value: serializeRecordForClipboard(client, clientRecordSections),
+    })
+  }, [])
+
+  const columns = useMemo(
+    () =>
+      createColumns({
+        onCopyData: handleCopyData,
+        onDetails: setSelectedClient,
+      }),
+    [handleCopyData],
+  )
 
   const cityFacet = useMemo(() => {
     const items = new Map<
@@ -362,54 +395,86 @@ export function ClientsDataTable() {
   }
 
   return (
-    <DataTableRoot isBusy={clientsQuery.isPending || clientsQuery.isFetching}>
-      <DataTableToolbar
-        actions={<DataTableViewOptions table={table} />}
-        activeFilterCount={
-          Number(Boolean(state.searchDraft.trim())) + Number(Boolean(cityFilter))
-        }
-        onClearFilters={clearFilters}
-      >
-        <DataTableSearch
-          ariaLabel={clientsCopy.list.searchAriaLabel}
-          onChange={state.handleSearchChange}
-          onClear={state.clearSearch}
-          onSubmit={state.submitSearch}
-          placeholder={clientsCopy.list.searchPlaceholder}
-          value={state.searchDraft}
-        />
-        <DataTableComboboxFilter
-          ariaLabel={clientsCopy.list.cityFilterAriaLabel}
-          clearAriaLabel={clientsCopy.list.cityFilterClearAriaLabel}
-          counts={cityFacet.counts}
-          items={cityFacet.items}
-          onValueChange={handleCityFilterChange}
-          placeholder={clientsCopy.list.cityFilterPlaceholder}
-          value={cityFilter}
-        />
-      </DataTableToolbar>
-
-      <DataTable
-        caption={clientsCopy.list.caption}
-        emptyState={
-          <DataTableEmpty
-            emptyDescription={clientsCopy.list.emptyDescription}
-            emptyTitle={clientsCopy.list.emptyTitle}
-            hasFilters={hasActiveFilters}
-            onClearFilters={clearFilters}
+    <>
+      <DataTableRoot isBusy={clientsQuery.isPending || clientsQuery.isFetching}>
+        <DataTableToolbar
+          actions={
+            <>
+              <DataTableExport
+                disabled={sortedClients.length === 0}
+                onExport={() =>
+                  downloadCsv(
+                    "clientes.csv",
+                    serializeCsv(sortedClients, clientRecordCsvColumns),
+                  )
+                }
+              />
+              <DataTableViewOptions table={table} />
+            </>
+          }
+          activeFilterCount={
+            Number(Boolean(state.searchDraft.trim())) +
+            Number(Boolean(cityFilter))
+          }
+          onClearFilters={clearFilters}
+        >
+          <DataTableSearch
+            ariaLabel={clientsCopy.list.searchAriaLabel}
+            onChange={state.handleSearchChange}
+            onClear={state.clearSearch}
+            onSubmit={state.submitSearch}
+            placeholder={clientsCopy.list.searchPlaceholder}
+            value={state.searchDraft}
           />
-        }
-        isInitialLoading={clientsQuery.isPending}
-        table={table}
-      />
+          <DataTableComboboxFilter
+            ariaLabel={clientsCopy.list.cityFilterAriaLabel}
+            clearAriaLabel={clientsCopy.list.cityFilterClearAriaLabel}
+            counts={cityFacet.counts}
+            items={cityFacet.items}
+            onValueChange={handleCityFilterChange}
+            placeholder={clientsCopy.list.cityFilterPlaceholder}
+            value={cityFilter}
+          />
+        </DataTableToolbar>
 
-      {!clientsQuery.isPending ? (
-        <DataTablePagination
-          itemLabel={clientsCopy.list.itemLabel}
-          rowCount={filteredClients.length}
+        <DataTable
+          caption={clientsCopy.list.caption}
+          emptyState={
+            <DataTableEmpty
+              emptyDescription={clientsCopy.list.emptyDescription}
+              emptyTitle={clientsCopy.list.emptyTitle}
+              hasFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
+            />
+          }
+          isInitialLoading={clientsQuery.isPending}
           table={table}
         />
+
+        {!clientsQuery.isPending ? (
+          <DataTablePagination
+            itemLabel={clientsCopy.list.itemLabel}
+            rowCount={filteredClients.length}
+            table={table}
+          />
+        ) : null}
+      </DataTableRoot>
+
+      {selectedClient ? (
+        <AppSheet
+          description={`Código ${selectedClient.id} · ${selectedClient.taxId}`}
+          onOpenChange={(open) => {
+            if (!open) setSelectedClient(null)
+          }}
+          open
+          title={formatErpName(selectedClient.name)}
+        >
+          <RecordDetails
+            record={selectedClient}
+            sections={clientRecordSections}
+          />
+        </AppSheet>
       ) : null}
-    </DataTableRoot>
+    </>
   )
 }
