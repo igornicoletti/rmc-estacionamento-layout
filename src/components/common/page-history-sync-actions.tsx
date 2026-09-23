@@ -1,15 +1,19 @@
-import { ArrowLeftIcon, HistoryIcon, RefreshCwIcon } from "lucide-react";
-import { Link } from "react-router";
+import { ArrowLeftIcon, HistoryIcon, RefreshCwIcon } from "lucide-react"
+import { Link } from "react-router"
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { appCopy } from "@/app/config/app-copy";
+import { appCopy } from "@/app/config/app-copy"
+import { Button, buttonVariants } from "@/components/ui/button"
 
 interface PageHistorySyncActionsProps {
-  backTo?: string;
+  backTo?: string
+  onHistory?: () => void
+  onSynchronize?: () => void
 }
 
 export function PageHistorySyncActions({
   backTo,
+  onHistory,
+  onSynchronize,
 }: PageHistorySyncActionsProps) {
   return (
     <>
@@ -19,14 +23,25 @@ export function PageHistorySyncActions({
           {appCopy.pageActions.back}
         </Link>
       ) : null}
-      <Button type="button" variant="outline">
+
+      <Button
+        disabled={!onHistory}
+        onClick={onHistory}
+        type="button"
+        variant="outline"
+      >
         <HistoryIcon aria-hidden="true" data-icon="inline-start" />
         {appCopy.pageActions.history}
       </Button>
-      <Button type="button">
+
+      <Button
+        disabled={!onSynchronize}
+        onClick={onSynchronize}
+        type="button"
+      >
         <RefreshCwIcon aria-hidden="true" data-icon="inline-start" />
         {appCopy.pageActions.synchronize}
       </Button>
     </>
-  );
+  )
 }
