@@ -12,11 +12,14 @@ describe("clientVehicleRecordSections", () => {
       throw new Error("Fixture de veículo vazia.")
     }
 
-    const sectionKeys = clientVehicleRecordSections
-      .flatMap((section) => section.fields)
-      .map((field) => field.key)
-      .sort()
+    const sectionKeys: string[] = []
 
-    expect(sectionKeys).toEqual(Object.keys(vehicle).sort())
+    for (const section of clientVehicleRecordSections) {
+      for (const field of section.fields) {
+        sectionKeys.push(field.key)
+      }
+    }
+
+    expect(sectionKeys.sort()).toEqual(Object.keys(vehicle).sort())
   })
 })

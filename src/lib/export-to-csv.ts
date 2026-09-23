@@ -1,17 +1,19 @@
+export type CsvValue = boolean | number | string | null | undefined
+
 export interface CsvColumn<TRow> {
-  getValue: (row: TRow) => unknown
+  getValue: (row: TRow) => CsvValue
   header: string
 }
 
-function toCsvText(value: unknown) {
+function toCsvText(value: CsvValue) {
   if (value === null || value === undefined) {
     return ""
   }
 
-  return String(value)
+  return value.toString()
 }
 
-function escapeCsvField(value: unknown) {
+function escapeCsvField(value: CsvValue) {
   const text = toCsvText(value)
 
   if (!/[",\r\n]/u.test(text)) {

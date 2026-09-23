@@ -12,11 +12,14 @@ describe("unitRecordSections", () => {
       throw new Error("Fixture de unidade vazia.")
     }
 
-    const sectionKeys = unitRecordSections
-      .flatMap((section) => section.fields)
-      .map((field) => field.key)
-      .sort()
+    const sectionKeys: string[] = []
 
-    expect(sectionKeys).toEqual(Object.keys(unit).sort())
+    for (const section of unitRecordSections) {
+      for (const field of section.fields) {
+        sectionKeys.push(field.key)
+      }
+    }
+
+    expect(sectionKeys.sort()).toEqual(Object.keys(unit).sort())
   })
 })

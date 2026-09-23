@@ -12,11 +12,14 @@ describe("clientRecordSections", () => {
       throw new Error("Fixture de cliente vazia.")
     }
 
-    const sectionKeys = clientRecordSections
-      .flatMap((section) => section.fields)
-      .map((field) => field.key)
-      .sort()
+    const sectionKeys: string[] = []
 
-    expect(sectionKeys).toEqual(Object.keys(client).sort())
+    for (const section of clientRecordSections) {
+      for (const field of section.fields) {
+        sectionKeys.push(field.key)
+      }
+    }
+
+    expect(sectionKeys.sort()).toEqual(Object.keys(client).sort())
   })
 })
