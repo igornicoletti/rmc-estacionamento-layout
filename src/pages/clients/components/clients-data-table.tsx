@@ -250,14 +250,16 @@ export function ClientsDataTable() {
     },
   })
 
-  const cityItems = useMemo(() => {
+  const cityFacet = useMemo(() => {
     const items = new Map<
       string,
       { group: string; label: string; value: string }
     >()
+    const counts: Record<string, number> = {}
 
     for (const client of clients) {
       const value = getCityFilterValue(client)
+      counts[value] = (counts[value] ?? 0) + 1
 
       if (!items.has(value)) {
         items.set(value, {
@@ -268,22 +270,14 @@ export function ClientsDataTable() {
       }
     }
 
-    return Array.from(items.values()).sort(
-      (left, right) =>
-        left.group.localeCompare(right.group, "pt-BR") ||
-        left.label.localeCompare(right.label, "pt-BR"),
-    )
-  }, [clients])
-
-  const cityCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-
-    for (const client of clients) {
-      const value = getCityFilterValue(client)
-      counts[value] = (counts[value] ?? 0) + 1
+    return {
+      counts,
+      items: Array.from(items.values()).sort(
+        (left, right) =>
+          left.group.localeCompare(right.group, "pt-BR") ||
+          left.label.localeCompare(right.label, "pt-BR"),
+      ),
     }
-
-    return counts
   }, [clients])
 
   const handleCityFilterChange = (value: string | undefined) => {
@@ -312,11 +306,15 @@ export function ClientsDataTable() {
         [
           client.id,
           client.name,
+          formatErpName(client.name),
           client.tradeName,
+          formatErpName(client.tradeName),
           client.taxId,
           client.email,
           client.phone,
+          formatPhone(client.phone),
           client.city,
+          formatCityName(client.city),
           client.state,
           client.stateCode,
           client.personActiveStatus,
@@ -395,8 +393,8 @@ export function ClientsDataTable() {
         <DataTableComboboxFilter
           ariaLabel="Filtrar por cidade"
           clearAriaLabel="Limpar filtro de cidade"
-          counts={cityCounts}
-          items={cityItems}
+          counts={cityFacet.counts}
+          items={cityFacet.items}
           onValueChange={handleCityFilterChange}
           placeholder="Todas as cidades"
           searchAriaLabel="Buscar cidade"
