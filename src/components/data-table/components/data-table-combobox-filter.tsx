@@ -1,3 +1,5 @@
+import { CheckIcon } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Combobox,
@@ -79,10 +81,20 @@ export function DataTableComboboxFilter<TValue extends string>({
   const groupedItems = groupItems(availableItems);
   const comboboxItems = groupedItems ?? availableItems;
   const renderItem = (item: DataTableComboboxFilterItem<TValue>) => (
-    <ComboboxItem className="pr-10" key={item.value} value={item}>
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+    <ComboboxItem
+      className="pr-3 data-selected:[&>span:last-child]:hidden"
+      key={item.value}
+      value={item}
+    >
+      <span className="order-1 min-w-0 flex-1 truncate">{item.label}</span>
+      <span
+        aria-hidden="true"
+        className="order-2 flex size-4 shrink-0 items-center justify-center"
+      >
+        {item.value === value ? <CheckIcon className="size-4" /> : null}
+      </span>
       {counts !== undefined ? (
-        <Badge className="shrink-0" variant="ghost">
+        <Badge className="order-3 ml-auto shrink-0" variant="ghost">
           {counts[item.value] ?? 0}
         </Badge>
       ) : null}
@@ -99,7 +111,7 @@ export function DataTableComboboxFilter<TValue extends string>({
     >
       <ComboboxInput
         aria-label={ariaLabel}
-        className="w-full min-w-0 @sm/toolbar:w-fit @sm/toolbar:min-w-56 @sm/toolbar:max-w-sm @sm/toolbar:flex-none"
+        className="w-full min-w-0 border-border! bg-background! [&_[data-slot=input-group-control]]:text-sm! @sm/toolbar:w-fit @sm/toolbar:min-w-56 @sm/toolbar:max-w-sm @sm/toolbar:flex-none dark:bg-transparent!"
         clearAriaLabel={clearAriaLabel}
         placeholder={placeholder}
         showClear

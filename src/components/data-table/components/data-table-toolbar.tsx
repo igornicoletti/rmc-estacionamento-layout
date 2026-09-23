@@ -35,7 +35,7 @@ export function DataTableToolbar({
                   aria-label={dataTableCopy.empty.clearFilters}
                   onClick={onClearFilters}
                   size="icon"
-                  variant="ghost"
+                  variant="outline"
                 />
               }
             >
