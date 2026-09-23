@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
@@ -18,9 +18,12 @@ describe("UnitsDataTable", () => {
       screen.queryByRole("columnheader", { name: "Hash da origem" }),
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/IP|synthetic-unit/u)).not.toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Exportar CSV" }),
+    ).toBeInTheDocument()
   })
 
-  it("permite copiar o código da unidade", async () => {
+  it("abre os detalhes da unidade pelo menu de ações", async () => {
     const user = userEvent.setup()
     renderWithProviders(<UnitsDataTable />)
 
@@ -28,10 +31,29 @@ describe("UnitsDataTable", () => {
       screen.getByRole("button", { name: "Ações da unidade Unidade 01" }),
     )
     await user.click(
-      await screen.findByRole("menuitem", { name: "Copiar código" }),
+      await screen.findByRole("menuitem", { name: "Detalhes" }),
     )
 
-    await expect(navigator.clipboard.readText()).resolves.toBe("1")
+    const sheet = await screen.findByRole("dialog")
+    expect(within(sheet).getByText("Localização")).toBeInTheDocument()
+    expect(within(sheet).getByText("88.000.000/0001-32")).toBeInTheDocument()
+  })
+
+  it("copia todos os dados da unidade", async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<UnitsDataTable />)
+
+    await user.click(
+      screen.getByRole("button", { name: "Ações da unidade Unidade 01" }),
+    )
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Copiar dados" }),
+    )
+
+    const copied = await navigator.clipboard.readText()
+    expect(copied).toContain("Código: 1")
+    expect(copied).toContain("CNPJ: 88.000.000/0001-32")
+    expect(copied.split("\n").length).toBeGreaterThan(10)
   })
 
   it("filtra unidades pela busca", async () => {
