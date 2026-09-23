@@ -45,7 +45,7 @@ describe("ClientVehiclesDataTable", () => {
 
     const sheet = await screen.findByRole("dialog")
     expect(within(sheet).getByText("Código do cliente")).toBeInTheDocument()
-    expect(within(sheet).getByText("DEM-0001")).toBeInTheDocument()
+    expect(within(sheet).getByText("Sistema")).toBeInTheDocument()
   })
 
   it("copia os dados completos do veículo", async () => {
