@@ -1,4 +1,5 @@
-import { act, render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { createMemoryRouter, matchRoutes } from "react-router"
 import { describe, expect, it } from "vitest"
 
@@ -68,19 +69,32 @@ describe("app routing", () => {
   })
 
   it.each(["units", "clients"] as const)(
-    "expõe ações de histórico e sincronização em %s",
+    "abre o histórico de sincronização em %s",
     async (pageId) => {
+      const user = userEvent.setup()
       const page = appPages[pageId]
       const router = createMemoryRouter(routes, { initialEntries: [page.path] })
 
       render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-      expect(
-        await screen.findByRole("button", { name: "Histórico" }),
-      ).toBeInTheDocument()
+      const historyButton = await screen.findByRole("button", {
+        name: "Histórico",
+      })
+
+      expect(historyButton).toBeEnabled()
       expect(
         screen.getByRole("button", { name: "Sincronizar" }),
-      ).toBeInTheDocument()
+      ).toBeDisabled()
+
+      await user.click(historyButton)
+
+      const dialog = await screen.findByRole("dialog", {
+        name: "Histórico de sincronização",
+      })
+
+      expect(within(dialog).getByText("Sucesso")).toBeInTheDocument()
+      expect(within(dialog).getByText("Parcial")).toBeInTheDocument()
+      expect(within(dialog).getByText("Erro")).toBeInTheDocument()
     },
   )
 
