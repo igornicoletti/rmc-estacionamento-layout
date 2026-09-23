@@ -16,7 +16,9 @@ async function fetchMockJson(fileName: string) {
   })
 
   if (!response.ok) {
-    throw response
+    throw new Error(
+      `Falha ao carregar mock local ${fileName}: HTTP ${response.status}.`,
+    )
   }
 
   return response.json() as Promise<unknown>
