@@ -70,9 +70,12 @@ describe("ClientsDataTable", () => {
     )
 
     const sheet = await screen.findByRole("dialog")
+    expect(within(sheet).getByRole("button", { name: "Fechar" })).toBeInTheDocument()
     expect(within(sheet).getByText("Contato")).toBeInTheDocument()
     expect(
-      within(sheet).getByText("cliente1@example.invalid, financeiro@example.invalid, operacional@example.invalid"),
+      within(sheet).getByText(
+        "cliente1@example.invalid, financeiro@example.invalid, frota@example.invalid",
+      ),
     ).toBeInTheDocument()
   })
 

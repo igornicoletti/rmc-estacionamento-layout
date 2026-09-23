@@ -20,7 +20,7 @@ describe("DataTableExport", () => {
     expect(onExport).toHaveBeenCalledOnce()
   })
 
-  it("bloqueia a exportação quando desabilitado", async () => {
+  it("mantém a orientação por tooltip quando a exportação está desabilitada", async () => {
     const user = userEvent.setup()
     const onExport = vi.fn()
 
@@ -31,9 +31,20 @@ describe("DataTableExport", () => {
     const exportButton = screen.getByRole("button", {
       name: "Exportar CSV",
     })
+    const tooltipTrigger = exportButton.parentElement
 
     expect(exportButton).toBeDisabled()
-    await user.click(exportButton)
+    expect(tooltipTrigger).not.toBeNull()
+
+    if (!tooltipTrigger) {
+      throw new Error("Trigger do tooltip não encontrado.")
+    }
+
+    await user.hover(tooltipTrigger)
+
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "Exportar dados filtrados em CSV",
+    )
     expect(onExport).not.toHaveBeenCalled()
   })
 })
