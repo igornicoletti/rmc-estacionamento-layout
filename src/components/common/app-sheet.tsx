@@ -12,12 +12,15 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 
+type AppSheetSize = "default" | "wide"
+
 interface AppSheetProps {
   children: ReactNode
   description: ReactNode
   footer?: ReactNode
   onOpenChange: (open: boolean) => void
   open: boolean
+  size?: AppSheetSize
   title: ReactNode
 }
 
@@ -27,11 +30,19 @@ export function AppSheet({
   footer,
   onOpenChange,
   open,
+  size = "default",
   title,
 }: AppSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent showCloseButton={false}>
+      <SheetContent
+        className={
+          size === "wide"
+            ? "data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
+            : undefined
+        }
+        showCloseButton={false}
+      >
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>
