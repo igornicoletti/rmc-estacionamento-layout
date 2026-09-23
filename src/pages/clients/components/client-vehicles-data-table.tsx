@@ -68,12 +68,14 @@ function createColumns(showDriver: boolean) {
       meta: { visibilityLabel: "Código do cliente" },
     }),
     columnHelper.accessor("clientName", {
+      cell: ({ getValue }) => formatErpName(getValue()),
       enableHiding: true,
       enableSorting: false,
       header: "Nome do cliente",
       meta: { visibilityLabel: "Nome do cliente" },
     }),
     columnHelper.accessor("clientTradeName", {
+      cell: ({ getValue }) => formatErpName(getValue()),
       enableHiding: true,
       enableSorting: false,
       header: "Nome fantasia",
@@ -86,6 +88,7 @@ function createColumns(showDriver: boolean) {
       meta: { visibilityLabel: "CPF/CNPJ" },
     }),
     columnHelper.accessor("plate", {
+      cell: ({ getValue }) => formatLicensePlate(getValue()),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -94,6 +97,7 @@ function createColumns(showDriver: boolean) {
       meta: { visibilityLabel: "Placa" },
     }),
     columnHelper.accessor("description", {
+      cell: ({ getValue }) => formatVehicleDescription(getValue()),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -234,7 +238,10 @@ export function ClientVehiclesDataTable({
     const search = normalizeSearch(state.globalFilter)
 
     return clientVehicles.filter((vehicle) => {
-      if (descriptionFilter && vehicle.description !== descriptionFilter) {
+      if (
+        descriptionFilter &&
+        formatVehicleDescription(vehicle.description) !== descriptionFilter
+      ) {
         return false
       }
 
