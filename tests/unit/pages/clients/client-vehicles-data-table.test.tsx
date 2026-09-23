@@ -48,11 +48,13 @@ describe("ClientVehiclesDataTable", () => {
   it("omite motorista sem dados e mantém busca, filtro e paginação", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(JSON.stringify(vehicles), {
-          headers: { "Content-Type": "application/json" },
-          status: 200,
-        }),
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(JSON.stringify(vehicles), {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          }),
+        ),
       ),
     )
 
