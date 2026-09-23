@@ -1,5 +1,3 @@
-import { useRef } from "react";
-
 import { Badge } from "@/components/ui/badge";
 import {
   Combobox,
@@ -13,8 +11,6 @@ import {
   ComboboxList,
   ComboboxSeparator,
 } from "@/components/ui/combobox";
-
-const POPUP_SEARCH_MINIMUM_ITEM_COUNT = 8;
 
 export interface DataTableComboboxFilterItem<TValue extends string> {
   group?: string;
@@ -35,9 +31,6 @@ interface DataTableComboboxFilterProps<TValue extends string> {
   items: ReadonlyArray<DataTableComboboxFilterItem<TValue>>;
   onValueChange: (value: TValue | undefined) => void;
   placeholder: string;
-  searchable?: boolean;
-  searchAriaLabel?: string;
-  searchPlaceholder?: string;
   value?: TValue;
 }
 
@@ -51,17 +44,17 @@ function groupItems<TValue extends string>(
       return null;
     }
 
-    const groupItems = groups.get(item.group);
+    const currentItems = groups.get(item.group);
 
-    if (groupItems) {
-      groupItems.push(item);
+    if (currentItems) {
+      currentItems.push(item);
     } else {
       groups.set(item.group, [item]);
     }
   }
 
-  return Array.from(groups, ([value, groupItems]) => ({
-    items: groupItems,
+  return Array.from(groups, ([value, groupedItems]) => ({
+    items: groupedItems,
     value,
   }));
 }
@@ -74,12 +67,8 @@ export function DataTableComboboxFilter<TValue extends string>({
   items,
   onValueChange,
   placeholder,
-  searchable = true,
-  searchAriaLabel = `Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`,
-  searchPlaceholder = "Buscar...",
   value,
 }: DataTableComboboxFilterProps<TValue>) {
-  const anchorRef = useRef<HTMLDivElement>(null);
   const selectedItem = items.find((item) => item.value === value) ?? null;
   const availableItems = items.filter(
     (item) =>
@@ -89,14 +78,14 @@ export function DataTableComboboxFilter<TValue extends string>({
   );
   const groupedItems = groupItems(availableItems);
   const comboboxItems = groupedItems ?? availableItems;
-  const showPopupSearch =
-    searchable && availableItems.length >= POPUP_SEARCH_MINIMUM_ITEM_COUNT;
   const renderItem = (item: DataTableComboboxFilterItem<TValue>) => (
     <ComboboxItem className="pr-10" key={item.value} value={item}>
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      <Badge className="shrink-0" variant="ghost">
-        {counts?.[item.value] ?? 0}
-      </Badge>
+      {counts !== undefined ? (
+        <Badge className="shrink-0" variant="ghost">
+          {counts[item.value] ?? 0}
+        </Badge>
+      ) : null}
     </ComboboxItem>
   );
 
@@ -108,42 +97,25 @@ export function DataTableComboboxFilter<TValue extends string>({
       onValueChange={(item) => onValueChange(item?.value)}
       value={selectedItem}
     >
-      <div
-        ref={anchorRef}
-        className="w-full min-w-0 @sm/toolbar:w-fit @sm/toolbar:min-w-40 @sm/toolbar:max-w-sm @sm/toolbar:flex-none"
-        data-slot="data-table-combobox-filter"
-      >
-        <ComboboxInput
-          aria-label={ariaLabel}
-          className="w-full @sm/toolbar:min-w-56"
-          clearAriaLabel={clearAriaLabel}
-          placeholder={placeholder}
-          readOnly
-          showClear={selectedItem !== null}
-        />
-      </div>
-
-      <ComboboxContent
-        anchor={anchorRef}
+      <ComboboxInput
         aria-label={ariaLabel}
-        className="w-(--anchor-width)! min-w-(--anchor-width)! max-w-(--anchor-width)!"
-      >
-        {showPopupSearch ? (
-          <ComboboxInput
-            aria-label={searchAriaLabel}
-            className="**:data-[slot=input]:text-sm!"
-            placeholder={searchPlaceholder}
-            showTrigger={false}
-          />
-        ) : null}
+        className="w-full min-w-0 @sm/toolbar:w-fit @sm/toolbar:min-w-56 @sm/toolbar:max-w-sm @sm/toolbar:flex-none"
+        clearAriaLabel={clearAriaLabel}
+        placeholder={placeholder}
+        showClear
+      />
+
+      <ComboboxContent aria-label={ariaLabel}>
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {groupedItems
             ? (group: DataTableComboboxFilterGroup<TValue>, index: number) => (
                 <ComboboxGroup key={group.value} items={group.items}>
-                  {index > 0 ? <ComboboxSeparator /> : null}
                   <ComboboxLabel>{group.value}</ComboboxLabel>
                   <ComboboxCollection>{renderItem}</ComboboxCollection>
+                  {index < groupedItems.length - 1 ? (
+                    <ComboboxSeparator />
+                  ) : null}
                 </ComboboxGroup>
               )
             : renderItem}

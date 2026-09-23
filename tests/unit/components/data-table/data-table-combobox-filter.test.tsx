@@ -42,7 +42,7 @@ describe("DataTableComboboxFilter", () => {
     expect(await screen.findAllByRole("option")).toHaveLength(2)
   })
 
-  it("encaminha seleção e limpeza", async () => {
+  it("encaminha seleção e limpeza pelo clear nativo", async () => {
     const user = userEvent.setup()
     const onValueChange = vi.fn()
     const { rerender } = renderWithProviders(
@@ -73,18 +73,18 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    const trigger = screen.getByRole("combobox", { name: "filter" })
+    const input = screen.getByRole("combobox", { name: "filter" })
     const clearButton = screen.getByRole("button", { name: "Limpar filter" })
 
     expect(clearButton.closest('[data-slot="input-group"]')).toBe(
-      trigger.closest('[data-slot="input-group"]'),
+      input.closest('[data-slot="input-group"]'),
     )
 
     await user.click(clearButton)
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 
-  it("mantém as opções antes de receber facetas", async () => {
+  it("renderiza lista plana sem grupos nem contagens artificiais", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -99,10 +99,13 @@ describe("DataTableComboboxFilter", () => {
     await user.click(screen.getByRole("combobox"))
 
     expect(await screen.findAllByRole("option")).toHaveLength(3)
-    expect(screen.queryByLabelText("Buscar em filter")).not.toBeInTheDocument()
+    expect(
+      document.querySelector('[data-slot="combobox-group"]'),
+    ).not.toBeInTheDocument()
+    expect(document.querySelector('[data-slot="badge"]')).not.toBeInTheDocument()
   })
 
-  it("renderiza grupos e não duplica o gatilho no campo de busca", async () => {
+  it("usa o próprio input para buscar e mantém grupos separados", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -114,16 +117,21 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "filter" }))
-
-    const searchInput = await screen.findByLabelText("Buscar em filter")
-    const inputGroup = searchInput.closest('[data-slot="input-group"]')
+    const input = screen.getByRole("combobox", { name: "filter" })
+    await user.click(input)
 
     expect(screen.getByText("PR")).toBeInTheDocument()
     expect(screen.getByText("SP")).toBeInTheDocument()
-    expect(inputGroup?.querySelector('[data-slot="combobox-trigger"]')).toBeNull()
+    expect(screen.getAllByRole("combobox")).toHaveLength(1)
     expect(
       document.querySelectorAll('[data-slot="combobox-separator"]'),
     ).toHaveLength(1)
+
+    await user.type(input, "Curitiba")
+
+    expect(await screen.findAllByRole("option")).toHaveLength(1)
+    expect(
+      screen.getByRole("option", { name: /Curitiba/u }),
+    ).toBeInTheDocument()
   })
 })

@@ -30,7 +30,7 @@ describe("UnitsDataTable", () => {
     expect(screen.getAllByText(/Curitiba/u).length).toBeGreaterThan(0)
   })
 
-  it("ordena colunas permitidas e filtra pela cidade no popup", async () => {
+  it("ordena colunas permitidas e filtra pela cidade no próprio combobox", async () => {
     const user = userEvent.setup()
     renderWithProviders(<UnitsDataTable />)
 
@@ -40,8 +40,11 @@ describe("UnitsDataTable", () => {
     await user.click(screen.getByRole("button", { name: "Ordenar por Nome fantasia" }))
     expect(screen.getAllByRole("row")[1]).toHaveTextContent("Unidade 01")
 
-    await user.click(screen.getByRole("combobox", { name: "Filtrar unidades por cidade" }))
-    expect(screen.getByRole("combobox", { name: "Buscar cidade" })).toBeInTheDocument()
+    const cityFilter = screen.getByRole("combobox", {
+      name: "Filtrar unidades por cidade",
+    })
+    await user.click(cityFilter)
+    await user.type(cityFilter, "Curitiba")
     await user.click(await screen.findByRole("option", { name: /Curitiba/u }))
 
     expect(screen.getByText("2 unidades")).toBeInTheDocument()
