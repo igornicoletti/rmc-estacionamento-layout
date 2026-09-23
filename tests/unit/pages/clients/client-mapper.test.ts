@@ -79,4 +79,4 @@ describe("client mapper", () => {
     ).toThrow("dta_cadastro")
     expect(() => formatCpfCnpj("123")).toThrow("11 ou 14")
   })
-}
+})
