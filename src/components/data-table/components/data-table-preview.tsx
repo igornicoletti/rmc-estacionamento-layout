@@ -113,7 +113,9 @@ export function DataTablePreview({
     <DataTableRoot isBusy={false}>
       <DataTableToolbar
         actions={<DataTableViewOptions table={table} />}
-        hasActiveFilters={state.columnFilters.length > 0}
+        activeFilterCount={
+          state.columnFilters.length + Number(Boolean(state.searchDraft.trim()))
+        }
         onClearFilters={state.clearFilters}
       >
         <DataTableSearch

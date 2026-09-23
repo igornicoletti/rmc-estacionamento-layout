@@ -365,7 +365,9 @@ export function ClientsDataTable() {
     <DataTableRoot isBusy={clientsQuery.isPending || clientsQuery.isFetching}>
       <DataTableToolbar
         actions={<DataTableViewOptions table={table} />}
-        hasActiveFilters={hasActiveFilters}
+        activeFilterCount={
+          Number(Boolean(state.searchDraft.trim())) + Number(Boolean(cityFilter))
+        }
         onClearFilters={clearFilters}
       >
         <DataTableSearch

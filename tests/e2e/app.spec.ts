@@ -61,9 +61,27 @@ test("filtra, pagina e abre detalhes de clientes e veículos", async ({ page }) 
   await expect(page.getByRole("link", { name: /Cliente Demonstracao 11/u })).toBeVisible()
 
   await page.getByRole("button", { name: "Primeira página" }).click()
-  await page.getByRole("combobox", { name: "Filtrar clientes por cidade" }).click()
+  const cityCombobox = page.getByRole("combobox", {
+    name: "Filtrar clientes por cidade",
+  })
+  await cityCombobox.click()
+  const comboboxBox = await cityCombobox.locator("..").boundingBox()
+  const popupBox = await page.getByRole("listbox").locator("..").boundingBox()
+  expect(comboboxBox).not.toBeNull()
+  expect(popupBox).not.toBeNull()
+  expect(Math.abs((popupBox?.width ?? 0) - (comboboxBox?.width ?? 0))).toBeLessThanOrEqual(1)
   await page.getByRole("option", { name: /São José do Rio Preto/u }).click()
   await expect(page.getByText("6 clientes")).toBeVisible()
+  await expect(page.getByRole("button", { name: "Limpar filtro de cidade" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "Limpar filtros" })).toHaveCount(0)
+
+  await page.getByRole("searchbox", { name: "Buscar clientes" }).fill("Cliente")
+  await expect(page.getByRole("button", { name: "Limpar filtros" })).toBeVisible()
+  await page.getByRole("button", { name: "Limpar filtros" }).click()
+  await expect(page.getByText("24 clientes")).toBeVisible()
+
+  await page.getByRole("combobox", { name: "Filtrar clientes por cidade" }).click()
+  await page.getByRole("option", { name: /São José do Rio Preto/u }).click()
 
   await page.getByRole("link", { name: /Cliente Demonstracao 01/u }).click()
   await expect(page).toHaveURL("/clientes/1001")

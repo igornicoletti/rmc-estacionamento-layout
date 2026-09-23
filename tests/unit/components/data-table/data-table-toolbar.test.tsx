@@ -12,21 +12,21 @@ describe("DataTableToolbar", () => {
     render(
       <DataTableToolbar
         actions={<span />}
-        hasActiveFilters
+        activeFilterCount={2}
         onClearFilters={onClearFilters}
       >
         <span />
       </DataTableToolbar>,
     )
 
-    await user.click(screen.getByRole("button"))
+    await user.click(screen.getByRole("button", { name: "Limpar filtros" }))
 
     expect(onClearFilters).toHaveBeenCalledOnce()
   })
 
-  it("não cria controle de limpeza sem filtros ativos", () => {
+  it.each([0, 1])("não cria limpeza global com %i filtro ativo", (activeFilterCount) => {
     render(
-      <DataTableToolbar hasActiveFilters={false} onClearFilters={vi.fn()}>
+      <DataTableToolbar activeFilterCount={activeFilterCount} onClearFilters={vi.fn()}>
         <span />
       </DataTableToolbar>,
     )

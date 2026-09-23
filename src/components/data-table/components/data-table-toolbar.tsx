@@ -2,19 +2,24 @@ import type { ReactNode } from "react";
 import { XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
 interface DataTableToolbarProps {
   actions?: ReactNode;
   children: ReactNode;
-  hasActiveFilters: boolean;
+  activeFilterCount: number;
   onClearFilters: () => void;
 }
 
 export function DataTableToolbar({
   actions,
   children,
-  hasActiveFilters,
+  activeFilterCount,
   onClearFilters,
 }: DataTableToolbarProps) {
   return (
@@ -22,15 +27,24 @@ export function DataTableToolbar({
       <div className="flex min-w-0 flex-col gap-3 @sm/toolbar:flex-row @sm/toolbar:flex-wrap @sm/toolbar:items-center">
         {children}
 
-        {hasActiveFilters ? (
-          <Button
-            onClick={onClearFilters}
-            variant="ghost"
-            size="sm"
-          >
-            <XIcon data-icon="inline-start" aria-hidden="true" />
-            {dataTableCopy.empty.clearFilters}
-          </Button>
+        {activeFilterCount >= 2 ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={dataTableCopy.empty.clearFilters}
+                  onClick={onClearFilters}
+                  size="icon"
+                  variant="ghost"
+                />
+              }
+            >
+              <XIcon aria-hidden="true" />
+            </TooltipTrigger>
+            <TooltipContent role="tooltip">
+              {dataTableCopy.empty.clearFilters}
+            </TooltipContent>
+          </Tooltip>
         ) : null}
 
         {actions !== undefined && actions !== null ? (

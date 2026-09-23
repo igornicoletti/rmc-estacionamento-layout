@@ -1,11 +1,11 @@
-import { ArrowLeftIcon, HistoryIcon, RefreshCwIcon } from "lucide-react"
-import { Link } from "react-router"
+import { ArrowLeftIcon, HistoryIcon, RefreshCwIcon } from "lucide-react";
+import { Link } from "react-router";
 
-import { Button, buttonVariants } from "@/components/ui/button"
-import { appCopy } from "@/app/config/app-copy"
+import { Button, buttonVariants } from "@/components/ui/button";
+import { appCopy } from "@/app/config/app-copy";
 
 interface PageHistorySyncActionsProps {
-  backTo?: string
+  backTo?: string;
 }
 
 export function PageHistorySyncActions({
@@ -28,5 +28,5 @@ export function PageHistorySyncActions({
         {appCopy.pageActions.synchronize}
       </Button>
     </>
-  )
+  );
 }

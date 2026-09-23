@@ -50,7 +50,7 @@ export function UnitsDataTable() {
 
   return (
     <DataTableRoot isBusy={false}>
-      <DataTableToolbar actions={<DataTableViewOptions table={table} />} hasActiveFilters={hasActiveFilters} onClearFilters={clearFilters}>
+      <DataTableToolbar actions={<DataTableViewOptions table={table} />} activeFilterCount={Number(Boolean(state.searchDraft.trim())) + Number(Boolean(cityFilter))} onClearFilters={clearFilters}>
         <DataTableSearch ariaLabel={unitsCopy.search.ariaLabel} onChange={state.handleSearchChange} onClear={state.clearSearch} onSubmit={state.submitSearch} placeholder={unitsCopy.search.placeholder} value={state.searchDraft} />
         <DataTableComboboxFilter ariaLabel={unitsCopy.cityFilter.ariaLabel} clearAriaLabel={unitsCopy.cityFilter.clearAriaLabel} counts={cityFacet.counts} items={cityFacet.items} onValueChange={(value) => { setCityFilter(value); state.onPaginationChange((current) => ({ ...current, pageIndex: 0 })) }} placeholder={unitsCopy.cityFilter.placeholder} searchAriaLabel={unitsCopy.cityFilter.searchAriaLabel} searchPlaceholder={unitsCopy.cityFilter.searchPlaceholder} value={cityFilter} />
       </DataTableToolbar>

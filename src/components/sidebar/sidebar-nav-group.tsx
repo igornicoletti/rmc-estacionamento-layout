@@ -1,22 +1,25 @@
-import { ChevronRightIcon } from "lucide-react"
-import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items"
-import type { SidebarNavigationSection } from "@/components/sidebar/sidebar-types"
+import { ChevronRightIcon } from "lucide-react";
+import { SidebarNavItems } from "@/components/sidebar/sidebar-nav-items";
+import type { SidebarNavigationSection } from "@/components/sidebar/sidebar-types";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-type SidebarNavGroupProps = Pick<SidebarNavigationSection, "items" | "label"> & {
-  onOpenChange: (open: boolean) => void
-  open: boolean
-}
+type SidebarNavGroupProps = Pick<
+  SidebarNavigationSection,
+  "items" | "label"
+> & {
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+};
 
 export function SidebarNavGroup({
   label,
@@ -24,7 +27,7 @@ export function SidebarNavGroup({
   onOpenChange,
   open,
 }: SidebarNavGroupProps) {
-  const { isMobile, state } = useSidebar()
+  const { isMobile, state } = useSidebar();
 
   if (!isMobile && state === "collapsed") {
     return (
@@ -33,7 +36,7 @@ export function SidebarNavGroup({
           <SidebarNavItems items={items} />
         </SidebarGroupContent>
       </SidebarGroup>
-    )
+    );
   }
 
   return (
@@ -58,5 +61,5 @@ export function SidebarNavGroup({
         </CollapsibleContent>
       </SidebarGroup>
     </Collapsible>
-  )
+  );
 }

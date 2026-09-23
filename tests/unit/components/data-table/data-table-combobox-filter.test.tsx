@@ -14,7 +14,13 @@ const ITEMS = [
 
 const GROUPED_ITEMS = [
   { group: "PR", label: "Curitiba", value: "pr-curitiba" },
+  { group: "PR", label: "Londrina", value: "pr-londrina" },
+  { group: "PR", label: "Maringá", value: "pr-maringa" },
+  { group: "PR", label: "Cascavel", value: "pr-cascavel" },
   { group: "SP", label: "Campinas", value: "sp-campinas" },
+  { group: "SP", label: "Santos", value: "sp-santos" },
+  { group: "SP", label: "Sorocaba", value: "sp-sorocaba" },
+  { group: "SP", label: "Jundiaí", value: "sp-jundiai" },
 ] as const
 
 describe("DataTableComboboxFilter", () => {
@@ -67,7 +73,14 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button", { name: "Limpar filter" }))
+    const trigger = screen.getByRole("combobox", { name: "filter" })
+    const clearButton = screen.getByRole("button", { name: "Limpar filter" })
+
+    expect(clearButton.closest('[data-slot="input-group"]')).toBe(
+      trigger.closest('[data-slot="input-group"]'),
+    )
+
+    await user.click(clearButton)
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 
@@ -86,6 +99,7 @@ describe("DataTableComboboxFilter", () => {
     await user.click(screen.getByRole("combobox"))
 
     expect(await screen.findAllByRole("option")).toHaveLength(3)
+    expect(screen.queryByLabelText("Buscar em filter")).not.toBeInTheDocument()
   })
 
   it("renderiza grupos e não duplica o gatilho no campo de busca", async () => {

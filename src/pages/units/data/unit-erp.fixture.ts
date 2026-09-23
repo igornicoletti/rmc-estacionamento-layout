@@ -4,6 +4,10 @@ const LOCATIONS = [
   ["RIBEIRAO PRETO", "SAO PAULO", "SP"],
   ["UBERLANDIA", "MINAS GERAIS", "MG"],
   ["CURITIBA", "PARANA", "PR"],
+  ["SOROCABA", "SAO PAULO", "SP"],
+  ["CAMPINAS", "SAO PAULO", "SP"],
+  ["LONDRINA", "PARANA", "PR"],
+  ["GOIANIA", "GOIAS", "GO"],
 ] as const
 
 function createCnpj(index: number) {

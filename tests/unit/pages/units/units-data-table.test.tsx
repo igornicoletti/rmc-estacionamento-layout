@@ -41,11 +41,12 @@ describe("UnitsDataTable", () => {
     expect(screen.getAllByRole("row")[1]).toHaveTextContent("Unidade 01")
 
     await user.click(screen.getByRole("combobox", { name: "Filtrar unidades por cidade" }))
+    expect(screen.getByRole("combobox", { name: "Buscar cidade" })).toBeInTheDocument()
     await user.click(await screen.findByRole("option", { name: /Curitiba/u }))
 
-    expect(screen.getByText("4 unidades")).toBeInTheDocument()
+    expect(screen.getByText("2 unidades")).toBeInTheDocument()
     expect(screen.getByText("Unidade 04")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Limpar filtros" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Limpar filtro de cidade" }))
     expect(screen.getByText("18 unidades")).toBeInTheDocument()
