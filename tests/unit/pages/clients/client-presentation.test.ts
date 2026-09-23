@@ -12,12 +12,15 @@ import {
 } from "@/pages/clients/model/client-presentation"
 
 describe("client presentation", () => {
-  it("normaliza nomes e cidades sem alterar os dados de origem", () => {
+  it("normaliza nomes e cidades sem expandir abreviações do ERP", () => {
     expect(formatErpName("ASSOCIACAO ECO VILLAGE I")).toBe(
       "Associação Eco Village I",
     )
     expect(formatErpName("HU TRANSPORTE RODOVIARIO LTDA")).toBe(
       "HU Transporte Rodoviário Ltda",
+    )
+    expect(formatErpName("FRIRON FRIOS RO COM REP LTDA")).toBe(
+      "Friron Frios RO com REP Ltda",
     )
     expect(formatCityName("SAO JOSE DO RIO PRETO")).toBe(
       "São José do Rio Preto",

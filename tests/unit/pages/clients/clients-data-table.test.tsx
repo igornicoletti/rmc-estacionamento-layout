@@ -35,7 +35,7 @@ afterEach(() => {
 })
 
 describe("ClientsDataTable", () => {
-  it("carrega o mock local, resume e-mails e expõe navegação", async () => {
+  it("mantém só colunas essenciais e permite copiar e-mails adicionais", async () => {
     const user = userEvent.setup()
     vi.stubGlobal(
       "fetch",
@@ -62,10 +62,24 @@ describe("ClientsDataTable", () => {
     expect(
       screen.getByRole("combobox", { name: "Filtrar por cidade" }),
     ).toBeInTheDocument()
+
     expect(
       screen.getByRole("link", { name: "Associação Eco Village I" }),
     ).toHaveAttribute("href", "/clientes/363")
     expect(screen.getByText("principal@example.com")).toBeInTheDocument()
+
+    expect(
+      screen.queryByRole("columnheader", { name: "Nome fantasia" }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("columnheader", { name: "Telefone" }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("columnheader", { name: /Cadastro/u }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("columnheader", { name: "Pessoa ativa" }),
+    ).not.toBeInTheDocument()
 
     const additionalEmails = screen.getByRole("button", {
       name: "2 e-mails adicionais",
@@ -74,8 +88,18 @@ describe("ClientsDataTable", () => {
 
     await user.hover(additionalEmails)
 
-    expect(await screen.findByText("financeiro@example.com")).toBeInTheDocument()
+    expect(await screen.findByText("Outros e-mails")).toBeInTheDocument()
+    expect(screen.getByText("financeiro@example.com")).toBeInTheDocument()
     expect(screen.getByText("frota@example.com")).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Copiar financeiro@example.com",
+      }),
+    )
+    await expect(navigator.clipboard.readText()).resolves.toBe(
+      "financeiro@example.com",
+    )
 
     await user.click(screen.getByRole("combobox", { name: "Filtrar por cidade" }))
 

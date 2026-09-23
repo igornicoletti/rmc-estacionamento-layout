@@ -19,8 +19,14 @@ import {
   clientMockQueryKeys,
   loadMockClientVehicles,
 } from "@/pages/clients/data/client-mock-data"
+import {
+  normalizeSearchText,
+  paginateRows,
+  sortRows,
+} from "@/pages/clients/lib/client-table-utils"
 import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
+  formatDateTime,
   formatErpName,
   formatLicensePlate,
   formatVehicleDescription,
@@ -31,29 +37,16 @@ interface ClientVehiclesDataTableProps {
   clientId: string
 }
 
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeStyle: "short",
-})
-
 const EMPTY_CLIENT_VEHICLES: ClientVehicle[] = []
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<ClientVehicle>()
 
-function formatDateTime(value: string | null) {
-  return value ? dateTimeFormatter.format(new Date(value)) : "—"
-}
-
-function normalizeSearch(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/gu, "")
-    .toLocaleLowerCase("pt-BR")
-}
-
 function createColumns(showDriver: boolean) {
   return columnHelper.columns([
     columnHelper.accessor("id", {
+      cell: ({ getValue }) => (
+        <span className="tabular-nums text-muted-foreground">{getValue()}</span>
+      ),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -89,7 +82,7 @@ function createColumns(showDriver: boolean) {
     }),
     columnHelper.accessor("plate", {
       cell: ({ getValue }) => formatLicensePlate(getValue()),
-      enableHiding: true,
+      enableHiding: false,
       enableSorting: true,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Placa" />
@@ -132,28 +125,44 @@ function createColumns(showDriver: boolean) {
       meta: { visibilityLabel: "Hash da origem" },
     }),
     columnHelper.accessor("sourceUpdatedAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
+      cell: ({ getValue }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {formatDateTime(getValue())}
+        </span>
+      ),
       enableHiding: true,
       enableSorting: false,
       header: "Atualização na origem",
       meta: { visibilityLabel: "Atualização na origem" },
     }),
     columnHelper.accessor("synchronizedAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
+      cell: ({ getValue }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {formatDateTime(getValue())}
+        </span>
+      ),
       enableHiding: true,
       enableSorting: false,
       header: "Sincronização",
       meta: { visibilityLabel: "Sincronização" },
     }),
     columnHelper.accessor("createdAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
+      cell: ({ getValue }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {formatDateTime(getValue())}
+        </span>
+      ),
       enableHiding: true,
       enableSorting: false,
       header: "Criação",
       meta: { visibilityLabel: "Criação" },
     }),
     columnHelper.accessor("updatedAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
+      cell: ({ getValue }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {formatDateTime(getValue())}
+        </span>
+      ),
       enableHiding: true,
       enableSorting: false,
       header: "Atualização",
@@ -179,11 +188,8 @@ export function ClientVehiclesDataTable({
       clientName: false,
       clientTaxId: false,
       clientTradeName: false,
-      createdAt: false,
       sourceHash: false,
       sourceUpdatedAt: false,
-      synchronizedAt: false,
-      updatedAt: false,
     },
   })
 
@@ -235,7 +241,7 @@ export function ClientVehiclesDataTable({
   }
 
   const filteredVehicles = useMemo(() => {
-    const search = normalizeSearch(state.globalFilter)
+    const search = normalizeSearchText(state.globalFilter)
 
     return clientVehicles.filter((vehicle) => {
       if (
@@ -249,7 +255,7 @@ export function ClientVehiclesDataTable({
         return true
       }
 
-      return normalizeSearch(
+      return normalizeSearchText(
         [
           vehicle.id,
           vehicle.plate,
@@ -268,44 +274,30 @@ export function ClientVehiclesDataTable({
     state.globalFilter,
   ])
 
-  const sortedVehicles = useMemo(() => {
-    const sort = state.sorting[0]
-
-    if (!sort) {
-      return filteredVehicles
-    }
-
-    return [...filteredVehicles].sort((left, right) => {
-      const sortValue = (vehicle: ClientVehicle) => {
-        if (sort.id === "description") {
+  const sortedVehicles = useMemo(
+    () =>
+      sortRows(filteredVehicles, state.sorting, (vehicle, columnId) => {
+        if (columnId === "description") {
           return formatVehicleDescription(vehicle.description)
         }
 
-        if (sort.id === "plate") {
+        if (columnId === "plate") {
           return formatLicensePlate(vehicle.plate)
         }
 
-        if (sort.id === "driverName") {
+        if (columnId === "driverName") {
           return formatErpName(vehicle.driverName)
         }
 
-        return String(vehicle[sort.id as keyof ClientVehicle] ?? "")
-      }
+        return vehicle[columnId as keyof ClientVehicle]
+      }),
+    [filteredVehicles, state.sorting],
+  )
 
-      const comparison = sortValue(left).localeCompare(
-        sortValue(right),
-        "pt-BR",
-        { numeric: true, sensitivity: "base" },
-      )
-
-      return sort.desc ? -comparison : comparison
-    })
-  }, [filteredVehicles, state.sorting])
-
-  const paginatedVehicles = useMemo(() => {
-    const start = state.pagination.pageIndex * state.pagination.pageSize
-    return sortedVehicles.slice(start, start + state.pagination.pageSize)
-  }, [sortedVehicles, state.pagination.pageIndex, state.pagination.pageSize])
+  const paginatedVehicles = useMemo(
+    () => paginateRows(sortedVehicles, state.pagination),
+    [sortedVehicles, state.pagination],
+  )
 
   const table = tableApi.useAppTable({
     columns,
@@ -322,6 +314,8 @@ export function ClientVehiclesDataTable({
     },
   })
 
+  const hasActiveFilters = state.hasFilters || Boolean(descriptionFilter)
+
   if (vehiclesQuery.isError) {
     return (
       <DataTableError
@@ -335,7 +329,7 @@ export function ClientVehiclesDataTable({
     <DataTableRoot isBusy={vehiclesQuery.isPending || vehiclesQuery.isFetching}>
       <DataTableToolbar
         actions={<DataTableViewOptions table={table} />}
-        hasActiveFilters={state.hasFilters || Boolean(descriptionFilter)}
+        hasActiveFilters={hasActiveFilters}
         onClearFilters={clearFilters}
       >
         <DataTableSearch
@@ -371,7 +365,7 @@ export function ClientVehiclesDataTable({
           <DataTableEmpty
             emptyDescription="Nenhum veículo foi carregado para este cliente."
             emptyTitle="Nenhum veículo disponível"
-            hasFilters={state.hasFilters || Boolean(descriptionFilter)}
+            hasFilters={hasActiveFilters}
             onClearFilters={clearFilters}
           />
         }

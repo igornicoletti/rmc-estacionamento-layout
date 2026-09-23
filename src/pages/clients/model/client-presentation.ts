@@ -1,36 +1,14 @@
 const EMPTY_DISPLAY = "—"
 
-const BRAZILIAN_STATE_CODES = new Set([
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-])
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "short",
+  timeZone: "UTC",
+})
 
-const PRESERVED_ACRONYMS = new Set(["HU", "RPS", ...BRAZILIAN_STATE_CODES])
+const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "short",
+  timeStyle: "short",
+})
 
 const LOWERCASE_WORDS = new Set([
   "A",
@@ -67,7 +45,7 @@ const CORRECTED_WORDS = new Map([
   ["SAO", "São"],
 ])
 
-const CURRENT_MOCK_CITY_NAMES = new Map([
+const VERIFIED_CITY_NAMES = new Map([
   ["APARECIDA DO TABOADO", "Aparecida do Taboado"],
   ["BIGUACU", "Biguaçu"],
   ["CAMPO GRANDE", "Campo Grande"],
@@ -125,14 +103,6 @@ function capitalize(value: string) {
 function formatWord(value: string, index: number) {
   const upper = value.toLocaleUpperCase("pt-BR")
 
-  if (/^\d+[A-Z]+$/u.test(upper) || /^[A-Z]\.$/u.test(upper)) {
-    return upper
-  }
-
-  if (PRESERVED_ACRONYMS.has(upper)) {
-    return upper
-  }
-
   if (upper === "LTDA") {
     return "Ltda"
   }
@@ -150,7 +120,24 @@ function formatWord(value: string, index: number) {
     return upper.toLocaleLowerCase("pt-BR")
   }
 
+  if (
+    value === upper &&
+    (/^[A-Z0-9]{1,3}$/u.test(upper) || /^\d+[A-Z]+$/u.test(upper))
+  ) {
+    return upper
+  }
+
   return capitalize(value)
+}
+
+export function formatDate(value: string | null) {
+  return value
+    ? dateFormatter.format(new Date(`${value}T00:00:00.000Z`))
+    : EMPTY_DISPLAY
+}
+
+export function formatDateTime(value: string | null) {
+  return value ? dateTimeFormatter.format(new Date(value)) : EMPTY_DISPLAY
 }
 
 export function formatErpName(value: string) {
@@ -183,7 +170,7 @@ export function formatCityName(value: string) {
   }
 
   const upper = normalized.toLocaleUpperCase("pt-BR")
-  return CURRENT_MOCK_CITY_NAMES.get(upper) ?? formatErpName(normalized)
+  return VERIFIED_CITY_NAMES.get(upper) ?? formatErpName(normalized)
 }
 
 export function formatVehicleDescription(value: string) {
@@ -195,7 +182,10 @@ export function formatVehicleDescription(value: string) {
 
   const upper = normalized.toLocaleUpperCase("pt-BR")
 
-  if (/^[A-Z]{3}\d[A-Z0-9]\d{2}$/u.test(upper) || /^[A-Z]{3}\d{4}$/u.test(upper)) {
+  if (
+    /^[A-Z]{3}\d[A-Z0-9]\d{2}$/u.test(upper) ||
+    /^[A-Z]{3}\d{4}$/u.test(upper)
+  ) {
     return upper
   }
 

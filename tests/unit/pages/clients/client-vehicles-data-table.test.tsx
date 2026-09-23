@@ -45,7 +45,7 @@ afterEach(() => {
 })
 
 describe("ClientVehiclesDataTable", () => {
-  it("omite motorista sem dados e mantém busca, filtro e paginação", async () => {
+  it("prioriza dados do veículo e mantém metadados úteis visíveis", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -67,9 +67,23 @@ describe("ClientVehiclesDataTable", () => {
     expect(
       screen.getByRole("combobox", { name: "Filtrar por veículo" }),
     ).toBeInTheDocument()
+
     expect(
       screen.queryByRole("columnheader", { name: /Motorista/u }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("columnheader", { name: "Nome do cliente" }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole("columnheader", { name: "Sincronização" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("columnheader", { name: "Criação" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("columnheader", { name: "Atualização" }),
+    ).toBeInTheDocument()
+
     expect(screen.getByText("FSL-8590")).toBeInTheDocument()
     expect(screen.getByText("Scania")).toBeInTheDocument()
     expect(

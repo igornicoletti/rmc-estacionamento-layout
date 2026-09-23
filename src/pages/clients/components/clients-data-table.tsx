@@ -20,71 +20,41 @@ import { DataTableToolbar } from "@/components/data-table/components/data-table-
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
-import { toast } from "@/components/ui/toast"
 import { getClientDetailsPath } from "@/pages/clients/client-routes"
 import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
 import {
   clientMockQueryKeys,
   loadMockClients,
 } from "@/pages/clients/data/client-mock-data"
+import { copyClientValue } from "@/pages/clients/lib/copy-client-value"
+import {
+  normalizeSearchText,
+  paginateRows,
+  sortRows,
+} from "@/pages/clients/lib/client-table-utils"
 import type { Client } from "@/pages/clients/model/client"
 import {
   formatCityName,
+  formatDate,
+  formatDateTime,
   formatErpName,
   formatPhone,
   formatYesNo,
 } from "@/pages/clients/model/client-presentation"
 
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeZone: "UTC",
-})
-
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeStyle: "short",
-})
-
 const EMPTY_CLIENTS: Client[] = []
 const tableApi = createServerTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<Client>()
-
-function formatDate(value: string | null) {
-  return value
-    ? dateFormatter.format(new Date(`${value}T00:00:00.000Z`))
-    : "—"
-}
-
-function formatDateTime(value: string | null) {
-  return value ? dateTimeFormatter.format(new Date(value)) : "—"
-}
-
-function normalizeSearch(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/gu, "")
-    .toLocaleLowerCase("pt-BR")
-}
 
 function getCityFilterValue(client: Client) {
   return `${client.stateCode}:${client.city}`
 }
 
-async function copyClientId(id: string) {
-  try {
-    await navigator.clipboard.writeText(id)
-    toast.add({ description: id, title: "Código copiado", type: "success" })
-  } catch {
-    toast.add({
-      description: "Não foi possível copiar o código do cliente.",
-      title: "Falha ao copiar",
-      type: "error",
-    })
-  }
-}
-
 const columns = columnHelper.columns([
   columnHelper.accessor("id", {
+    cell: ({ getValue }) => (
+      <span className="tabular-nums text-muted-foreground">{getValue()}</span>
+    ),
     enableHiding: true,
     enableSorting: true,
     header: ({ column }) => (
@@ -95,13 +65,13 @@ const columns = columnHelper.columns([
   columnHelper.accessor("name", {
     cell: ({ getValue, row }) => (
       <Link
-        className="font-medium underline-offset-4 hover:underline"
+        className="block max-w-64 truncate font-medium underline-offset-4 hover:underline"
         to={getClientDetailsPath(row.original.id)}
       >
         {formatErpName(getValue())}
       </Link>
     ),
-    enableHiding: true,
+    enableHiding: false,
     enableSorting: true,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nome" />
@@ -118,6 +88,7 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Nome fantasia" },
   }),
   columnHelper.accessor("taxId", {
+    cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span>,
     enableHiding: true,
     enableSorting: false,
     header: "CPF/CNPJ",
@@ -176,6 +147,7 @@ const columns = columnHelper.columns([
     meta: { visibilityLabel: "Bloqueio financeiro" },
   }),
   columnHelper.accessor("vehicleCount", {
+    cell: ({ getValue }) => <span className="tabular-nums">{getValue()}</span>,
     enableHiding: true,
     enableSorting: true,
     header: ({ column }) => (
@@ -238,7 +210,13 @@ const columns = columnHelper.columns([
       <DataTableRowActions
         accessibleLabel={`Ações do cliente ${formatErpName(row.original.name)}`}
         copyLabel="Copiar código"
-        onCopy={() => void copyClientId(row.original.id)}
+        onCopy={() =>
+          void copyClientValue({
+            errorDescription: "Não foi possível copiar o código do cliente.",
+            successTitle: "Código copiado",
+            value: row.original.id,
+          })
+        }
       />
     ),
     enableHiding: false,
@@ -257,11 +235,17 @@ export function ClientsDataTable() {
   const [cityFilter, setCityFilter] = useState<string>()
   const state = useDataTableState({
     initialColumnVisibility: {
+      activeWithin120Days: false,
       createdAt: false,
+      financialBlockStatus: false,
+      id: false,
+      personActiveStatus: false,
       phone: false,
+      registeredAt: false,
       sourceHash: false,
       sourceUpdatedAt: false,
       synchronizedAt: false,
+      tradeName: false,
       updatedAt: false,
     },
   })
@@ -313,7 +297,7 @@ export function ClientsDataTable() {
   }
 
   const filteredClients = useMemo(() => {
-    const search = normalizeSearch(state.globalFilter)
+    const search = normalizeSearchText(state.globalFilter)
 
     return clients.filter((client) => {
       if (cityFilter && getCityFilterValue(client) !== cityFilter) {
@@ -324,7 +308,7 @@ export function ClientsDataTable() {
         return true
       }
 
-      return normalizeSearch(
+      return normalizeSearchText(
         [
           client.id,
           client.name,
@@ -342,30 +326,30 @@ export function ClientsDataTable() {
     })
   }, [cityFilter, clients, state.globalFilter])
 
-  const sortedClients = useMemo(() => {
-    const sort = state.sorting[0]
+  const sortedClients = useMemo(
+    () =>
+      sortRows(filteredClients, state.sorting, (client, columnId) => {
+        if (columnId === "name") {
+          return formatErpName(client.name)
+        }
 
-    if (!sort) {
-      return filteredClients
-    }
+        if (columnId === "tradeName") {
+          return formatErpName(client.tradeName)
+        }
 
-    return [...filteredClients].sort((left, right) => {
-      const leftValue = left[sort.id as keyof Client]
-      const rightValue = right[sort.id as keyof Client]
-      const comparison = String(leftValue ?? "").localeCompare(
-        String(rightValue ?? ""),
-        "pt-BR",
-        { numeric: true, sensitivity: "base" },
-      )
+        if (columnId === "city") {
+          return formatCityName(client.city)
+        }
 
-      return sort.desc ? -comparison : comparison
-    })
-  }, [filteredClients, state.sorting])
+        return client[columnId as keyof Client]
+      }),
+    [filteredClients, state.sorting],
+  )
 
-  const paginatedClients = useMemo(() => {
-    const start = state.pagination.pageIndex * state.pagination.pageSize
-    return sortedClients.slice(start, start + state.pagination.pageSize)
-  }, [sortedClients, state.pagination.pageIndex, state.pagination.pageSize])
+  const paginatedClients = useMemo(
+    () => paginateRows(sortedClients, state.pagination),
+    [sortedClients, state.pagination],
+  )
 
   const table = tableApi.useAppTable({
     columns,
@@ -382,6 +366,8 @@ export function ClientsDataTable() {
     },
   })
 
+  const hasActiveFilters = state.hasFilters || Boolean(cityFilter)
+
   if (clientsQuery.isError) {
     return (
       <DataTableError
@@ -395,7 +381,7 @@ export function ClientsDataTable() {
     <DataTableRoot isBusy={clientsQuery.isPending || clientsQuery.isFetching}>
       <DataTableToolbar
         actions={<DataTableViewOptions table={table} />}
-        hasActiveFilters={state.hasFilters || Boolean(cityFilter)}
+        hasActiveFilters={hasActiveFilters}
         onClearFilters={clearFilters}
       >
         <DataTableSearch
@@ -425,7 +411,7 @@ export function ClientsDataTable() {
           <DataTableEmpty
             emptyDescription="Nenhum cliente foi carregado no mock local."
             emptyTitle="Nenhum cliente disponível"
-            hasFilters={state.hasFilters || Boolean(cityFilter)}
+            hasFilters={hasActiveFilters}
             onClearFilters={clearFilters}
           />
         }

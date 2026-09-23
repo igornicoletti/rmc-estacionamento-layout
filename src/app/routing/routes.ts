@@ -13,7 +13,6 @@ import {
 } from "@/app/routing/route-error-boundary"
 import { AccountSecurityPage } from "@/pages/account-security/account-security.layout"
 import { AuditPage } from "@/pages/audit/audit.layout"
-import { ClientDetailsPage } from "@/pages/clients/client-details.layout"
 import { CLIENT_DETAILS_ROUTE_PATH } from "@/pages/clients/client-routes"
 import { ClientsPage } from "@/pages/clients/clients.layout"
 import { DashboardPage } from "@/pages/dashboard/dashboard.layout"
@@ -60,7 +59,13 @@ function createPageRoute(id: AppPageId): RouteObject {
 const clientDetailsRoute = {
   id: "client-details",
   path: CLIENT_DETAILS_ROUTE_PATH,
-  Component: ClientDetailsPage,
+  lazy: async () => {
+    const { ClientDetailsPage } = await import(
+      "@/pages/clients/client-details.layout"
+    )
+
+    return { Component: ClientDetailsPage }
+  },
   handle: {
     access: appPages.clients.access,
     routeId: "client-details",

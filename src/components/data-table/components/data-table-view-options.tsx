@@ -35,13 +35,14 @@ interface DataTableViewOptionsProps {
 export function DataTableViewOptions({
   table,
 }: DataTableViewOptionsProps) {
-  const columns = table
+  const dataColumns = table
     .getAllLeafColumns()
-    .filter((column) => column.getCanHide());
+    .filter((column) => column.columnDef.meta?.visibilityLabel);
+  const columns = dataColumns.filter((column) => column.getCanHide());
 
   if (columns.length === 0) return null;
 
-  const visibleColumnCount = columns.filter((column) =>
+  const visibleDataColumnCount = dataColumns.filter((column) =>
     column.getIsVisible(),
   ).length;
 
@@ -78,7 +79,7 @@ export function DataTableViewOptions({
             }
 
             const isLastVisibleColumn =
-              column.getIsVisible() && visibleColumnCount === 1;
+              column.getIsVisible() && visibleDataColumnCount === 1;
 
             return (
               <DropdownMenuCheckboxItem
