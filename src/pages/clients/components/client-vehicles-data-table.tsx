@@ -203,31 +203,26 @@ export function ClientVehiclesDataTable({
   )
   const columns = useMemo(() => createColumns(showDriver), [showDriver])
 
-  const descriptionItems = useMemo(() => {
+  const descriptionFacet = useMemo(() => {
     const descriptions = new Set<string>()
-
-    for (const vehicle of clientVehicles) {
-      if (vehicle.description !== "") {
-        descriptions.add(formatVehicleDescription(vehicle.description))
-      }
-    }
-
-    return Array.from(descriptions)
-      .sort((left, right) => left.localeCompare(right, "pt-BR"))
-      .map((value) => ({ label: value, value }))
-  }, [clientVehicles])
-
-  const descriptionCounts = useMemo(() => {
     const counts: Record<string, number> = {}
 
     for (const vehicle of clientVehicles) {
-      if (vehicle.description !== "") {
-        const value = formatVehicleDescription(vehicle.description)
-        counts[value] = (counts[value] ?? 0) + 1
+      if (vehicle.description === "") {
+        continue
       }
+
+      const value = formatVehicleDescription(vehicle.description)
+      descriptions.add(value)
+      counts[value] = (counts[value] ?? 0) + 1
     }
 
-    return counts
+    return {
+      counts,
+      items: Array.from(descriptions)
+        .sort((left, right) => left.localeCompare(right, "pt-BR"))
+        .map((value) => ({ label: value, value })),
+    }
   }, [clientVehicles])
 
   const handleDescriptionFilterChange = (value: string | undefined) => {
@@ -344,12 +339,12 @@ export function ClientVehiclesDataTable({
           }
           value={state.searchDraft}
         />
-        {descriptionItems.length > 1 ? (
+        {descriptionFacet.items.length > 1 ? (
           <DataTableComboboxFilter
             ariaLabel="Filtrar por veículo"
             clearAriaLabel="Limpar filtro de veículo"
-            counts={descriptionCounts}
-            items={descriptionItems}
+            counts={descriptionFacet.counts}
+            items={descriptionFacet.items}
             onValueChange={handleDescriptionFilterChange}
             placeholder="Todos os veículos"
             searchAriaLabel="Buscar veículo"
