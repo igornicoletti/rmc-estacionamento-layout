@@ -22,11 +22,13 @@ describe("app routing", () => {
   beforeAll(async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response("[]", {
-          headers: { "Content-Type": "application/json" },
-          status: 200,
-        }),
+      vi.fn(() =>
+        Promise.resolve(
+          new Response("[]", {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          }),
+        ),
       ),
     )
 
@@ -118,4 +120,4 @@ describe("app routing", () => {
       expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
     })
   })
-}
+})
