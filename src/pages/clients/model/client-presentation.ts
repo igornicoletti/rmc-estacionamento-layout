@@ -10,6 +10,8 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 })
 
+const VERIFIED_ACRONYMS = new Set(["HU", "REP", "RO", "RPS", "RS"])
+
 const LOWERCASE_WORDS = new Set([
   "A",
   "AS",
@@ -121,8 +123,8 @@ function formatWord(value: string, index: number) {
   }
 
   if (
-    value === upper &&
-    (/^[A-Z0-9]{1,3}$/u.test(upper) || /^\d+[A-Z]+$/u.test(upper))
+    VERIFIED_ACRONYMS.has(upper) ||
+    (value === upper && (/^[A-Z]$/u.test(upper) || /^\d+[A-Z]+$/u.test(upper)))
   ) {
     return upper
   }
