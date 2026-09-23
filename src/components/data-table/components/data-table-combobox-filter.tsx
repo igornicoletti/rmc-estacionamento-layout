@@ -1,4 +1,4 @@
-import { Fragment, useRef } from "react"
+import { useRef } from "react"
 import { XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -30,12 +30,15 @@ interface DataTableComboboxFilterGroup<TValue extends string> {
 
 interface DataTableComboboxFilterProps<TValue extends string> {
   ariaLabel: string
+  clearAriaLabel?: string
   counts?: Partial<Record<TValue, number>>
   emptyMessage?: string
   items: ReadonlyArray<DataTableComboboxFilterItem<TValue>>
   onValueChange: (value: TValue | undefined) => void
   placeholder: string
   searchable?: boolean
+  searchAriaLabel?: string
+  searchPlaceholder?: string
   value?: TValue
 }
 
@@ -66,12 +69,15 @@ function groupItems<TValue extends string>(
 
 export function DataTableComboboxFilter<TValue extends string>({
   ariaLabel,
+  clearAriaLabel = `Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`,
   counts,
   emptyMessage = "Nenhum resultado.",
   items,
   onValueChange,
   placeholder,
   searchable = true,
+  searchAriaLabel = `Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`,
+  searchPlaceholder = "Buscar...",
   value,
 }: DataTableComboboxFilterProps<TValue>) {
   const anchorRef = useRef<HTMLDivElement>(null)
@@ -95,6 +101,8 @@ export function DataTableComboboxFilter<TValue extends string>({
 
   return (
     <Combobox
+      itemToStringLabel={(item) => item.label}
+      itemToStringValue={(item) => item.value}
       items={comboboxItems}
       onValueChange={(item) => onValueChange(item?.value)}
       value={selectedItem}
@@ -104,7 +112,10 @@ export function DataTableComboboxFilter<TValue extends string>({
         data-slot="data-table-combobox-filter"
       >
         <div className="flex w-full items-center gap-1">
-          <div ref={anchorRef} className="min-w-0 flex-1">
+          <div
+            ref={anchorRef}
+            className="min-w-0 flex-1 @sm/toolbar:min-w-56"
+          >
             <ComboboxTrigger
               aria-label={ariaLabel}
               render={
@@ -122,7 +133,7 @@ export function DataTableComboboxFilter<TValue extends string>({
 
           {selectedItem ? (
             <Button
-              aria-label={`Limpar ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
+              aria-label={clearAriaLabel}
               onClick={() => onValueChange(undefined)}
               size="icon"
               variant="outline"
@@ -136,27 +147,26 @@ export function DataTableComboboxFilter<TValue extends string>({
       <ComboboxContent
         anchor={anchorRef}
         aria-label={ariaLabel}
-        className="w-(--anchor-width) min-w-(--anchor-width) max-w-(--anchor-width)"
+        className="w-(--anchor-width) min-w-(--anchor-width) max-w-(--available-width)"
       >
         <ComboboxInput
-          aria-label={`Buscar em ${ariaLabel.toLocaleLowerCase("pt-BR")}`}
-          clearAriaLabel="Limpar busca"
-          placeholder="Buscar..."
+          aria-label={searchAriaLabel}
+          className="[&_[data-slot=input]]:text-sm!"
+          clearAriaLabel={clearAriaLabel}
+          placeholder={searchPlaceholder}
           readOnly={!searchable}
-          showClear={searchable}
+          showClear={selectedItem !== null}
           showTrigger={false}
         />
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {groupedItems
             ? (group: DataTableComboboxFilterGroup<TValue>, index: number) => (
-                <Fragment key={group.value}>
+                <ComboboxGroup key={group.value} items={group.items}>
                   {index > 0 ? <ComboboxSeparator /> : null}
-                  <ComboboxGroup items={group.items}>
-                    <ComboboxLabel>{group.value}</ComboboxLabel>
-                    <ComboboxCollection>{renderItem}</ComboboxCollection>
-                  </ComboboxGroup>
-                </Fragment>
+                  <ComboboxLabel>{group.value}</ComboboxLabel>
+                  <ComboboxCollection>{renderItem}</ComboboxCollection>
+                </ComboboxGroup>
               )
             : renderItem}
         </ComboboxList>

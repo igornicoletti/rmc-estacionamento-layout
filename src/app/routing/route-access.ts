@@ -46,7 +46,7 @@ const assuranceLevels: ReadonlySet<string> = new Set([
   "fresh-aal2",
 ])
 
-export function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
+function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
   if (typeof value !== "object" || value === null) {
     return false
   }

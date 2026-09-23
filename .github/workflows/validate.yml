@@ -33,6 +33,8 @@ jobs:
           package-manager-cache: false
 
       - run: npm ci
+      - run: npm run unused:check
+      - run: npm run audit:security
       - run: npm run check
       - run: npm run test:coverage
       - run: npx playwright install --with-deps chromium

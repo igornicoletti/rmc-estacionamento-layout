@@ -17,7 +17,12 @@ export function DataTableColumnHeader({ column, title }: DataTableColumnHeaderPr
   }
 
   const sorted = column.getIsSorted()
-  const SortIcon = sorted === "asc" ? ArrowUpIcon : sorted === "desc" ? ArrowDownIcon : ArrowUpDownIcon
+  const SortIcon =
+    sorted === "asc"
+      ? ArrowUpIcon
+      : sorted === "desc"
+        ? ArrowDownIcon
+        : ArrowUpDownIcon
 
   return (
     <button

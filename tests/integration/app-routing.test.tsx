@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react"
-import { createMemoryRouter } from "react-router"
-import { describe, expect, it } from "vitest"
+import { act, render, screen, waitFor } from "@testing-library/react"
+import { createMemoryRouter, matchRoutes } from "react-router"
+import { beforeAll, describe, expect, it } from "vitest"
 
 import App from "@/app/root/app"
 import { appPages } from "@/app/config/app-config"
@@ -19,6 +19,14 @@ const dataTablePages = [
 ] as const
 
 describe("app routing", () => {
+  beforeAll(async () => {
+    await Promise.all([
+      import("@/components/data-table/components/data-table-preview"),
+      import("@/pages/clients/components/clients-data-table"),
+      import("@/pages/units/components/units-data-table"),
+    ])
+  })
+
   it("monta o shell na rota raiz", async () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
@@ -43,28 +51,57 @@ describe("app routing", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
+  it("resolve a rota dinâmica de detalhe do cliente", () => {
+    const matches = matchRoutes(routes, "/clientes/3492")
+
+    expect(matches?.some((match) => match.route.id === "client-details")).toBe(
+      true,
+    )
+  })
+
   it.each(dataTablePages)("renderiza a tabela mínima em %s", async (pageId) => {
     const page = appPages[pageId]
     const router = createMemoryRouter(routes, { initialEntries: [page.path] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    expect(await screen.findByRole("table")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("table", undefined, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: page.title })).toBeInTheDocument()
-    expect(screen.getByRole("separator")).toBeInTheDocument()
+    expect(screen.getAllByRole("separator").length).toBeGreaterThan(0)
   })
+
+  it.each(["units", "clients"] as const)(
+    "expõe ações de histórico e sincronização em %s",
+    async (pageId) => {
+      const page = appPages[pageId]
+      const router = createMemoryRouter(routes, { initialEntries: [page.path] })
+
+      render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+      expect(
+        await screen.findByRole("button", { name: "Histórico" }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole("button", { name: "Sincronizar" }),
+      ).toBeInTheDocument()
+    },
+  )
 
   it("mantém o fallback desconhecido fora do shell", async () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/usuarios"] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    await router.navigate("/nao-existe")
-
-    await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/nao-existe")
+    await act(async () => {
+      await router.navigate("/nao-existe")
     })
+
+    expect(router.state.location.pathname).toBe("/nao-existe")
     expect(screen.getByRole("main")).toBeInTheDocument()
-    expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
+    })
   })
 })

@@ -9,6 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
 interface DataTableRowActionsProps {
   accessibleLabel: string;
@@ -34,11 +35,11 @@ export function DataTableRowActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+            <DropdownMenuLabel>{dataTableCopy.rowActions.label}</DropdownMenuLabel>
             {onView ? (
               <DropdownMenuItem onClick={onView}>
                 <EyeIcon aria-hidden="true" />
-                Ver detalhes
+                {dataTableCopy.rowActions.view}
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem onClick={onCopy}>
@@ -53,5 +54,5 @@ export function DataTableRowActions({
 }
 
 export function DataTableRowActionsHeader() {
-  return <span className="sr-only">Ações</span>;
+  return <span className="sr-only">{dataTableCopy.rowActions.label}</span>;
 }

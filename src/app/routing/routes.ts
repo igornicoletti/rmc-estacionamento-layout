@@ -13,6 +13,7 @@ import {
 } from "@/app/routing/route-error-boundary"
 import { AccountSecurityPage } from "@/pages/account-security/account-security.layout"
 import { AuditPage } from "@/pages/audit/audit.layout"
+import { CLIENT_DETAILS_ROUTE_PATH } from "@/pages/clients/client-routes"
 import { ClientsPage } from "@/pages/clients/clients.layout"
 import { DashboardPage } from "@/pages/dashboard/dashboard.layout"
 import { NotificationsPage } from "@/pages/notifications/notifications.layout"
@@ -55,6 +56,23 @@ function createPageRoute(id: AppPageId): RouteObject {
     : { id, path: page.path, Component, handle }
 }
 
+const clientDetailsRoute = {
+  id: "client-details",
+  path: CLIENT_DETAILS_ROUTE_PATH,
+  lazy: async () => {
+    const { ClientDetailsPage } = await import(
+      "@/pages/clients/client-details.layout"
+    )
+
+    return { Component: ClientDetailsPage }
+  },
+  handle: {
+    access: appPages.clients.access,
+    routeId: "client-details",
+    title: "Cliente",
+  } satisfies AppRouteHandle,
+} satisfies RouteObject
+
 function NotFoundRoute() {
   return createElement(RootErrorContent, {
     kind: rootErrorKinds.notFound,
@@ -74,7 +92,10 @@ export const routes = [
           {
             id: "app-shell",
             Component: AppShellRoute,
-            children: (Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+            children: [
+              ...(Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+              clientDetailsRoute,
+            ],
           },
         ],
       },

@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { DataTableColumnMeta } from "@/components/data-table/core/data-table.types";
+import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
 interface HideableColumn {
   id: string;
@@ -35,13 +36,14 @@ interface DataTableViewOptionsProps {
 export function DataTableViewOptions({
   table,
 }: DataTableViewOptionsProps) {
-  const columns = table
+  const dataColumns = table
     .getAllLeafColumns()
-    .filter((column) => column.getCanHide());
+    .filter((column) => column.columnDef.meta?.visibilityLabel);
+  const columns = dataColumns.filter((column) => column.getCanHide());
 
   if (columns.length === 0) return null;
 
-  const visibleColumnCount = columns.filter((column) =>
+  const visibleDataColumnCount = dataColumns.filter((column) =>
     column.getIsVisible(),
   ).length;
 
@@ -53,7 +55,7 @@ export function DataTableViewOptions({
             <DropdownMenuTrigger
               render={
                 <Button
-                  aria-label="Colunas"
+                  aria-label={dataTableCopy.columns.trigger}
                   variant="outline"
                   size="icon"
                 />
@@ -63,11 +65,11 @@ export function DataTableViewOptions({
         >
           <SlidersHorizontalIcon data-icon="inline-start" aria-hidden="true" />
         </TooltipTrigger>
-        <TooltipContent role="tooltip">Exibir colunas</TooltipContent>
+        <TooltipContent role="tooltip">{dataTableCopy.columns.tooltip}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Colunas visíveis</DropdownMenuLabel>
+          <DropdownMenuLabel>{dataTableCopy.columns.label}</DropdownMenuLabel>
           {columns.map((column) => {
             const label = column.columnDef.meta?.visibilityLabel;
 
@@ -78,7 +80,7 @@ export function DataTableViewOptions({
             }
 
             const isLastVisibleColumn =
-              column.getIsVisible() && visibleColumnCount === 1;
+              column.getIsVisible() && visibleDataColumnCount === 1;
 
             return (
               <DropdownMenuCheckboxItem
@@ -88,7 +90,7 @@ export function DataTableViewOptions({
                 disabled={isLastVisibleColumn}
                 aria-label={
                   isLastVisibleColumn
-                    ? `${label}, última coluna visível`
+                    ? `${label}, ${dataTableCopy.columns.lastVisible}`
                     : label
                 }
                 onCheckedChange={(checked) => {

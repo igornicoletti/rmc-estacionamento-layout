@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
 interface DataTableSkeletonRowsProps {
   columns: number;
@@ -54,8 +55,8 @@ interface DataTableEmptyProps {
 export function DataTableEmpty({
   hasFilters,
   onClearFilters,
-  emptyTitle = "Nenhum registro disponível",
-  emptyDescription = "Os registros aparecerão aqui quando estiverem disponíveis.",
+  emptyTitle = dataTableCopy.empty.defaultTitle,
+  emptyDescription = dataTableCopy.empty.defaultDescription,
 }: DataTableEmptyProps) {
   return (
     <Empty>
@@ -64,18 +65,18 @@ export function DataTableEmpty({
           <SearchXIcon aria-hidden="true" />
         </EmptyMedia>
         <EmptyTitle>
-          {hasFilters ? "Nenhum resultado encontrado" : emptyTitle}
+          {hasFilters ? dataTableCopy.empty.filteredTitle : emptyTitle}
         </EmptyTitle>
         <EmptyDescription>
           {hasFilters
-            ? "Revise os termos de busca ou remova os filtros aplicados."
+            ? dataTableCopy.empty.filteredDescription
             : emptyDescription}
         </EmptyDescription>
       </EmptyHeader>
       {hasFilters ? (
         <EmptyContent>
           <Button variant="outline" size="sm" onClick={onClearFilters}>
-            Limpar filtros
+            {dataTableCopy.empty.clearFilters}
           </Button>
         </EmptyContent>
       ) : null}
@@ -91,8 +92,8 @@ interface DataTableErrorProps {
 
 export function DataTableError({
   onRetry,
-  title = "Não foi possível carregar os registros",
-  description = "Tente novamente. Se o problema persistir, contate o suporte.",
+  title = dataTableCopy.error.defaultTitle,
+  description = dataTableCopy.error.defaultDescription,
 }: DataTableErrorProps) {
   return (
     <Alert variant="destructive">
@@ -105,7 +106,7 @@ export function DataTableError({
           size="sm"
           onClick={onRetry}
         >
-          Tentar novamente
+          {dataTableCopy.error.retry}
         </Button>
       </AlertAction>
     </Alert>
@@ -136,7 +137,7 @@ function DataTableUpdatingContent() {
       aria-live="polite"
     >
       <Spinner aria-hidden="true" />
-      Atualizando
+      {dataTableCopy.updating}
     </div>
   );
 }

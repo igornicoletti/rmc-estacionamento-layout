@@ -53,6 +53,43 @@ describe("DataTableViewOptions", () => {
     expect(toggleStatus).toHaveBeenCalledWith(true)
   })
 
+  it("permite ocultar a última coluna opcional quando há identidade fixa", async () => {
+    const user = userEvent.setup()
+    const toggleEmail = vi.fn()
+
+    renderWithProviders(
+      <DataTableViewOptions
+        table={{
+          getAllLeafColumns: () => [
+            {
+              id: "name",
+              columnDef: { meta: { visibilityLabel: "Nome" } },
+              getCanHide: () => false,
+              getIsVisible: () => true,
+              toggleVisibility: vi.fn(),
+            },
+            {
+              id: "email",
+              columnDef: { meta: { visibilityLabel: "E-mail" } },
+              getCanHide: () => true,
+              getIsVisible: () => true,
+              toggleVisibility: toggleEmail,
+            },
+          ],
+        }}
+      />,
+    )
+
+    await user.click(screen.getByRole("button"))
+    const emailOption = await screen.findByRole("menuitemcheckbox", {
+      name: "E-mail",
+    })
+
+    expect(emailOption).not.toHaveAttribute("aria-disabled", "true")
+    await user.click(emailOption)
+    expect(toggleEmail).toHaveBeenCalledWith(false)
+  })
+
   it("não renderiza o controle sem colunas ocultáveis", () => {
     renderWithProviders(
       <DataTableViewOptions

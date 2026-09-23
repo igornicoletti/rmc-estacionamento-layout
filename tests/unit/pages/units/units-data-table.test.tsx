@@ -11,14 +11,14 @@ describe("UnitsDataTable", () => {
     const user = userEvent.setup()
     renderWithProviders(<UnitsDataTable />)
 
-    expect(screen.getByText("15 unidades")).toBeInTheDocument()
-    expect(screen.getByText("Iguatemi")).toBeInTheDocument()
-    expect(screen.getByText("21.384.959/0001-48")).toBeInTheDocument()
-    expect(screen.getAllByText("Ipiranga").length).toBeGreaterThan(0)
+    expect(screen.getByText("18 unidades")).toBeInTheDocument()
+    expect(screen.getByText("Unidade 01")).toBeInTheDocument()
+    expect(screen.getByText("88.000.000/0001-32")).toBeInTheDocument()
+    expect(screen.getAllByText("Bandeira Azul").length).toBeGreaterThan(0)
     expect(screen.queryByRole("columnheader", { name: "Hash da origem" })).not.toBeInTheDocument()
-    expect(screen.queryByText("POSTO MONTE CARLO IGUATEMI LTDA")).not.toBeInTheDocument()
+    expect(screen.queryByText(/IP|synthetic-unit/u)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "Ações da unidade Iguatemi" }))
+    await user.click(screen.getByRole("button", { name: "Ações da unidade Unidade 01" }))
     await user.click(await screen.findByRole("menuitem", { name: "Copiar código" }))
     await expect(navigator.clipboard.readText()).resolves.toBe("1")
 
@@ -26,8 +26,8 @@ describe("UnitsDataTable", () => {
     await user.type(search, "parana")
     await user.keyboard("{Enter}")
 
-    expect(await screen.findByText("3 unidades")).toBeInTheDocument()
-    expect(screen.getByText("Ponta Grossa BR-376")).toBeInTheDocument()
+    expect(await screen.findByText("4 unidades")).toBeInTheDocument()
+    expect(screen.getAllByText(/Curitiba/u).length).toBeGreaterThan(0)
   })
 
   it("ordena colunas permitidas e filtra pela cidade no popup", async () => {
@@ -38,16 +38,16 @@ describe("UnitsDataTable", () => {
     expect(screen.queryByRole("button", { name: "Ordenar por CNPJ" })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Ordenar por Nome fantasia" }))
-    expect(screen.getAllByRole("row")[1]).toHaveTextContent("Cuiaba")
+    expect(screen.getAllByRole("row")[1]).toHaveTextContent("Unidade 01")
 
-    await user.click(screen.getByRole("combobox", { name: "Filtrar por cidade" }))
-    await user.click(await screen.findByRole("option", { name: /Mirassol/u }))
+    await user.click(screen.getByRole("combobox", { name: "Filtrar unidades por cidade" }))
+    await user.click(await screen.findByRole("option", { name: /Curitiba/u }))
 
-    expect(screen.getByText("1 unidade")).toBeInTheDocument()
-    expect(screen.getByText("Interior Eventos")).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument()
+    expect(screen.getByText("4 unidades")).toBeInTheDocument()
+    expect(screen.getByText("Unidade 04")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Limpar filtros" })).toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "Limpar filtrar por cidade" }))
-    expect(screen.getByText("15 unidades")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Limpar filtro de cidade" }))
+    expect(screen.getByText("18 unidades")).toBeInTheDocument()
   })
 })

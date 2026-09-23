@@ -18,6 +18,9 @@ test-results
 .env.*
 !.env.example
 
+# Local ERP fixtures with real source data. Never commit these files.
+/public/mock-data/*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -6,6 +6,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { dataTableCopy } from "@/components/data-table/data-table.copy"
 
 interface DataTableSearchProps {
   value: string
@@ -21,12 +22,13 @@ export function DataTableSearch({
   onChange,
   onClear,
   onSubmit,
-  placeholder = "Buscar registros...",
-  ariaLabel = "Buscar registros",
+  placeholder = dataTableCopy.search.defaultPlaceholder,
+  ariaLabel = dataTableCopy.search.defaultAriaLabel,
 }: DataTableSearchProps) {
   return (
     <InputGroup className="w-full min-w-0 @sm/toolbar:w-80 @sm/toolbar:max-w-md @sm/toolbar:flex-[1_1_20rem]">
       <InputGroupInput
+        className="text-sm!"
         type="text"
         role="searchbox"
         inputMode="search"
@@ -48,7 +50,7 @@ export function DataTableSearch({
         <InputGroupAddon align="inline-end">
           <InputGroupButton
             size="icon-xs"
-            aria-label="Limpar busca"
+            aria-label={dataTableCopy.search.clear}
             onClick={onClear}
           >
             <XIcon aria-hidden="true" />

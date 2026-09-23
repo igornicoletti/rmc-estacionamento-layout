@@ -143,6 +143,7 @@ describe("SessionProvider", () => {
 
   it("limpa cache quando a autoridade do mesmo usuário muda", async () => {
     const queryClient = new QueryClient()
+    queryClient.setQueryDefaults(["private"], { meta: { identityScoped: true } })
     queryClient.setQueryData(["private"], "old-authority-data")
     const current = createAuthenticatedSession(["yard:read"])
     const next = createAuthenticatedSession(["yard:read", "yard:manage"])
@@ -286,8 +287,9 @@ describe("SessionProvider", () => {
     expect(queryClient.getQueryData(["private"])).toBe("secret")
   })
 
-  it("limpa todo o cache ao encerrar uma autoridade autenticada", async () => {
+  it("remove apenas cache vinculado à identidade ao encerrar a sessão", async () => {
     const queryClient = new QueryClient()
+    queryClient.setQueryDefaults(["private"], { meta: { identityScoped: true } })
     queryClient.setQueryData(["private"], "secret")
     queryClient.setQueryData(["shared"], "shared")
     const commands: SessionCommands = {
@@ -306,7 +308,7 @@ describe("SessionProvider", () => {
     })
 
     expect(queryClient.getQueryData(["private"])).toBeUndefined()
-    expect(queryClient.getQueryData(["shared"])).toBeUndefined()
+    expect(queryClient.getQueryData(["shared"])).toBe("shared")
     expect(result.current.snapshot.status).toBe("anonymous")
   })
 
@@ -336,6 +338,7 @@ describe("SessionProvider", () => {
 
   it("limpa cache reaproveitado quando bootstrap resolve nova autoridade", async () => {
     const queryClient = new QueryClient()
+    queryClient.setQueryDefaults(["stale-user"], { meta: { identityScoped: true } })
     queryClient.setQueryData(["stale-user"], "secret")
     const commands: SessionCommands = {
       getSession: vi.fn().mockResolvedValue({

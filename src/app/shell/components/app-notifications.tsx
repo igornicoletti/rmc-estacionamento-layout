@@ -4,7 +4,7 @@ import {
   CheckCheckIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useState, type MouseEvent } from "react"
+import { useRef, useState, type MouseEvent } from "react"
 import { Link, type To } from "react-router"
 
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/app/config/app-copy"
 import { AppEmpty } from "@/components/common/app-empty"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Item,
   ItemActions,
@@ -31,6 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export interface AppNotificationItem {
   dateTime: string
@@ -69,12 +70,27 @@ export function AppNotifications({
   viewAllTo,
 }: AppNotificationsProps) {
   const [open, setOpen] = useState(false)
+  const [mobileAlignOffset, setMobileAlignOffset] = useState(0)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const isMobile = useIsMobile()
   const copy = appCopy.toolbar.notifications
   const unreadCount = status === "ready" ? unreadNotifications.length : 0
   const previewNotifications = unreadNotifications.slice(
     0,
     notificationPreviewLimit,
   )
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && isMobile && triggerRef.current) {
+      const triggerBounds = triggerRef.current.getBoundingClientRect()
+      const triggerCenter = triggerBounds.left + triggerBounds.width / 2
+      setMobileAlignOffset(window.innerWidth / 2 - triggerCenter)
+    } else if (!nextOpen) {
+      setMobileAlignOffset(0)
+    }
+
+    setOpen(nextOpen)
+  }
 
   const handleNotificationClick = (
     event: MouseEvent<HTMLAnchorElement>,
@@ -90,10 +106,11 @@ export function AppNotifications({
   }
 
   return (
-    <Popover onOpenChange={setOpen} open={open}>
+    <Popover onOpenChange={handleOpenChange} open={open}>
       <PopoverTrigger
         render={
           <Button
+            ref={triggerRef}
             aria-label={getNotificationsTriggerLabel(unreadCount, status)}
             className="relative"
             size="icon"
@@ -113,7 +130,11 @@ export function AppNotifications({
         ) : null}
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-96">
+      <PopoverContent
+        align={isMobile ? "center" : "end"}
+        alignOffset={isMobile ? mobileAlignOffset : 0}
+        className="w-[calc(100vw-2rem)] sm:w-96"
+      >
         <PopoverHeader className="flex-row items-center justify-between">
           <PopoverTitle>{copy.title}</PopoverTitle>
 
@@ -176,7 +197,7 @@ export function AppNotifications({
                     </ItemMedia>
                     <ItemContent>
                       <ItemTitle>{notification.title}</ItemTitle>
-                      <ItemDescription>
+                      <ItemDescription className="text-xs">
                         {notification.message}
                       </ItemDescription>
                     </ItemContent>
@@ -194,13 +215,13 @@ export function AppNotifications({
             </ItemGroup>
 
             {viewAllTo ? (
-              <Button
+              <Link
+                className={buttonVariants({ variant: "link" })}
                 onClick={() => setOpen(false)}
-                render={<Link to={viewAllTo} />}
-                variant="link"
+                to={viewAllTo}
               >
                 {copy.viewAll}
-              </Button>
+              </Link>
             ) : null}
           </>
         ) : (
