@@ -11,6 +11,7 @@ import {
   clientMockQueryKeys,
   loadMockClients,
 } from "@/pages/clients/data/client-mock-data"
+import { formatErpName } from "@/pages/clients/model/client-presentation"
 
 const clientPageBase = {
   availability: "available" as const,
@@ -63,7 +64,7 @@ export function ClientDetailsPage() {
       actions={<PageHistorySyncActions backTo={appPages.clients.path} />}
       page={{
         ...clientPageBase,
-        title: client.name,
+        title: formatErpName(client.name),
         subtitle: client.taxId,
       }}
     >
