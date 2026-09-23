@@ -244,7 +244,11 @@ export function formatLicensePlate(value: string) {
     return `${compact.slice(0, 3)}-${compact.slice(3)}`
   }
 
-  return compact
+  if (/^[A-Z]{3}\d[A-Z]\d{2}$/u.test(compact)) {
+    return compact
+  }
+
+  return normalized
 }
 
 export function formatYesNo(value: string | boolean) {
