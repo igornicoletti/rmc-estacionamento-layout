@@ -111,7 +111,7 @@ export function DataTableComboboxFilter<TValue extends string>({
     >
       <ComboboxInput
         aria-label={ariaLabel}
-        className="w-full min-w-0 border-border! bg-background! [&_[data-slot=input-group-control]]:text-sm! @sm/toolbar:w-fit @sm/toolbar:min-w-56 @sm/toolbar:max-w-sm @sm/toolbar:flex-none dark:bg-transparent!"
+        className="w-full min-w-0 border-border! bg-background! **:data-[slot=input-group-control]:text-sm! @sm/toolbar:w-fit @sm/toolbar:min-w-56 @sm/toolbar:max-w-sm @sm/toolbar:flex-none dark:bg-transparent!"
         clearAriaLabel={clearAriaLabel}
         placeholder={placeholder}
         showClear
