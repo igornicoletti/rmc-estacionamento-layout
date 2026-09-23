@@ -5,7 +5,7 @@ import { useParams } from "react-router"
 import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AppEmpty } from "@/components/common/app-empty"
-import { PageHistorySyncActions } from "@/components/common/page-history-sync-actions"
+import { PageSyncHistoryActions } from "@/components/common/page-sync-history-actions"
 import { clientsCopy } from "@/pages/clients/clients.copy"
 import { LazyClientVehiclesDataTable } from "@/pages/clients/components/lazy-client-vehicles-data-table"
 import {
@@ -30,7 +30,7 @@ export function ClientDetailsPage() {
   if (clientsQuery.isPending) {
     return (
       <AppPageLayout
-        actions={<PageHistorySyncActions backTo={appPages.clients.path} />}
+        actions={<PageSyncHistoryActions backTo={appPages.clients.path} />}
         page={{
           ...clientPageBase,
           title: clientsCopy.details.fallbackTitle,
@@ -43,7 +43,7 @@ export function ClientDetailsPage() {
   if (clientsQuery.isError || !clientId || !client) {
     return (
       <AppPageLayout
-        actions={<PageHistorySyncActions backTo={appPages.clients.path} />}
+        actions={<PageSyncHistoryActions backTo={appPages.clients.path} />}
         page={{
           ...clientPageBase,
           title: clientsCopy.details.fallbackTitle,
@@ -62,7 +62,7 @@ export function ClientDetailsPage() {
 
   return (
     <AppPageLayout
-      actions={<PageHistorySyncActions backTo={appPages.clients.path} />}
+      actions={<PageSyncHistoryActions backTo={appPages.clients.path} />}
       page={{
         ...clientPageBase,
         title: formatErpName(client.name),

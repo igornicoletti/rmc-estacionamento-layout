@@ -4,17 +4,17 @@ import { Link } from "react-router"
 import { appCopy } from "@/app/config/app-copy"
 import { Button, buttonVariants } from "@/components/ui/button"
 
-interface PageHistorySyncActionsProps {
+interface PageSyncHistoryActionsProps {
   backTo?: string
   onHistory?: () => void
   onSynchronize?: () => void
 }
 
-export function PageHistorySyncActions({
+export function PageSyncHistoryActions({
   backTo,
   onHistory,
   onSynchronize,
-}: PageHistorySyncActionsProps) {
+}: PageSyncHistoryActionsProps) {
   return (
     <>
       {backTo ? (

@@ -66,7 +66,7 @@ function SyncHistoryStatusBadge({
   if (status === "success") {
     return (
       <Badge
-        className="border-success/30 bg-success/10 text-success"
+        className="border-success/30 bg-success/10 text-foreground [&>svg]:text-success"
         variant="outline"
       >
         <CircleCheckIcon aria-hidden="true" data-icon="inline-start" />
@@ -88,7 +88,10 @@ function SyncHistoryStatusBadge({
   }
 
   return (
-    <Badge variant="destructive">
+    <Badge
+      className="border-destructive/30 bg-destructive/10 text-foreground [&>svg]:text-destructive"
+      variant="outline"
+    >
       <CircleXIcon aria-hidden="true" data-icon="inline-start" />
       {pageSyncHistoryCopy.status.error}
     </Badge>
@@ -113,8 +116,12 @@ export function PageSyncHistoryItem({
   const finishedAt = formatDateTime(execution.finishedAt)
   const duration = formatDuration(execution.startedAt, execution.finishedAt)
   const triggerLabel = pageSyncHistoryCopy.trigger[execution.trigger]
+  const requestedBy =
+    execution.trigger === "manual"
+      ? execution.requestedBy
+      : pageSyncHistoryCopy.actor.system
   const summary =
-    execution.trigger === "manual" && execution.requestedBy
+    execution.trigger === "manual"
       ? `${triggerLabel} por ${execution.requestedBy} · ${duration}`
       : `${triggerLabel} · ${duration}`
 
@@ -122,7 +129,9 @@ export function PageSyncHistoryItem({
     <Collapsible role="listitem">
       <Item variant="outline">
         <ItemContent>
-          <ItemTitle>{startedAt}</ItemTitle>
+          <ItemTitle>
+            <time dateTime={execution.startedAt}>{startedAt}</time>
+          </ItemTitle>
           <ItemDescription>{summary}</ItemDescription>
         </ItemContent>
 
@@ -163,7 +172,7 @@ export function PageSyncHistoryItem({
             />
             <DetailRow
               label={pageSyncHistoryCopy.fields.requestedBy}
-              value={execution.requestedBy ?? "Sistema"}
+              value={requestedBy}
             />
             <DetailRow
               label={pageSyncHistoryCopy.fields.processedCount}

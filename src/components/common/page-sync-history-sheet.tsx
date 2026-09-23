@@ -28,6 +28,10 @@ export function PageSyncHistorySheet({
       size="wide"
       title={pageSyncHistoryCopy.title}
     >
+      <p className="mb-4 text-sm text-muted-foreground">
+        {pageSyncHistoryCopy.previewNotice}
+      </p>
+
       {executions.length > 0 ? (
         <ItemGroup>
           {executions.map((execution) => (

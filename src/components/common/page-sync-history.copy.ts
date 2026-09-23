@@ -2,6 +2,10 @@ export const pageSyncHistoryCopy = {
   title: "Histórico de sincronização",
   description: (scopeLabel: string) =>
     `Execuções recentes de sincronização de ${scopeLabel.toLocaleLowerCase("pt-BR")}.`,
+  previewNotice: "Dados demonstrativos para validação visual.",
+  actor: {
+    system: "Sistema",
+  },
   empty: {
     title: "Nenhuma sincronização registrada",
     description:
