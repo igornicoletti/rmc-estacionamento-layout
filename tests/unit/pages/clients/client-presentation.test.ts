@@ -37,6 +37,7 @@ describe("client presentation", () => {
     expect(formatPhone("17997949893")).toBe("(17) 99794-9893")
     expect(formatLicensePlate("FSL8590")).toBe("FSL-8590")
     expect(formatLicensePlate("AGH5B94")).toBe("AGH5B94")
+    expect(formatLicensePlate("EOA-058")).toBe("EOA-058")
   })
 
   it("padroniza ausências, flags e e-mails múltiplos", () => {
