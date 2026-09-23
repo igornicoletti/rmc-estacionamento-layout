@@ -24,4 +24,3 @@ interface PageSyncHistoryAutomaticExecution {
 export type PageSyncHistoryExecution = PageSyncHistoryExecutionBase &
   (PageSyncHistoryManualExecution | PageSyncHistoryAutomaticExecution)
 
-export type PageSyncHistoryTrigger = PageSyncHistoryExecution["trigger"]
