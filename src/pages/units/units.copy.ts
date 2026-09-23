@@ -10,8 +10,6 @@ export const unitsCopy = {
     ariaLabel: "Filtrar unidades por cidade",
     clearAriaLabel: "Limpar filtro de cidade",
     placeholder: "Todas as cidades",
-    searchAriaLabel: "Buscar cidade",
-    searchPlaceholder: "Buscar cidade...",
   },
   actions: {
     copyLabel: "Copiar código",

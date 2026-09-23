@@ -385,8 +385,6 @@ export function ClientsDataTable() {
           items={cityFacet.items}
           onValueChange={handleCityFilterChange}
           placeholder={clientsCopy.list.cityFilterPlaceholder}
-          searchAriaLabel={clientsCopy.list.citySearchAriaLabel}
-          searchPlaceholder={clientsCopy.list.citySearchPlaceholder}
           value={cityFilter}
         />
       </DataTableToolbar>

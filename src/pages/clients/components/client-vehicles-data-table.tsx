@@ -332,8 +332,6 @@ export function ClientVehiclesDataTable({
             items={descriptionFacet.items}
             onValueChange={handleDescriptionFilterChange}
             placeholder={clientsCopy.vehicles.filterPlaceholder}
-            searchAriaLabel={clientsCopy.vehicles.filterSearchAriaLabel}
-            searchPlaceholder={clientsCopy.vehicles.filterSearchPlaceholder}
             value={descriptionFilter}
           />
         ) : null}

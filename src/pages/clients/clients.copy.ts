@@ -9,8 +9,6 @@ export const clientsCopy = {
     cityFilterAriaLabel: "Filtrar clientes por cidade",
     cityFilterClearAriaLabel: "Limpar filtro de cidade",
     cityFilterPlaceholder: "Todas as cidades",
-    citySearchAriaLabel: "Buscar cidade",
-    citySearchPlaceholder: "Buscar cidade...",
     itemLabel: { singular: "cliente", plural: "clientes" },
   },
   vehicles: {
@@ -24,8 +22,6 @@ export const clientsCopy = {
     filterAriaLabel: "Filtrar veículos por descrição",
     filterClearAriaLabel: "Limpar filtro de veículo",
     filterPlaceholder: "Todos os veículos",
-    filterSearchAriaLabel: "Buscar descrição de veículo",
-    filterSearchPlaceholder: "Buscar veículo...",
     itemLabel: { singular: "veículo", plural: "veículos" },
   },
   details: {
