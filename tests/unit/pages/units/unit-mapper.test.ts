@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   formatCnpj,
-  mapLegacyUnit,
-  mapLegacyUnits,
+  mapErpUnit,
+  mapErpUnits,
   normalizePortugueseName,
 } from "@/pages/units/model/unit-mapper"
 
@@ -30,7 +30,7 @@ const validRecord = {
 
 describe("unit mapper", () => {
   it("normaliza o contrato legado para apresentação em português", () => {
-    expect(mapLegacyUnit(validRecord)).toMatchObject({
+    expect(mapErpUnit(validRecord)).toMatchObject({
       id: "1",
       legalName: "Posto Monte Carlo São José Ltda.",
       tradeName: "São José",
@@ -40,24 +40,20 @@ describe("unit mapper", () => {
       state: "São Paulo",
       stateCode: "SP",
       coordinates: "-20.864665, -49.413584",
-      networkAddress: "192.168.9.190",
-      databaseName: "igua",
-      sourceHash: "abc123",
-      sourceUpdatedAt: null,
     })
   })
 
-  it("descarta coordenada e endereço de rede opcionais inválidos", () => {
-    expect(mapLegacyUnit({
+  it("descarta coordenadas opcionais inválidas e ignora metadados internos", () => {
+    expect(mapErpUnit({
       ...validRecord,
       des_coordenada_empresa: "",
       ip_rede: "XXX",
-    })).toMatchObject({ coordinates: null, networkAddress: null })
+    })).toMatchObject({ coordinates: null })
   })
 
   it("rejeita respostas e campos obrigatórios inválidos", () => {
-    expect(() => mapLegacyUnits({})).toThrow("deve ser um array")
-    expect(() => mapLegacyUnit({ ...validRecord, cod_empresa: 1.5 })).toThrow("cod_empresa")
+    expect(() => mapErpUnits({})).toThrow("deve ser um array")
+    expect(() => mapErpUnit({ ...validRecord, cod_empresa: 1.5 })).toThrow("cod_empresa")
     expect(() => formatCnpj("123")).toThrow("14 dígitos")
     expect(() => formatCnpj("11111111111111")).toThrow("validação")
   })

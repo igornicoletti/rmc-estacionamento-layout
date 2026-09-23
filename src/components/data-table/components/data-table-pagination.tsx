@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { dataTableCopy } from "@/components/data-table/data-table.copy";
 import {
   Select,
   SelectContent,
@@ -36,7 +37,7 @@ interface DataTablePaginationProps {
   itemLabel?: { singular: string; plural: string };
 }
 
-const DEFAULT_ITEM_LABEL = { singular: "registro", plural: "registros" };
+const DEFAULT_ITEM_LABEL = dataTableCopy.pagination.defaultItem;
 const DEFAULT_PAGE_SIZES = [10, 25, 50, 100] as const;
 
 function normalizePageSizes(pageSizes: readonly number[], currentSize: number) {
@@ -82,13 +83,13 @@ export function DataTablePagination({
           data-slot="data-table-page-size"
           className="flex items-center justify-center gap-2"
         >
-          <span className="text-sm text-muted-foreground">Linhas por página</span>
+          <span className="text-sm text-muted-foreground">{dataTableCopy.pagination.rowsPerPage}</span>
           <Select
             items={pageSizeItems}
             value={String(pageSize)}
             onValueChange={(value) => table.setPageSize(Number(value))}
           >
-            <SelectTrigger size="sm" aria-label="Linhas por página">
+            <SelectTrigger size="sm" aria-label={dataTableCopy.pagination.rowsPerPage}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="end">
@@ -107,13 +108,13 @@ export function DataTablePagination({
           className="flex items-center justify-center gap-2"
         >
           <span className="min-w-24 text-center text-sm">
-            Página {pageIndex + 1} de {pageCount}
+            {dataTableCopy.pagination.page} {pageIndex + 1} {dataTableCopy.pagination.of} {pageCount}
           </span>
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon-sm"
-              aria-label="Primeira página"
+              aria-label={dataTableCopy.pagination.first}
               disabled={!table.getCanPreviousPage()}
               onClick={() => table.firstPage()}
             >
@@ -122,7 +123,7 @@ export function DataTablePagination({
             <Button
               variant="outline"
               size="icon-sm"
-              aria-label="Página anterior"
+              aria-label={dataTableCopy.pagination.previous}
               disabled={!table.getCanPreviousPage()}
               onClick={() => table.previousPage()}
             >
@@ -131,7 +132,7 @@ export function DataTablePagination({
             <Button
               variant="outline"
               size="icon-sm"
-              aria-label="Próxima página"
+              aria-label={dataTableCopy.pagination.next}
               disabled={isPlaceholderData || !table.getCanNextPage()}
               onClick={() => table.nextPage()}
             >
@@ -140,7 +141,7 @@ export function DataTablePagination({
             <Button
               variant="outline"
               size="icon-sm"
-              aria-label="Última página"
+              aria-label={dataTableCopy.pagination.last}
               disabled={isPlaceholderData || !table.getCanNextPage()}
               onClick={() => table.lastPage()}
             >

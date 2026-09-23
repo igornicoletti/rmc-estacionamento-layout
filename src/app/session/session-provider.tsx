@@ -125,15 +125,20 @@ export function SessionProvider({
     [],
   )
 
-  const clearAuthorityCache = useCallback(
+  const clearIdentityScopedCache = useCallback(
     async (operation: AuthorityOperation) => {
-      await queryClient.cancelQueries()
+      const identityScopedQuery = {
+        predicate: (query: { meta?: Record<string, unknown> }) =>
+          query.meta?.identityScoped === true,
+      }
+
+      await queryClient.cancelQueries(identityScopedQuery)
 
       if (!isCurrentOperation(operation)) {
         return false
       }
 
-      queryClient.clear()
+      queryClient.removeQueries(identityScopedQuery)
       return true
     },
     [isCurrentOperation, queryClient],
@@ -149,7 +154,7 @@ export function SessionProvider({
       }
 
       if (!isSameAuthority(snapshotRef.current, next)) {
-        const cleared = await clearAuthorityCache(operation)
+        const cleared = await clearIdentityScopedCache(operation)
 
         if (!cleared) {
           return
@@ -160,7 +165,7 @@ export function SessionProvider({
         setSnapshot(next)
       }
     },
-    [clearAuthorityCache, isCurrentOperation, setSnapshot],
+    [clearIdentityScopedCache, isCurrentOperation, setSnapshot],
   )
 
   useEffect(
@@ -253,7 +258,7 @@ export function SessionProvider({
         return
       }
 
-      const cleared = await clearAuthorityCache(operation)
+      const cleared = await clearIdentityScopedCache(operation)
 
       if (cleared && isCurrentOperation(operation)) {
         setSnapshot(anonymousSession)
@@ -268,7 +273,7 @@ export function SessionProvider({
     }
   }, [
     beginAuthorityOperation,
-    clearAuthorityCache,
+    clearIdentityScopedCache,
     commands,
     finishAuthorityOperation,
     isCurrentOperation,

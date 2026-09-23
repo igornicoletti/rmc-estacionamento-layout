@@ -45,7 +45,7 @@ export function getQueryRetryDelay(attemptIndex: number, error: unknown) {
   )
 }
 
-export const appQueryClientConfig = {
+const appQueryClientConfig = {
   defaultOptions: {
     mutations: { retry: false },
     queries: {

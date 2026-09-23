@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  mapLegacyClientVehicle,
-  mapLegacyClientVehicles,
+  mapErpClientVehicle,
+  mapErpClientVehicles,
 } from "@/pages/clients/model/client-vehicle-mapper"
 
 const validVehicle = {
@@ -24,7 +24,7 @@ const validVehicle = {
 
 describe("client vehicle mapper", () => {
   it("normaliza os campos existentes no ERP", () => {
-    expect(mapLegacyClientVehicle(validVehicle)).toMatchObject({
+    expect(mapErpClientVehicle(validVehicle)).toMatchObject({
       id: "44425",
       clientId: "363",
       clientName: "ASSOCIACAO ECO VILLAGE I",
@@ -34,14 +34,12 @@ describe("client vehicle mapper", () => {
       description: "VEICULO",
       driverName: "",
       clientActiveWithin120Days: true,
-      sourceHash: "0662dbaf736b830b7b41cd2986c1289b",
-      sourceUpdatedAt: null,
     })
   })
 
   it("aceita veículo e motorista vazios quando o ERP envia texto vazio", () => {
     expect(
-      mapLegacyClientVehicle({
+      mapErpClientVehicle({
         ...validVehicle,
         des_veiculo: "",
         nom_motorista: "",
@@ -53,6 +51,6 @@ describe("client vehicle mapper", () => {
   })
 
   it("rejeita uma resposta que não seja lista", () => {
-    expect(() => mapLegacyClientVehicles({})).toThrow("deve ser um array")
+    expect(() => mapErpClientVehicles({})).toThrow("deve ser um array")
   })
 })

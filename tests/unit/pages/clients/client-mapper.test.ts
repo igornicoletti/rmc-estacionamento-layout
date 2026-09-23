@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   formatCpfCnpj,
-  mapLegacyClient,
-  mapLegacyClients,
+  mapErpClient,
+  mapErpClients,
 } from "@/pages/clients/model/client-mapper"
 
 const validRecord = {
@@ -30,7 +30,7 @@ const validRecord = {
 
 describe("client mapper", () => {
   it("normaliza o contrato ERP sem inferir os indicadores textuais", () => {
-    expect(mapLegacyClient(validRecord)).toMatchObject({
+    expect(mapErpClient(validRecord)).toMatchObject({
       id: "123456789012345",
       name: "CLIENTE EXEMPLO LTDA",
       tradeName: "CLIENTE EXEMPLO",
@@ -44,14 +44,12 @@ describe("client mapper", () => {
       vehicleCount: 3,
       lastPurchaseAt: "2026-08-20",
       activeWithin120Days: true,
-      sourceHash: "ABC123",
-      sourceUpdatedAt: null,
     })
   })
 
   it("preserva campos textuais vazios aceitos pelo ERP", () => {
     expect(
-      mapLegacyClient({
+      mapErpClient({
         ...validRecord,
         nom_fantasia: "",
         des_email_1: "",
@@ -70,12 +68,12 @@ describe("client mapper", () => {
   })
 
   it("rejeita respostas e campos incompatíveis com o contrato", () => {
-    expect(() => mapLegacyClients({})).toThrow("deve ser um array")
-    expect(() => mapLegacyClient({ ...validRecord, qtd_veiculos: 1.5 })).toThrow(
+    expect(() => mapErpClients({})).toThrow("deve ser um array")
+    expect(() => mapErpClient({ ...validRecord, qtd_veiculos: 1.5 })).toThrow(
       "qtd_veiculos",
     )
     expect(() =>
-      mapLegacyClient({ ...validRecord, dta_cadastro: "2026-02-31" }),
+      mapErpClient({ ...validRecord, dta_cadastro: "2026-02-31" }),
     ).toThrow("dta_cadastro")
     expect(() => formatCpfCnpj("123")).toThrow("11 ou 14")
   })

@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter, matchRoutes } from "react-router"
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
 
 import App from "@/app/root/app"
 import { appPages } from "@/app/config/app-config"
@@ -20,27 +20,11 @@ const dataTablePages = [
 
 describe("app routing", () => {
   beforeAll(async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(() =>
-        Promise.resolve(
-          new Response("[]", {
-            headers: { "Content-Type": "application/json" },
-            status: 200,
-          }),
-        ),
-      ),
-    )
-
     await Promise.all([
       import("@/components/data-table/components/data-table-preview"),
       import("@/pages/clients/components/clients-data-table"),
       import("@/pages/units/components/units-data-table"),
     ])
-  })
-
-  afterAll(() => {
-    vi.unstubAllGlobals()
   })
 
   it("monta o shell na rota raiz", async () => {

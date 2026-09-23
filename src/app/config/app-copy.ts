@@ -45,6 +45,11 @@ export const appCopy = {
     expand: "Expandir menu lateral",
     navigation: "Navegação principal",
   },
+  pageActions: {
+    back: "Voltar",
+    history: "Histórico",
+    synchronize: "Sincronizar",
+  },
   toolbar: {
     closeSidebar: "Fechar menu lateral",
     notifications: {

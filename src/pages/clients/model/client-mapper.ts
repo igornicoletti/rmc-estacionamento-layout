@@ -42,7 +42,7 @@ const BRAZILIAN_STATE_NAMES: Record<string, string> = {
 
 export { formatCpfCnpj } from "@/pages/clients/model/erp-record"
 
-export function mapLegacyClient(input: unknown): Client {
+export function mapErpClient(input: unknown): Client {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
     throw new TypeError("Cliente inválido: registro deve ser um objeto.")
   }
@@ -66,18 +66,16 @@ export function mapLegacyClient(input: unknown): Client {
     vehicleCount: readErpInteger(record, "qtd_veiculos"),
     lastPurchaseAt: readErpDate(record, "dta_ultima_compra"),
     activeWithin120Days: readErpBoolean(record, "is_active_120d"),
-    sourceHash: readErpString(record, "source_hash"),
-    sourceUpdatedAt: readErpDateTime(record, "source_updated_at", true),
     synchronizedAt: readErpDateTime(record, "synced_at") as string,
     createdAt: readErpDateTime(record, "created_at") as string,
     updatedAt: readErpDateTime(record, "updated_at") as string,
   }
 }
 
-export function mapLegacyClients(input: unknown): Client[] {
+export function mapErpClients(input: unknown): Client[] {
   if (!Array.isArray(input)) {
     throw new TypeError("Resposta inválida: a lista de clientes deve ser um array.")
   }
 
-  return input.map(mapLegacyClient)
+  return input.map(mapErpClient)
 }

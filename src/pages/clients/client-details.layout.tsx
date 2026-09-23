@@ -6,11 +6,12 @@ import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AppEmpty } from "@/components/common/app-empty"
 import { PageHistorySyncActions } from "@/components/common/page-history-sync-actions"
+import { clientsCopy } from "@/pages/clients/clients.copy"
 import { LazyClientVehiclesDataTable } from "@/pages/clients/components/lazy-client-vehicles-data-table"
 import {
-  clientMockQueryKeys,
-  loadMockClients,
-} from "@/pages/clients/data/client-mock-data"
+  clientPreviewQueryKeys,
+  loadPreviewClients,
+} from "@/pages/clients/data/client-preview-data"
 import { formatErpName } from "@/pages/clients/model/client-presentation"
 
 const clientPageBase = {
@@ -20,8 +21,8 @@ const clientPageBase = {
 export function ClientDetailsPage() {
   const { clientId } = useParams<"clientId">()
   const clientsQuery = useQuery({
-    queryKey: clientMockQueryKeys.clients,
-    queryFn: loadMockClients,
+    queryKey: clientPreviewQueryKeys.clients,
+    queryFn: loadPreviewClients,
     staleTime: Number.POSITIVE_INFINITY,
   })
   const client = clientsQuery.data?.find((item) => item.id === clientId)
@@ -32,8 +33,8 @@ export function ClientDetailsPage() {
         actions={<PageHistorySyncActions backTo={appPages.clients.path} />}
         page={{
           ...clientPageBase,
-          title: "Cliente",
-          subtitle: "Carregando dados do cliente.",
+          title: clientsCopy.details.fallbackTitle,
+          subtitle: clientsCopy.details.loadingSubtitle,
         }}
       />
     )
@@ -45,15 +46,15 @@ export function ClientDetailsPage() {
         actions={<PageHistorySyncActions backTo={appPages.clients.path} />}
         page={{
           ...clientPageBase,
-          title: "Cliente",
-          subtitle: "Cliente não disponível.",
+          title: clientsCopy.details.fallbackTitle,
+          subtitle: clientsCopy.details.unavailableSubtitle,
         }}
       >
         <AppEmpty
-          description="O cliente não está disponível no conjunto local de dados."
+          description={clientsCopy.details.notFoundDescription}
           headingLevel={2}
           media={{ icon: UserRoundXIcon }}
-          title="Cliente não encontrado"
+          title={clientsCopy.details.notFoundTitle}
         />
       </AppPageLayout>
     )

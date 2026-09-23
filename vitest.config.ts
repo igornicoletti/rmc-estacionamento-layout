@@ -24,6 +24,12 @@ export default mergeConfig(
             lines: 95,
             statements: 95,
           },
+          "src/components/data-table/core/table-data-utils.ts": {
+            branches: 90,
+            functions: 100,
+            lines: 100,
+            statements: 100,
+          },
         },
       },
     },

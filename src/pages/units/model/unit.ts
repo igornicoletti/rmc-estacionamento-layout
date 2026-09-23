@@ -10,10 +10,6 @@ export interface Unit {
   state: string
   stateCode: string
   coordinates: string | null
-  networkAddress: string | null
-  databaseName: string | null
-  sourceHash: string
-  sourceUpdatedAt: string | null
   synchronizedAt: string
   createdAt: string
   updatedAt: string

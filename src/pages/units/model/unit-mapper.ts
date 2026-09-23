@@ -1,6 +1,6 @@
 import type { Unit } from "@/pages/units/model/unit"
 
-type LegacyRecord = Record<string, unknown>
+type ErpUnitRecord = Record<string, unknown>
 
 const STATE_NAMES: Record<string, string> = {
   MG: "Minas Gerais",
@@ -36,7 +36,7 @@ const WORD_OVERRIDES: Record<string, string> = {
 const LOWERCASE_CONNECTORS = new Set(["da", "de", "do", "e"])
 const UPPERCASE_IDENTIFIERS = new Set(["BR", "BR-376", "JK", "PV"])
 
-function requiredString(record: LegacyRecord, key: string) {
+function requiredString(record: ErpUnitRecord, key: string) {
   const value = record[key]
   if (typeof value !== "string" || value.trim() === "") {
     throw new TypeError(`Unidade inválida: ${key} deve ser um texto preenchido.`)
@@ -44,12 +44,12 @@ function requiredString(record: LegacyRecord, key: string) {
   return value.trim()
 }
 
-function optionalString(record: LegacyRecord, key: string) {
+function optionalString(record: ErpUnitRecord, key: string) {
   const value = record[key]
   return typeof value === "string" && value.trim() ? value.trim() : null
 }
 
-function requiredInteger(record: LegacyRecord, key: string) {
+function requiredInteger(record: ErpUnitRecord, key: string) {
   const value = record[key]
   if (typeof value !== "number" || !Number.isSafeInteger(value)) {
     throw new TypeError(`Unidade inválida: ${key} deve ser um número inteiro.`)
@@ -115,22 +115,12 @@ function normalizeCoordinates(value: string | null) {
   return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
 }
 
-function normalizeNetworkAddress(value: string | null) {
-  if (!value) return null
-  const octets = value.split(".")
-  if (
-    octets.length !== 4 ||
-    octets.some((octet) => !/^\d{1,3}$/.test(octet) || Number(octet) > 255)
-  ) return null
-  return octets.join(".")
-}
-
-export function mapLegacyUnit(input: unknown): Unit {
+export function mapErpUnit(input: unknown): Unit {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
     throw new TypeError("Unidade inválida: registro deve ser um objeto.")
   }
 
-  const record = input as LegacyRecord
+  const record = input as ErpUnitRecord
   const stateCode = requiredString(record, "sgl_estado").toLocaleUpperCase("pt-BR")
   const rawState = requiredString(record, "nom_estado")
 
@@ -146,19 +136,15 @@ export function mapLegacyUnit(input: unknown): Unit {
     state: STATE_NAMES[stateCode] ?? normalizePortugueseName(rawState),
     stateCode,
     coordinates: normalizeCoordinates(optionalString(record, "des_coordenada_empresa")),
-    networkAddress: normalizeNetworkAddress(optionalString(record, "ip_rede")),
-    databaseName: optionalString(record, "nom_banco_dados")?.toLocaleLowerCase("pt-BR") ?? null,
-    sourceHash: requiredString(record, "source_hash").toLocaleLowerCase("pt-BR"),
-    sourceUpdatedAt: normalizeDateTime(record.source_updated_at, "source_updated_at", true),
     synchronizedAt: normalizeDateTime(record.synced_at, "synced_at") as string,
     createdAt: normalizeDateTime(record.created_at, "created_at") as string,
     updatedAt: normalizeDateTime(record.updated_at, "updated_at") as string,
   }
 }
 
-export function mapLegacyUnits(input: unknown): Unit[] {
+export function mapErpUnits(input: unknown): Unit[] {
   if (!Array.isArray(input)) {
     throw new TypeError("Resposta inválida: a lista de unidades deve ser um array.")
   }
-  return input.map(mapLegacyUnit)
+  return input.map(mapErpUnit)
 }

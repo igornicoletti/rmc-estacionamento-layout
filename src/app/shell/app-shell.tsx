@@ -24,7 +24,7 @@ interface AppShellUser {
   profile: string
 }
 
-export interface AppShellProps {
+interface AppShellProps {
   children: ReactNode
   currentUser: AppShellUser
   isMarkingAllAsRead?: boolean
@@ -37,7 +37,7 @@ export interface AppShellProps {
   unreadNotifications: readonly AppNotificationItem[]
 }
 
-export function AppShell({
+function AppShell({
   children,
   currentUser,
   isMarkingAllAsRead = false,

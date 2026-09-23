@@ -13,17 +13,18 @@ import {
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
-import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
-import {
-  clientMockQueryKeys,
-  loadMockClientVehicles,
-} from "@/pages/clients/data/client-mock-data"
 import {
   normalizeSearchText,
   paginateRows,
   sortRows,
-} from "@/pages/clients/lib/client-table-utils"
+} from "@/components/data-table/core/table-data-utils"
+import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
+import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { clientsCopy } from "@/pages/clients/clients.copy"
+import {
+  clientPreviewQueryKeys,
+  loadPreviewClientVehicles,
+} from "@/pages/clients/data/client-preview-data"
 import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
   formatDateTime,
@@ -118,23 +119,6 @@ function createColumns(showDriver: boolean) {
       header: "Cliente ativo em 120 dias",
       meta: { visibilityLabel: "Cliente ativo em 120 dias" },
     }),
-    columnHelper.accessor("sourceHash", {
-      enableHiding: true,
-      enableSorting: false,
-      header: "Hash da origem",
-      meta: { visibilityLabel: "Hash da origem" },
-    }),
-    columnHelper.accessor("sourceUpdatedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Atualização na origem",
-      meta: { visibilityLabel: "Atualização na origem" },
-    }),
     columnHelper.accessor("synchronizedAt", {
       cell: ({ getValue }) => (
         <span className="tabular-nums text-muted-foreground">
@@ -175,8 +159,8 @@ export function ClientVehiclesDataTable({
   clientId,
 }: ClientVehiclesDataTableProps) {
   const vehiclesQuery = useQuery({
-    queryKey: clientMockQueryKeys.vehicles,
-    queryFn: loadMockClientVehicles,
+    queryKey: clientPreviewQueryKeys.vehicles,
+    queryFn: loadPreviewClientVehicles,
     staleTime: Number.POSITIVE_INFINITY,
   })
   const allVehicles = vehiclesQuery.data ?? EMPTY_CLIENT_VEHICLES
@@ -188,8 +172,6 @@ export function ClientVehiclesDataTable({
       clientName: false,
       clientTaxId: false,
       clientTradeName: false,
-      sourceHash: false,
-      sourceUpdatedAt: false,
     },
   })
 
@@ -314,7 +296,7 @@ export function ClientVehiclesDataTable({
   if (vehiclesQuery.isError) {
     return (
       <DataTableError
-        description="Não foi possível carregar o mock local de veículos."
+        description={clientsCopy.vehicles.loadError}
         onRetry={() => void vehiclesQuery.refetch()}
       />
     )
@@ -328,38 +310,38 @@ export function ClientVehiclesDataTable({
         onClearFilters={clearFilters}
       >
         <DataTableSearch
-          ariaLabel="Buscar veículos"
+          ariaLabel={clientsCopy.vehicles.searchAriaLabel}
           onChange={state.handleSearchChange}
           onClear={state.clearSearch}
           onSubmit={state.submitSearch}
           placeholder={
             showDriver
-              ? "Buscar por placa, veículo ou motorista..."
-              : "Buscar por placa ou veículo..."
+              ? clientsCopy.vehicles.searchWithDriverPlaceholder
+              : clientsCopy.vehicles.searchWithoutDriverPlaceholder
           }
           value={state.searchDraft}
         />
         {descriptionFacet.items.length > 1 ? (
           <DataTableComboboxFilter
-            ariaLabel="Filtrar por veículo"
-            clearAriaLabel="Limpar filtro de veículo"
+            ariaLabel={clientsCopy.vehicles.filterAriaLabel}
+            clearAriaLabel={clientsCopy.vehicles.filterClearAriaLabel}
             counts={descriptionFacet.counts}
             items={descriptionFacet.items}
             onValueChange={handleDescriptionFilterChange}
-            placeholder="Todos os veículos"
-            searchAriaLabel="Buscar veículo"
-            searchPlaceholder="Buscar veículo..."
+            placeholder={clientsCopy.vehicles.filterPlaceholder}
+            searchAriaLabel={clientsCopy.vehicles.filterSearchAriaLabel}
+            searchPlaceholder={clientsCopy.vehicles.filterSearchPlaceholder}
             value={descriptionFilter}
           />
         ) : null}
       </DataTableToolbar>
 
       <DataTable
-        caption="Veículos do cliente"
+        caption={clientsCopy.vehicles.caption}
         emptyState={
           <DataTableEmpty
-            emptyDescription="Nenhum veículo foi carregado para este cliente."
-            emptyTitle="Nenhum veículo disponível"
+            emptyDescription={clientsCopy.vehicles.emptyDescription}
+            emptyTitle={clientsCopy.vehicles.emptyTitle}
             hasFilters={hasActiveFilters}
             onClearFilters={clearFilters}
           />
@@ -370,7 +352,7 @@ export function ClientVehiclesDataTable({
 
       {!vehiclesQuery.isPending ? (
         <DataTablePagination
-          itemLabel={{ singular: "veículo", plural: "veículos" }}
+          itemLabel={clientsCopy.vehicles.itemLabel}
           rowCount={filteredVehicles.length}
           table={table}
         />

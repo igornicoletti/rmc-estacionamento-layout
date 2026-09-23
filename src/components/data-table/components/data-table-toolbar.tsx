@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
 interface DataTableToolbarProps {
   actions?: ReactNode;
@@ -28,7 +29,7 @@ export function DataTableToolbar({
             size="sm"
           >
             <XIcon data-icon="inline-start" aria-hidden="true" />
-            Limpar filtros
+            {dataTableCopy.empty.clearFilters}
           </Button>
         ) : null}
 

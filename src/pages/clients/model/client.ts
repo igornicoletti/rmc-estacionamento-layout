@@ -14,8 +14,6 @@ export interface Client {
   vehicleCount: number
   lastPurchaseAt: string | null
   activeWithin120Days: boolean
-  sourceHash: string
-  sourceUpdatedAt: string | null
   synchronizedAt: string
   createdAt: string
   updatedAt: string

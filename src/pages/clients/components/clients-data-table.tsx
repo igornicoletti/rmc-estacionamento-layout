@@ -18,20 +18,21 @@ import {
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
-import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
-import { getClientDetailsPath } from "@/pages/clients/client-routes"
-import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
-import {
-  clientMockQueryKeys,
-  loadMockClients,
-} from "@/pages/clients/data/client-mock-data"
-import { copyClientValue } from "@/pages/clients/lib/copy-client-value"
 import {
   normalizeSearchText,
   paginateRows,
   sortRows,
-} from "@/pages/clients/lib/client-table-utils"
+} from "@/components/data-table/core/table-data-utils"
+import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
+import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { getClientDetailsPath } from "@/pages/clients/client-routes"
+import { clientsCopy } from "@/pages/clients/clients.copy"
+import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
+import {
+  clientPreviewQueryKeys,
+  loadPreviewClients,
+} from "@/pages/clients/data/client-preview-data"
+import { copyClientValue } from "@/pages/clients/lib/copy-client-value"
 import type { Client } from "@/pages/clients/model/client"
 import {
   formatCityName,
@@ -171,19 +172,6 @@ const columns = columnHelper.columns([
     header: "Ativo em 120 dias",
     meta: { visibilityLabel: "Ativo em 120 dias" },
   }),
-  columnHelper.accessor("sourceHash", {
-    enableHiding: true,
-    enableSorting: false,
-    header: "Hash da origem",
-    meta: { visibilityLabel: "Hash da origem" },
-  }),
-  columnHelper.accessor("sourceUpdatedAt", {
-    cell: ({ getValue }) => formatDateTime(getValue()),
-    enableHiding: true,
-    enableSorting: false,
-    header: "Atualização na origem",
-    meta: { visibilityLabel: "Atualização na origem" },
-  }),
   columnHelper.accessor("synchronizedAt", {
     cell: ({ getValue }) => formatDateTime(getValue()),
     enableHiding: true,
@@ -227,8 +215,8 @@ const columns = columnHelper.columns([
 
 export function ClientsDataTable() {
   const clientsQuery = useQuery({
-    queryKey: clientMockQueryKeys.clients,
-    queryFn: loadMockClients,
+    queryKey: clientPreviewQueryKeys.clients,
+    queryFn: loadPreviewClients,
     staleTime: Number.POSITIVE_INFINITY,
   })
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
@@ -242,8 +230,6 @@ export function ClientsDataTable() {
       personActiveStatus: false,
       phone: false,
       registeredAt: false,
-      sourceHash: false,
-      sourceUpdatedAt: false,
       synchronizedAt: false,
       tradeName: false,
       updatedAt: false,
@@ -369,7 +355,7 @@ export function ClientsDataTable() {
   if (clientsQuery.isError) {
     return (
       <DataTableError
-        description="Não foi possível carregar o mock local de clientes."
+        description={clientsCopy.list.loadError}
         onRetry={() => void clientsQuery.refetch()}
       />
     )
@@ -383,32 +369,32 @@ export function ClientsDataTable() {
         onClearFilters={clearFilters}
       >
         <DataTableSearch
-          ariaLabel="Buscar clientes"
+          ariaLabel={clientsCopy.list.searchAriaLabel}
           onChange={state.handleSearchChange}
           onClear={state.clearSearch}
           onSubmit={state.submitSearch}
-          placeholder="Buscar clientes..."
+          placeholder={clientsCopy.list.searchPlaceholder}
           value={state.searchDraft}
         />
         <DataTableComboboxFilter
-          ariaLabel="Filtrar por cidade"
-          clearAriaLabel="Limpar filtro de cidade"
+          ariaLabel={clientsCopy.list.cityFilterAriaLabel}
+          clearAriaLabel={clientsCopy.list.cityFilterClearAriaLabel}
           counts={cityFacet.counts}
           items={cityFacet.items}
           onValueChange={handleCityFilterChange}
-          placeholder="Todas as cidades"
-          searchAriaLabel="Buscar cidade"
-          searchPlaceholder="Buscar cidade..."
+          placeholder={clientsCopy.list.cityFilterPlaceholder}
+          searchAriaLabel={clientsCopy.list.citySearchAriaLabel}
+          searchPlaceholder={clientsCopy.list.citySearchPlaceholder}
           value={cityFilter}
         />
       </DataTableToolbar>
 
       <DataTable
-        caption="Lista de clientes"
+        caption={clientsCopy.list.caption}
         emptyState={
           <DataTableEmpty
-            emptyDescription="Nenhum cliente foi carregado no mock local."
-            emptyTitle="Nenhum cliente disponível"
+            emptyDescription={clientsCopy.list.emptyDescription}
+            emptyTitle={clientsCopy.list.emptyTitle}
             hasFilters={hasActiveFilters}
             onClearFilters={clearFilters}
           />
@@ -419,7 +405,7 @@ export function ClientsDataTable() {
 
       {!clientsQuery.isPending ? (
         <DataTablePagination
-          itemLabel={{ singular: "cliente", plural: "clientes" }}
+          itemLabel={clientsCopy.list.itemLabel}
           rowCount={filteredClients.length}
           table={table}
         />

@@ -86,7 +86,7 @@ const VEHICLE_DESCRIPTION_NAMES = new Map([
   ["VOLVO", "Volvo"],
 ])
 
-export function sanitizeErpText(value: string) {
+function sanitizeErpText(value: string) {
   return value
     .normalize("NFC")
     .replace(/[\p{Cc}\p{Cf}]+/gu, " ")
