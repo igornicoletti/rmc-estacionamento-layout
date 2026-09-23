@@ -109,7 +109,7 @@ const VEHICLE_DESCRIPTION_NAMES = new Map([
 export function sanitizeErpText(value: string) {
   return value
     .normalize("NFC")
-    .replace(/[\u0000-\u001f\u007f-\u009f]/gu, " ")
+    .replace(/[\p{Cc}\p{Cf}]+/gu, " ")
     .replace(/\s+/gu, " ")
     .trim()
 }
