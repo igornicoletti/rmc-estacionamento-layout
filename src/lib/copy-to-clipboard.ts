@@ -1,19 +1,25 @@
 import { toast } from "@/components/ui/toast"
 
-interface CopyClientValueOptions {
+interface CopyToClipboardOptions {
   errorDescription: string
+  successDescription: string
   successTitle: string
   value: string
 }
 
-export async function copyClientValue({
+export async function copyToClipboard({
   errorDescription,
+  successDescription,
   successTitle,
   value,
-}: CopyClientValueOptions) {
+}: CopyToClipboardOptions) {
   try {
     await navigator.clipboard.writeText(value)
-    toast.add({ description: value, title: successTitle, type: "success" })
+    toast.add({
+      description: successDescription,
+      title: successTitle,
+      type: "success",
+    })
   } catch {
     toast.add({
       description: errorDescription,
