@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 
+import { AppRecordDetails } from "@/components/common/app-record-details"
 import { AppSheet } from "@/components/common/app-sheet"
-import { RecordDetails } from "@/components/common/record-details"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/components/data-table-export"
@@ -19,8 +19,8 @@ import {
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
-import { downloadCsv, serializeCsv } from "@/lib/csv"
-import { serializeRecordForClipboard } from "@/lib/record-data"
+import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
+import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import {
   createUnitsTableColumns,
   unitsTableApi,
@@ -31,7 +31,7 @@ import { mapErpUnits } from "@/pages/units/model/unit-mapper"
 import {
   unitRecordCsvColumns,
   unitRecordSections,
-} from "@/pages/units/model/unit-record"
+} from "@/pages/units/model/unit-record-presentation"
 import { unitsCopy } from "@/pages/units/units.copy"
 
 const units = mapErpUnits(unitErpFixture)
@@ -242,7 +242,7 @@ export function UnitsDataTable() {
           open
           title={selectedUnit.tradeName}
         >
-          <RecordDetails
+          <AppRecordDetails
             record={selectedUnit}
             sections={unitRecordSections}
           />

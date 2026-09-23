@@ -1,7 +1,7 @@
 import {
   createRecordCsvColumns,
   type RecordSectionDefinition,
-} from "@/lib/record-data"
+} from "@/lib/format-record-fields"
 import type { Unit } from "@/pages/units/model/unit"
 
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {

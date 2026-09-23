@@ -17,22 +17,28 @@ export function DataTableExport({
   disabled = false,
   onExport,
 }: DataTableExportProps) {
+  const exportButton = (
+    <Button
+      aria-label={dataTableCopy.export.trigger}
+      disabled={disabled}
+      onClick={onExport}
+      size="icon"
+      type="button"
+      variant="outline"
+    >
+      <FileDownIcon aria-hidden="true" />
+    </Button>
+  )
+
   return (
     <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            aria-label={dataTableCopy.export.trigger}
-            disabled={disabled}
-            onClick={onExport}
-            size="icon"
-            type="button"
-            variant="outline"
-          />
-        }
-      >
-        <FileDownIcon aria-hidden="true" />
-      </TooltipTrigger>
+      {disabled ? (
+        <TooltipTrigger render={<span className="inline-flex" />}>
+          {exportButton}
+        </TooltipTrigger>
+      ) : (
+        <TooltipTrigger render={exportButton} />
+      )}
       <TooltipContent role="tooltip">
         {dataTableCopy.export.tooltip}
       </TooltipContent>

@@ -1,10 +1,10 @@
-import type { CsvColumn } from "@/lib/csv"
+import type { CsvColumn } from "@/lib/export-to-csv"
 
 export type RecordValue = boolean | number | string | null | undefined
 
 export interface RecordFieldDefinition<TRecord> {
   getValue: (record: TRecord) => RecordValue
-  key: string
+  key: Extract<keyof TRecord, string>
   label: string
 }
 
@@ -47,7 +47,9 @@ export function serializeRecordForClipboard<TRecord>(
   return sections
     .flatMap((section) => section.fields)
     .map((field) => {
-      const value = normalizeRecordValue(field.getValue(record)) ?? EMPTY_DISPLAY
+      const value =
+        normalizeRecordValue(field.getValue(record)) ?? EMPTY_DISPLAY
+
       return field.label + ": " + value
     })
     .join("\n")

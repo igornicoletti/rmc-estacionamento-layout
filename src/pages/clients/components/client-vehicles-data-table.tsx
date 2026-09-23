@@ -1,18 +1,13 @@
 import { useCallback, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
+import { AppRecordDetails } from "@/components/common/app-record-details"
 import { AppSheet } from "@/components/common/app-sheet"
-import { RecordDetails } from "@/components/common/record-details"
 import { DataTable } from "@/components/data-table/components/data-table"
-import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/components/data-table-export"
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/components/data-table-root"
-import {
-  DataTableRowActions,
-  DataTableRowActionsHeader,
-} from "@/components/data-table/components/data-table-row-actions"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
 import {
   DataTableEmpty,
@@ -25,13 +20,16 @@ import {
   paginateRows,
   sortRows,
 } from "@/components/data-table/core/table-data-utils"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
-import { downloadCsv, serializeCsv } from "@/lib/csv"
-import { serializeRecordForClipboard } from "@/lib/record-data"
+import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
+import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import { clientsCopy } from "@/pages/clients/clients.copy"
+import {
+  clientVehiclesTableApi,
+  createClientVehiclesTableColumns,
+} from "@/pages/clients/components/client-vehicles-table-columns"
 import {
   clientPreviewQueryKeys,
   loadPreviewClientVehicles,
@@ -40,155 +38,18 @@ import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
   clientVehicleRecordCsvColumns,
   clientVehicleRecordSections,
-} from "@/pages/clients/model/client-record"
+} from "@/pages/clients/model/client-vehicle-record-presentation"
 import {
-  formatDateTime,
   formatErpName,
   formatLicensePlate,
   formatVehicleDescription,
-  formatYesNo,
 } from "@/pages/clients/model/client-presentation"
 
 interface ClientVehiclesDataTableProps {
   clientId: string
 }
 
-interface ClientVehicleColumnActions {
-  onCopyData: (vehicle: ClientVehicle) => void
-  onDetails: (vehicle: ClientVehicle) => void
-}
-
 const EMPTY_CLIENT_VEHICLES: ClientVehicle[] = []
-const tableApi = createServerTableHook<Record<string, never>>()
-const columnHelper = tableApi.createAppColumnHelper<ClientVehicle>()
-
-function createColumns(
-  showDriver: boolean,
-  { onCopyData, onDetails }: ClientVehicleColumnActions,
-) {
-  return columnHelper.columns([
-    columnHelper.accessor("id", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">{getValue()}</span>
-      ),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Código" />
-      ),
-      meta: { visibilityLabel: "Código" },
-    }),
-    columnHelper.accessor("clientId", {
-      enableHiding: true,
-      enableSorting: false,
-      header: "Código do cliente",
-      meta: { visibilityLabel: "Código do cliente" },
-    }),
-    columnHelper.accessor("clientName", {
-      cell: ({ getValue }) => formatErpName(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Nome do cliente",
-      meta: { visibilityLabel: "Nome do cliente" },
-    }),
-    columnHelper.accessor("clientTradeName", {
-      cell: ({ getValue }) => formatErpName(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Nome fantasia",
-      meta: { visibilityLabel: "Nome fantasia" },
-    }),
-    columnHelper.accessor("clientTaxId", {
-      enableHiding: true,
-      enableSorting: false,
-      header: "CPF/CNPJ",
-      meta: { visibilityLabel: "CPF/CNPJ" },
-    }),
-    columnHelper.accessor("plate", {
-      cell: ({ getValue }) => formatLicensePlate(getValue()),
-      enableHiding: false,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Placa" />
-      ),
-      meta: { visibilityLabel: "Placa" },
-    }),
-    columnHelper.accessor("description", {
-      cell: ({ getValue }) => formatVehicleDescription(getValue()),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Veículo" />
-      ),
-      meta: { visibilityLabel: "Veículo" },
-    }),
-    ...(showDriver
-      ? [
-          columnHelper.accessor("driverName", {
-            cell: ({ getValue }) => formatErpName(getValue()),
-            enableHiding: true,
-            enableSorting: true,
-            header: ({ column }) => (
-              <DataTableColumnHeader column={column} title="Motorista" />
-            ),
-            meta: { visibilityLabel: "Motorista" },
-          }),
-        ]
-      : []),
-    columnHelper.accessor("clientActiveWithin120Days", {
-      cell: ({ getValue }) => formatYesNo(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Cliente ativo em 120 dias",
-      meta: { visibilityLabel: "Cliente ativo em 120 dias" },
-    }),
-    columnHelper.accessor("synchronizedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Sincronização",
-      meta: { visibilityLabel: "Sincronização" },
-    }),
-    columnHelper.accessor("createdAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Criação",
-      meta: { visibilityLabel: "Criação" },
-    }),
-    columnHelper.accessor("updatedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Atualização",
-      meta: { visibilityLabel: "Atualização" },
-    }),
-    columnHelper.display({
-      cell: ({ row }) => (
-        <DataTableRowActions
-          accessibleLabel={`Ações do veículo ${formatLicensePlate(row.original.plate)}`}
-          onCopyData={() => onCopyData(row.original)}
-          onDetails={() => onDetails(row.original)}
-        />
-      ),
-      enableHiding: false,
-      header: DataTableRowActionsHeader,
-      id: "actions",
-    }),
-  ])
-}
 
 export function ClientVehiclesDataTable({
   clientId,
@@ -234,7 +95,7 @@ export function ClientVehiclesDataTable({
   )
   const columns = useMemo(
     () =>
-      createColumns(showDriver, {
+      createClientVehiclesTableColumns(showDriver, {
         onCopyData: handleCopyData,
         onDetails: setSelectedVehicle,
       }),
@@ -332,7 +193,7 @@ export function ClientVehiclesDataTable({
     [sortedVehicles, state.pagination],
   )
 
-  const table = tableApi.useAppTable({
+  const table = clientVehiclesTableApi.useAppTable({
     columns,
     data: paginatedVehicles,
     getRowId: (vehicle) => vehicle.id,
@@ -448,7 +309,7 @@ export function ClientVehiclesDataTable({
           open
           title={formatLicensePlate(selectedVehicle.plate)}
         >
-          <RecordDetails
+          <AppRecordDetails
             record={selectedVehicle}
             sections={clientVehicleRecordSections}
           />

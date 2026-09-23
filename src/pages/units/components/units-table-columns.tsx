@@ -5,7 +5,7 @@ import {
 } from "@/components/data-table/components/data-table-row-actions"
 import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import type { Unit } from "@/pages/units/model/unit"
-import { formatUnitDateTime } from "@/pages/units/model/unit-record"
+import { formatUnitDateTime } from "@/pages/units/model/unit-record-presentation"
 import { unitsCopy } from "@/pages/units/units.copy"
 
 interface UnitsTableColumnActions {

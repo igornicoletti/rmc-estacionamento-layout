@@ -2,17 +2,17 @@ import { Separator } from "@/components/ui/separator"
 import {
   getRecordDetailSections,
   type RecordSectionDefinition,
-} from "@/lib/record-data"
+} from "@/lib/format-record-fields"
 
-interface RecordDetailsProps<TRecord> {
+interface AppRecordDetailsProps<TRecord> {
   record: TRecord
   sections: readonly RecordSectionDefinition<TRecord>[]
 }
 
-export function RecordDetails<TRecord>({
+export function AppRecordDetails<TRecord>({
   record,
   sections,
-}: RecordDetailsProps<TRecord>) {
+}: AppRecordDetailsProps<TRecord>) {
   const details = getRecordDetailSections(record, sections)
 
   return (
