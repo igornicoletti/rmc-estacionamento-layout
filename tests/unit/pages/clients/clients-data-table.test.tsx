@@ -36,11 +36,13 @@ describe("ClientsDataTable", () => {
   it("carrega o mock local e expõe navegação para o cliente", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(JSON.stringify([clientRecord]), {
-          headers: { "Content-Type": "application/json" },
-          status: 200,
-        }),
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(JSON.stringify([clientRecord]), {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          }),
+        ),
       ),
     )
 
