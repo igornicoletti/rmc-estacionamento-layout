@@ -80,7 +80,9 @@ describe("ClientsDataTable", () => {
     await user.click(screen.getByRole("combobox", { name: "Filtrar por cidade" }))
 
     expect(
-      await screen.findByText("São José do Rio Preto"),
+      await screen.findByRole("option", {
+        name: /São José do Rio Preto/u,
+      }),
     ).toBeInTheDocument()
   })
 })
