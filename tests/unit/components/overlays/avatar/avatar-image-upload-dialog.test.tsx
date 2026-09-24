@@ -90,6 +90,38 @@ describe("AvatarImageUploadDialog", () => {
     expect(onFileSelect).not.toHaveBeenCalled()
   })
 
+  it("rejeita arquivo acima do tamanho máximo", () => {
+    const onFileSelect = vi.fn()
+    const file = new File(["avatar"], "avatar.png", {
+      type: "image/png",
+    })
+
+    render(
+      <AvatarImageUploadDialog
+        displayName="Maria Silva"
+        maxFileSizeBytes={4}
+        onFileSelect={onFileSelect}
+        onOpenChange={vi.fn()}
+        onRemove={vi.fn()}
+        open
+      />,
+    )
+
+    fireEvent.drop(
+      screen.getByRole("button", {
+        name: "Selecionar arquivo de imagem",
+      }),
+      {
+        dataTransfer: {
+          files: [file],
+        },
+      },
+    )
+
+    expect(screen.getByRole("alert")).toBeInTheDocument()
+    expect(onFileSelect).not.toHaveBeenCalled()
+  })
+
   it("exibe a remoção quando existe imagem", async () => {
     const user = userEvent.setup()
     const onRemove = vi.fn()

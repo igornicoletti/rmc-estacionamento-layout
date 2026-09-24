@@ -117,8 +117,11 @@ export function AvatarImageUploadDialog({
   const currentImageSrc = isLocallyRemoved
     ? undefined
     : previewUrl ?? imageSrc
-  const hasImage = currentImageSrc !== undefined
-  const supportedFiles = `${formatSupportedTypes(acceptedMimeTypes)}. Máximo de ${formatMaxFileSize(maxFileSizeBytes)}.`
+  const hasImage = Boolean(currentImageSrc)
+  const supportedFiles = [
+    formatSupportedTypes(acceptedMimeTypes),
+    `Máximo de ${formatMaxFileSize(maxFileSizeBytes)}`,
+  ].join(". ") + "."
 
   const resetLocalState = () => {
     dragDepthRef.current = 0

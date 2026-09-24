@@ -64,7 +64,6 @@ export const appCopy = {
     avatarImageUpload: {
       chooseAction: "Escolher imagem",
       choosingAction: "Carregando imagem",
-      description: "Selecione uma imagem ou arraste e solte sobre o avatar.",
       dropTitle: "Solte a imagem aqui",
       inputLabel: "Selecionar arquivo de imagem",
       invalidType: "Formato de imagem não suportado.",
