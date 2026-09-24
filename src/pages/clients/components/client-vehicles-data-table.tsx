@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { AppRecordDetails } from "@/components/common/app-record-details"
+import { RecordDetails } from "@/components/record-details/record-details"
 import { AppSheet } from "@/components/common/app-sheet"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
@@ -309,7 +309,7 @@ export function ClientVehiclesDataTable({
           open
           title={formatLicensePlate(selectedVehicle.plate)}
         >
-          <AppRecordDetails
+          <RecordDetails
             record={selectedVehicle}
             sections={clientVehicleRecordSections}
           />

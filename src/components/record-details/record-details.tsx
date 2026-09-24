@@ -4,15 +4,20 @@ import {
   type RecordSectionDefinition,
 } from "@/lib/format-record-fields"
 
-interface AppRecordDetailsProps<TRecord> {
+interface RecordDetailsProps<TRecord> {
   record: TRecord
   sections: readonly RecordSectionDefinition<TRecord>[]
 }
 
-export function AppRecordDetails<TRecord>({
+/**
+ * Apresentação semântica de detalhes de um registro.
+ *
+ * Não pertence à camada App* porque não é wrapper de um componente shadcn/ui.
+ */
+export function RecordDetails<TRecord>({
   record,
   sections,
-}: AppRecordDetailsProps<TRecord>) {
+}: RecordDetailsProps<TRecord>) {
   const details = getRecordDetailSections(record, sections)
 
   return (

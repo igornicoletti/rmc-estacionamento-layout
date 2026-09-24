@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -9,8 +10,12 @@ export type AppBadgeTone =
   | "warning"
   | "error"
 
+type AppBadgeIconPosition = "start" | "end"
+
 interface AppBadgeProps {
   children: ReactNode
+  icon?: LucideIcon
+  iconPosition?: AppBadgeIconPosition
   tone?: AppBadgeTone
 }
 
@@ -25,16 +30,27 @@ const toneClassName: Record<AppBadgeTone, string> = {
 /**
  * Badge semântico da aplicação.
  *
- * Traduz estados visuais compartilhados para o Badge padrão sem expor variant
- * ou className para os consumidores.
+ * Centraliza os tons da aplicação e a composição opcional de ícone sem expor
+ * variant ou className aos consumidores.
  */
 export function AppBadge({
   children,
+  icon: Icon,
+  iconPosition = "start",
   tone = "neutral",
 }: AppBadgeProps) {
+  const icon = Icon ? (
+    <Icon
+      aria-hidden="true"
+      data-icon={iconPosition === "start" ? "inline-start" : "inline-end"}
+    />
+  ) : null
+
   return (
     <Badge className={toneClassName[tone]} variant="outline">
+      {iconPosition === "start" ? icon : null}
       {children}
+      {iconPosition === "end" ? icon : null}
     </Badge>
   )
 }

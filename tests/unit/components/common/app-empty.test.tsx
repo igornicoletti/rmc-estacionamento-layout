@@ -7,7 +7,7 @@ import { AppEmpty } from "@/components/common/app-empty"
 import { Button } from "@/components/ui/button"
 
 describe("AppEmpty", () => {
-  it("encaminha as ações sem assumir o comportamento", async () => {
+  it("encaminha children para EmptyContent junto das ações", async () => {
     const user = userEvent.setup()
     const onPrimary = vi.fn()
     const onSecondary = vi.fn()
@@ -22,14 +22,19 @@ describe("AppEmpty", () => {
           </Button>
         }
         title="state"
-      />,
+      >
+        <input aria-label="Conteúdo adicional" />
+      </AppEmpty>,
     )
 
-    const actions = screen.getAllByRole("button")
-    expect(actions).toHaveLength(2)
+    const content = screen
+      .getByRole("textbox", { name: "Conteúdo adicional" })
+      .closest('[data-slot="empty-content"]')
 
-    await user.click(actions[0])
-    await user.click(actions[1])
+    expect(content).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "primary" }))
+    await user.click(screen.getByRole("button", { name: "secondary" }))
 
     expect(onPrimary).toHaveBeenCalledOnce()
     expect(onSecondary).toHaveBeenCalledOnce()

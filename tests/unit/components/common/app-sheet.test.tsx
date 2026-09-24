@@ -2,27 +2,27 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { AppDialog } from "@/components/common/app-dialog"
+import { AppSheet } from "@/components/common/app-sheet"
 import { Button } from "@/components/ui/button"
 
-describe("AppDialog", () => {
+describe("AppSheet", () => {
   it("mantém children e footer e encaminha mudanças de abertura", async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
 
     render(
-      <AppDialog
+      <AppSheet
         footer={<Button type="button">Ação</Button>}
         onOpenChange={onOpenChange}
         open
-        title="Dialog de teste"
+        title="Sheet de teste"
       >
-        <input aria-label="Conteúdo do dialog" />
-      </AppDialog>,
+        <input aria-label="Conteúdo do sheet" />
+      </AppSheet>,
     )
 
     expect(
-      screen.getByRole("textbox", { name: "Conteúdo do dialog" }),
+      screen.getByRole("textbox", { name: "Conteúdo do sheet" }),
     ).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Ação" })).toBeInTheDocument()
 

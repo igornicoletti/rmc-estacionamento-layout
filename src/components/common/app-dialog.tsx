@@ -1,10 +1,8 @@
-import { XIcon } from "lucide-react"
 import type { ComponentProps, ReactNode } from "react"
+import { cn } from "cn"
 
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -17,25 +15,24 @@ type DialogRootProps = ComponentProps<typeof Dialog>
 
 interface AppDialogProps {
   children: ReactNode
-  defaultOpen?: DialogRootProps["defaultOpen"]
   description?: ReactNode
   footer?: ReactNode
-  onOpenChange?: DialogRootProps["onOpenChange"]
-  open?: DialogRootProps["open"]
+  onOpenChange: NonNullable<DialogRootProps["onOpenChange"]>
+  open: boolean
   showCloseButton?: boolean
   size?: AppDialogSize
   title: ReactNode
 }
 
 /**
- * Dialog padronizado da aplicação.
+ * Dialog controlado e padronizado da aplicação.
  *
- * Centraliza header, corpo rolável, footer, fechamento e largura. Regras de
- * negócio e o conteúdo do escopo são fornecidos por children e pelos slots.
+ * Mantém header e footer visíveis e deixa somente o corpo rolar quando o
+ * conteúdo ultrapassa a viewport. O close permanece responsabilidade do
+ * DialogContent padrão.
  */
 export function AppDialog({
   children,
-  defaultOpen,
   description,
   footer,
   onOpenChange,
@@ -45,14 +42,16 @@ export function AppDialog({
   title,
 }: AppDialogProps) {
   return (
-    <Dialog
-      defaultOpen={defaultOpen}
-      onOpenChange={onOpenChange}
-      open={open}
-    >
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
-        className={size === "wide" ? "sm:max-w-xl" : undefined}
-        showCloseButton={false}
+        className={cn(
+          "max-h-[calc(100dvh-2rem)] overflow-hidden",
+          footer
+            ? "grid-rows-[auto_minmax(0,1fr)_auto]"
+            : "grid-rows-[auto_minmax(0,1fr)]",
+          size === "wide" && "sm:max-w-xl",
+        )}
+        showCloseButton={showCloseButton}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -61,25 +60,7 @@ export function AppDialog({
           ) : null}
         </DialogHeader>
 
-        {showCloseButton ? (
-          <DialogClose
-            aria-label="Fechar"
-            render={
-              <Button
-                className="absolute top-4 right-4 bg-secondary"
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              />
-            }
-          >
-            <XIcon aria-hidden="true" />
-          </DialogClose>
-        ) : null}
-
-        <div className="-mx-4 max-h-[50vh] overflow-y-auto px-4">
-          {children}
-        </div>
+        <div className="min-h-0 overflow-y-auto">{children}</div>
 
         {footer ? <DialogFooter>{footer}</DialogFooter> : null}
       </DialogContent>

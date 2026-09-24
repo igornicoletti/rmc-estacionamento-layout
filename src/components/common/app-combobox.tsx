@@ -34,10 +34,10 @@ interface AppComboboxProps<TValue extends string> {
     item: AppComboboxItem<TValue>,
     state: AppComboboxItemState,
   ) => ReactNode
-  className?: string
   clearAriaLabel?: string
   disabled?: boolean
   emptyMessage?: ReactNode
+  fullWidth?: boolean
   items: ReadonlyArray<AppComboboxItem<TValue>>
   onValueChange: (value: TValue | undefined) => void
   placeholder: string
@@ -49,19 +49,28 @@ interface AppComboboxProps<TValue extends string> {
 function groupItems<TValue extends string>(
   items: ReadonlyArray<AppComboboxItem<TValue>>,
 ): AppComboboxGroup<TValue>[] | null {
+  if (
+    items.length === 0 ||
+    items.some((item) => item.group === undefined)
+  ) {
+    return null
+  }
+
   const groups = new Map<string, AppComboboxItem<TValue>[]>()
 
   for (const item of items) {
-    if (item.group === undefined) {
-      return null
+    const group = item.group
+
+    if (group === undefined) {
+      continue
     }
 
-    const currentItems = groups.get(item.group)
+    const currentItems = groups.get(group)
 
     if (currentItems) {
       currentItems.push(item)
     } else {
-      groups.set(item.group, [item])
+      groups.set(group, [item])
     }
   }
 
@@ -75,15 +84,16 @@ function groupItems<TValue extends string>(
  * Combobox de seleção simples da aplicação.
  *
  * Centraliza input pesquisável, limpeza, estado vazio e agrupamento opcional.
- * O conteúdo visual de cada opção continua extensível por children.
+ * Itens só são agrupados quando todos declaram group; listas sem group
+ * permanecem planas.
  */
 export function AppCombobox<TValue extends string>({
   ariaLabel,
   children,
-  className,
   clearAriaLabel = "Limpar seleção",
   disabled = false,
   emptyMessage = "Nenhum resultado.",
+  fullWidth = false,
   items,
   onValueChange,
   placeholder,
@@ -114,7 +124,7 @@ export function AppCombobox<TValue extends string>({
     >
       <ComboboxInput
         aria-label={ariaLabel}
-        className={className}
+        className={fullWidth ? "w-full" : undefined}
         clearAriaLabel={clearAriaLabel}
         disabled={disabled}
         placeholder={placeholder}
