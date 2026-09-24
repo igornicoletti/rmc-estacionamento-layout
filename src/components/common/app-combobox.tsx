@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import {
   Combobox,
@@ -134,15 +134,13 @@ export function AppCombobox<TValue extends string>({
         <ComboboxList>
           {groupedItems
             ? (group: AppComboboxGroup<TValue>, index: number) => (
-                <Fragment key={group.value}>
-                  <ComboboxGroup items={group.items}>
-                    <ComboboxLabel>{group.value}</ComboboxLabel>
-                    <ComboboxCollection>{renderItem}</ComboboxCollection>
-                  </ComboboxGroup>
+                <ComboboxGroup key={group.value} items={group.items}>
+                  <ComboboxLabel>{group.value}</ComboboxLabel>
+                  <ComboboxCollection>{renderItem}</ComboboxCollection>
                   {index < groupedItems.length - 1 ? (
                     <ComboboxSeparator />
                   ) : null}
-                </Fragment>
+                </ComboboxGroup>
               )
             : renderItem}
         </ComboboxList>
