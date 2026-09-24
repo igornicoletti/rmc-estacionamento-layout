@@ -20,11 +20,16 @@ interface AppBadgeProps {
 }
 
 const toneClassName: Record<AppBadgeTone, string> = {
-  error: "border-transparent bg-error/10 text-error",
-  info: "border-transparent bg-info/10 text-info",
-  neutral: "border-transparent bg-status-neutral/10 text-status-neutral",
-  success: "border-transparent bg-success/10 text-success",
-  warning: "border-transparent bg-warning/10 text-warning",
+  error:
+    "border-error/30 bg-error/10 text-foreground [&>svg]:text-error",
+  info:
+    "border-info/30 bg-info/10 text-foreground [&>svg]:text-info",
+  neutral:
+    "border-border bg-muted text-muted-foreground [&>svg]:text-status-neutral",
+  success:
+    "border-success/30 bg-success/10 text-foreground [&>svg]:text-success",
+  warning:
+    "border-warning/40 bg-warning/15 text-foreground [&>svg]:text-warning",
 }
 
 /**
