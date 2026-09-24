@@ -1,7 +1,6 @@
 import { ImageUpIcon, Trash2Icon } from "lucide-react"
 import {
   useEffect,
-  useId,
   useRef,
   useState,
   type DragEvent,
@@ -10,6 +9,7 @@ import { cn } from "cn"
 
 import { appCopy, getUserAvatarAlt } from "@/app/config/app-copy"
 import { AppDialog } from "@/components/common/app-dialog"
+import { AppEmpty } from "@/components/common/app-empty"
 import {
   Avatar,
   AvatarFallback,
@@ -96,7 +96,6 @@ export function AvatarImageUploadDialog({
   open,
 }: AvatarImageUploadDialogProps) {
   const copy = appCopy.overlays.avatarImageUpload
-  const descriptionId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragDepthRef = useRef(0)
   const [fileError, setFileError] = useState<string>()
@@ -230,15 +229,14 @@ export function AvatarImageUploadDialog({
     <AppDialog
       footer={
         <Button
+          className="w-full"
           disabled={isPending}
           onClick={openFilePicker}
           type="button"
         >
           {isPending ? (
             <Spinner aria-hidden="true" data-icon="inline-start" />
-          ) : (
-            <ImageUpIcon aria-hidden="true" data-icon="inline-start" />
-          )}
+          ) : null}
           {isPending ? copy.choosingAction : copy.chooseAction}
         </Button>
       }
@@ -246,95 +244,90 @@ export function AvatarImageUploadDialog({
       open={open}
       title={copy.title}
     >
-      <div className="flex flex-col items-center gap-4 py-2">
-        <div className="relative">
-          <button
-            aria-describedby={descriptionId}
-            aria-label={copy.inputLabel}
-            className={cn(
-              "group relative rounded-full outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/30",
-              isDragging && "ring-3 ring-ring/30",
-            )}
-            disabled={isPending}
-            onClick={openFilePicker}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            type="button"
-          >
-            <Avatar className="size-24">
-              {currentImageSrc ? (
-                <AvatarImage
-                  alt={getUserAvatarAlt(displayName)}
-                  src={currentImageSrc}
-                />
+      <AppEmpty
+        description={supportedFiles}
+        headingLevel={3}
+        media={{
+          avatar: (
+            <div className="relative">
+              <button
+                aria-label={copy.inputLabel}
+                className={cn(
+                  "group relative rounded-full outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/30",
+                  isDragging && "ring-3 ring-ring/30",
+                )}
+                disabled={isPending}
+                onClick={openFilePicker}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                type="button"
+              >
+                <Avatar className="size-24">
+                  {currentImageSrc ? (
+                    <AvatarImage
+                      alt={getUserAvatarAlt(displayName)}
+                      src={currentImageSrc}
+                    />
+                  ) : null}
+                  <AvatarFallback className="text-xl font-medium">
+                    {getInitials(displayName)}
+                  </AvatarFallback>
+                </Avatar>
+
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100",
+                    isDragging && "opacity-100",
+                  )}
+                >
+                  <ImageUpIcon className="size-6" />
+                </span>
+              </button>
+
+              {hasImage ? (
+                <Button
+                  aria-label={copy.removeAction}
+                  className="absolute right-0 bottom-0"
+                  disabled={isPending}
+                  onClick={handleRemove}
+                  size="icon-sm"
+                  type="button"
+                  variant="destructive"
+                >
+                  <Trash2Icon aria-hidden="true" />
+                </Button>
               ) : null}
-              <AvatarFallback className="text-xl font-medium">
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
-
-            <span
-              aria-hidden="true"
-              className={cn(
-                "absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100",
-                isDragging && "opacity-100",
-              )}
-            >
-              <ImageUpIcon className="size-6" />
-            </span>
-          </button>
-
-          {hasImage ? (
-            <Button
-              aria-label={copy.removeAction}
-              className="absolute right-0 bottom-0"
-              disabled={isPending}
-              onClick={handleRemove}
-              size="icon-sm"
-              type="button"
-              variant="destructive"
-            >
-              <Trash2Icon aria-hidden="true" />
-            </Button>
-          ) : null}
-        </div>
-
-        <div className="grid gap-1 text-center">
-          <p className="text-sm font-medium">
-            {isDragging ? copy.dropTitle : copy.uploadTitle}
+            </div>
+          ),
+        }}
+        title={isDragging ? copy.dropTitle : copy.uploadTitle}
+      >
+        {fileError ? (
+          <p className="text-destructive" role="alert">
+            {fileError}
           </p>
-          <p
-            className="text-xs text-muted-foreground"
-            id={descriptionId}
-          >
-            {supportedFiles}
-          </p>
-          {fileError ? (
-            <p className="text-xs text-destructive" role="alert">
-              {fileError}
-            </p>
-          ) : null}
-        </div>
+        ) : null}
+      </AppEmpty>
 
-        <input
-          accept={acceptedMimeTypes.join(",")}
-          className="hidden"
-          disabled={isPending}
-          onChange={(event) => {
-            const [file] = Array.from(event.currentTarget.files ?? [])
+      <input
+        accept={acceptedMimeTypes.join(",")}
+        className="hidden"
+        disabled={isPending}
+        onChange={(event) => {
+          const [file] = Array.from(event.currentTarget.files ?? [])
 
-            if (file) {
-              handleFile(file)
-            }
+          if (file) {
+            handleFile(file)
+          }
 
-            event.currentTarget.value = ""
-          }}
-          ref={fileInputRef}
-          type="file"
-        />
-      </div>
+          event.currentTarget.value = ""
+        }}
+        ref={fileInputRef}
+        type="file"
+      />
     </AppDialog>
   )
 }

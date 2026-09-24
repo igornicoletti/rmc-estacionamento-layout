@@ -1,4 +1,4 @@
-import { ClockAlertIcon, UserCheckIcon } from "lucide-react"
+import { ClockAlertIcon } from "lucide-react"
 import { useRef } from "react"
 
 import { appCopy } from "@/app/config/app-copy"
@@ -42,22 +42,19 @@ export function SessionTimeoutWarningDialog({
     <AppAlertDialog
       description={copy.description}
       footer={
-        <div className="col-span-2 flex justify-center">
-          <Button
-            aria-busy={isPending}
-            disabled={isPending}
-            onClick={onContinue}
-            ref={continueButtonRef}
-            type="button"
-          >
-            {isPending ? (
-              <Spinner aria-hidden="true" data-icon="inline-start" />
-            ) : (
-              <UserCheckIcon aria-hidden="true" data-icon="inline-start" />
-            )}
-            {isPending ? copy.continuingAction : copy.continueAction}
-          </Button>
-        </div>
+        <Button
+          aria-busy={isPending}
+          className="col-span-2 w-full"
+          disabled={isPending}
+          onClick={onContinue}
+          ref={continueButtonRef}
+          type="button"
+        >
+          {isPending ? (
+            <Spinner aria-hidden="true" data-icon="inline-start" />
+          ) : null}
+          {isPending ? copy.continuingAction : copy.continueAction}
+        </Button>
       }
       initialFocus={continueButtonRef}
       media={<ClockAlertIcon aria-hidden="true" />}
