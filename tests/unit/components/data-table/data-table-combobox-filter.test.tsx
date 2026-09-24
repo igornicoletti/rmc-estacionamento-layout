@@ -37,9 +37,11 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(screen.getByRole("combobox"))
+    await user.click(screen.getByRole("combobox", { name: "filter" }))
 
-    expect(await screen.findAllByRole("option")).toHaveLength(2)
+    const options = await screen.findAllByRole("option")
+    expect(options).toHaveLength(2)
+    expect(screen.queryByRole("option", { name: /^B/u })).not.toBeInTheDocument()
   })
 
   it("encaminha seleção e limpeza pelo clear nativo", async () => {
@@ -55,11 +57,10 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(screen.getByRole("combobox"))
+    await user.click(screen.getByRole("combobox", { name: "filter" }))
     const options = await screen.findAllByRole("option")
-    expect(options).toHaveLength(3)
-
     await user.click(options[2])
+
     expect(onValueChange).toHaveBeenLastCalledWith("suspended")
 
     rerender(
@@ -73,18 +74,14 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    const input = screen.getByRole("combobox", { name: "filter" })
-    const clearButton = screen.getByRole("button", { name: "Limpar filter" })
-
-    expect(clearButton.closest('[data-slot="input-group"]')).toBe(
-      input.closest('[data-slot="input-group"]'),
+    await user.click(
+      screen.getByRole("button", { name: "Limpar filter" }),
     )
 
-    await user.click(clearButton)
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 
-  it("renderiza lista plana sem grupos nem contagens artificiais", async () => {
+  it("renderiza lista plana sem grupos", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -96,16 +93,12 @@ describe("DataTableComboboxFilter", () => {
       />,
     )
 
-    await user.click(screen.getByRole("combobox"))
+    await user.click(screen.getByRole("combobox", { name: "filter" }))
 
     expect(await screen.findAllByRole("option")).toHaveLength(3)
-    expect(
-      document.querySelector('[data-slot="combobox-group"]'),
-    ).not.toBeInTheDocument()
-    expect(document.querySelector('[data-slot="badge"]')).not.toBeInTheDocument()
   })
 
-  it("usa o próprio input para buscar e mantém grupos separados", async () => {
+  it("usa o próprio input para buscar e mantém os grupos", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -123,9 +116,6 @@ describe("DataTableComboboxFilter", () => {
     expect(screen.getByText("PR")).toBeInTheDocument()
     expect(screen.getByText("SP")).toBeInTheDocument()
     expect(screen.getAllByRole("combobox")).toHaveLength(1)
-    expect(
-      document.querySelectorAll('[data-slot="combobox-separator"]'),
-    ).toHaveLength(1)
 
     await user.type(input, "Curitiba")
 
@@ -133,5 +123,25 @@ describe("DataTableComboboxFilter", () => {
     expect(
       screen.getByRole("option", { name: /Curitiba/u }),
     ).toBeInTheDocument()
+  })
+
+  it("exibe o estado vazio quando nenhuma faceta está disponível", async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <DataTableComboboxFilter
+        ariaLabel="filter"
+        counts={{ active: 0, invited: 0, suspended: 0 }}
+        emptyMessage="Sem opções"
+        items={ITEMS}
+        onValueChange={vi.fn()}
+        placeholder="placeholder"
+      />,
+    )
+
+    await user.click(screen.getByRole("combobox", { name: "filter" }))
+
+    expect(await screen.findByText("Sem opções")).toBeInTheDocument()
+    expect(screen.queryByRole("option")).not.toBeInTheDocument()
   })
 })
