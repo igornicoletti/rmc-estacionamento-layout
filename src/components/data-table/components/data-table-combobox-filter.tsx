@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { CheckIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -122,13 +123,15 @@ export function DataTableComboboxFilter<TValue extends string>({
         <ComboboxList>
           {groupedItems
             ? (group: DataTableComboboxFilterGroup<TValue>, index: number) => (
-                <ComboboxGroup key={group.value} items={group.items}>
-                  <ComboboxLabel>{group.value}</ComboboxLabel>
-                  <ComboboxCollection>{renderItem}</ComboboxCollection>
+                <Fragment key={group.value}>
+                  <ComboboxGroup items={group.items}>
+                    <ComboboxLabel>{group.value}</ComboboxLabel>
+                    <ComboboxCollection>{renderItem}</ComboboxCollection>
+                  </ComboboxGroup>
                   {index < groupedItems.length - 1 ? (
                     <ComboboxSeparator />
                   ) : null}
-                </ComboboxGroup>
+                </Fragment>
               )
             : renderItem}
         </ComboboxList>
