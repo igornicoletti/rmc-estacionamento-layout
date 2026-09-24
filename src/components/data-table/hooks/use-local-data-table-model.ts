@@ -46,6 +46,10 @@ export function useLocalDataTableModel<TRow>({
     initialPageSize,
   })
   const [facetValue, setFacetValue] = useState<string>()
+  const {
+    clearFilters: clearTableFilters,
+    onPaginationChange,
+  } = state
 
   const facet = useMemo(() => {
     if (!getFacetValue || !getFacetLabel) {
@@ -132,18 +136,18 @@ export function useLocalDataTableModel<TRow>({
   const onFacetValueChange = useCallback(
     (value: string | undefined) => {
       setFacetValue(value)
-      state.onPaginationChange((current) => ({
+      onPaginationChange((current) => ({
         ...current,
         pageIndex: 0,
       }))
     },
-    [state.onPaginationChange],
+    [onPaginationChange],
   )
 
   const clearFilters = useCallback(() => {
-    state.clearFilters()
+    clearTableFilters()
     setFacetValue(undefined)
-  }, [state.clearFilters])
+  }, [clearTableFilters])
 
   return {
     activeFilterCount:
