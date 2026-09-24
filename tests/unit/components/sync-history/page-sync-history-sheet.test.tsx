@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
-import { PageSyncHistorySheet } from "@/components/common/page-sync-history-sheet"
-import type { PageSyncHistoryExecution } from "@/components/common/page-sync-history.types"
+import { PageSyncHistorySheet } from "@/components/sync-history/page-sync-history-sheet"
+import type { PageSyncHistoryExecution } from "@/components/sync-history/page-sync-history.types"
 
 const executions = [
   {

@@ -1,4 +1,4 @@
-import type { PageSyncHistoryExecution } from "@/components/common/page-sync-history.types"
+import type { PageSyncHistoryExecution } from "@/components/sync-history/page-sync-history.types"
 
 export const clientSyncHistoryFixture = [
   {

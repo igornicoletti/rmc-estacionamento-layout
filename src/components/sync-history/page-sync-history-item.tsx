@@ -5,11 +5,11 @@ import {
   TriangleAlertIcon,
 } from "lucide-react"
 
-import { pageSyncHistoryCopy } from "@/components/common/page-sync-history.copy"
+import { pageSyncHistoryCopy } from "@/components/sync-history/page-sync-history.copy"
 import type {
   PageSyncHistoryExecution,
   PageSyncHistoryStatus,
-} from "@/components/common/page-sync-history.types"
+} from "@/components/sync-history/page-sync-history.types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
