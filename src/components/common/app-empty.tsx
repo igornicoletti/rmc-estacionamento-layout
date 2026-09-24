@@ -19,30 +19,24 @@ interface AppEmptyProps {
   description?: ReactNode
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
   media?: AppEmptyMedia
-  primaryAction?: ReactNode
-  secondaryAction?: ReactNode
   title: ReactNode
 }
 
 /**
  * Empty state padronizado da aplicação.
  *
- * Header e media são estruturais; conteúdo adicional e ações pertencem ao
- * EmptyContent, preservando a composição oficial do shadcn/ui.
+ * Header e media são estruturais. Todo conteúdo complementar pertence a
+ * children e é renderizado em EmptyContent, sem impor tipo ou quantidade de
+ * ações ao consumidor.
  */
 export function AppEmpty({
   children,
   description,
   headingLevel = 1,
   media,
-  primaryAction,
-  secondaryAction,
   title,
 }: AppEmptyProps) {
   const Icon = media?.icon
-  const hasActions =
-    primaryAction !== undefined || secondaryAction !== undefined
-  const hasContent = children !== undefined || hasActions
 
   return (
     <Empty>
@@ -62,16 +56,8 @@ export function AppEmpty({
         ) : null}
       </EmptyHeader>
 
-      {hasContent ? (
-        <EmptyContent>
-          {children}
-          {hasActions ? (
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {primaryAction}
-              {secondaryAction}
-            </div>
-          ) : null}
-        </EmptyContent>
+      {children !== undefined ? (
+        <EmptyContent>{children}</EmptyContent>
       ) : null}
     </Empty>
   )

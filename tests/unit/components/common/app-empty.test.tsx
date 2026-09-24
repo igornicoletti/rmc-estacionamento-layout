@@ -7,23 +7,23 @@ import { AppEmpty } from "@/components/common/app-empty"
 import { Button } from "@/components/ui/button"
 
 describe("AppEmpty", () => {
-  it("encaminha children para EmptyContent junto das ações", async () => {
+  it("encaminha todo conteúdo complementar para EmptyContent", async () => {
     const user = userEvent.setup()
-    const onPrimary = vi.fn()
-    const onSecondary = vi.fn()
+    const onFirstAction = vi.fn()
+    const onSecondAction = vi.fn()
+    const onThirdAction = vi.fn()
 
     render(
       <AppEmpty
         media={{ icon: CircleHelpIcon }}
-        primaryAction={<Button onClick={onPrimary}>primary</Button>}
-        secondaryAction={
-          <Button onClick={onSecondary} variant="outline">
-            secondary
-          </Button>
-        }
         title="state"
       >
         <input aria-label="Conteúdo adicional" />
+        <div>
+          <Button onClick={onFirstAction}>primeira</Button>
+          <Button onClick={onSecondAction}>segunda</Button>
+          <Button onClick={onThirdAction}>terceira</Button>
+        </div>
       </AppEmpty>,
     )
 
@@ -33,10 +33,12 @@ describe("AppEmpty", () => {
 
     expect(content).toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "primary" }))
-    await user.click(screen.getByRole("button", { name: "secondary" }))
+    await user.click(screen.getByRole("button", { name: "primeira" }))
+    await user.click(screen.getByRole("button", { name: "segunda" }))
+    await user.click(screen.getByRole("button", { name: "terceira" }))
 
-    expect(onPrimary).toHaveBeenCalledOnce()
-    expect(onSecondary).toHaveBeenCalledOnce()
+    expect(onFirstAction).toHaveBeenCalledOnce()
+    expect(onSecondAction).toHaveBeenCalledOnce()
+    expect(onThirdAction).toHaveBeenCalledOnce()
   })
 })
