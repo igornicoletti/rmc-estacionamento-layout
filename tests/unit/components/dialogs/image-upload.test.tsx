@@ -1,8 +1,19 @@
 import { fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { AvatarImageUploadDialog } from "@/components/dialogs/image-upload"
+
+const previewUrl = "blob:avatar-preview"
+
+beforeEach(() => {
+  vi.spyOn(URL, "createObjectURL").mockReturnValue(previewUrl)
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined)
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe("AvatarImageUploadDialog", () => {
   it("encaminha arquivo válido escolhido pelo input", async () => {
@@ -12,7 +23,7 @@ describe("AvatarImageUploadDialog", () => {
       type: "image/png",
     })
 
-    render(
+    const { unmount } = render(
       <AvatarImageUploadDialog
         displayName="Maria Silva"
         onFileSelect={onFileSelect}
@@ -28,7 +39,12 @@ describe("AvatarImageUploadDialog", () => {
 
     await user.upload(input as HTMLInputElement, file)
 
+    expect(URL.createObjectURL).toHaveBeenCalledWith(file)
     expect(onFileSelect).toHaveBeenCalledWith(file)
+
+    unmount()
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(previewUrl)
   })
 
   it("aceita arquivo válido por arrastar e soltar", () => {
