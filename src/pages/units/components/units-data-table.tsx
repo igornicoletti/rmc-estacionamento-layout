@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
 import { RecordDetails } from "@/components/record-details/record-details"
 import { AppSheet } from "@/components/common/app-sheet"
@@ -8,7 +9,10 @@ import { DataTableExport } from "@/components/data-table/components/data-table-e
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/components/data-table-root"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
-import { DataTableEmpty } from "@/components/data-table/components/data-table-state"
+import {
+  DataTableEmpty,
+  DataTableError,
+} from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import {
@@ -25,22 +29,30 @@ import {
   createUnitsTableColumns,
   unitsTableApi,
 } from "@/pages/units/components/units-table-columns"
-import { unitErpFixture } from "@/pages/units/data/unit-erp.fixture"
+import {
+  loadPreviewUnits,
+  unitPreviewQueryKeys,
+} from "@/pages/units/data/unit-preview-data"
 import type { Unit } from "@/pages/units/model/unit"
-import { mapErpUnits } from "@/pages/units/model/unit-mapper"
 import {
   unitRecordCsvColumns,
   unitRecordSections,
 } from "@/pages/units/model/unit-record-presentation"
 import { unitsCopy } from "@/pages/units/units.copy"
 
-const units = mapErpUnits(unitErpFixture)
+const EMPTY_UNITS: Unit[] = []
 
 function getCityFilterValue(unit: Unit) {
   return `${unit.stateCode}:${unit.city}`
 }
 
 export function UnitsDataTable() {
+  const unitsQuery = useQuery({
+    queryKey: unitPreviewQueryKeys.units,
+    queryFn: loadPreviewUnits,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+  const units = unitsQuery.data ?? EMPTY_UNITS
   const [cityFilter, setCityFilter] = useState<string>()
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
   const state = useDataTableState({
@@ -98,7 +110,12 @@ export function UnitsDataTable() {
           left.label.localeCompare(right.label, "pt-BR"),
       ),
     }
-  }, [])
+  }, [units])
+
+  const handleCityFilterChange = (value: string | undefined) => {
+    setCityFilter(value)
+    state.onPaginationChange((current) => ({ ...current, pageIndex: 0 }))
+  }
 
   const clearFilters = () => {
     state.clearFilters()
@@ -129,7 +146,7 @@ export function UnitsDataTable() {
         ).includes(search)
       )
     })
-  }, [cityFilter, state.globalFilter])
+  }, [cityFilter, state.globalFilter, units])
 
   const sortedUnits = useMemo(
     () =>
@@ -163,9 +180,18 @@ export function UnitsDataTable() {
 
   const hasActiveFilters = state.hasFilters || Boolean(cityFilter)
 
+  if (unitsQuery.isError) {
+    return (
+      <DataTableError
+        description={unitsCopy.table.loadError}
+        onRetry={() => void unitsQuery.refetch()}
+      />
+    )
+  }
+
   return (
     <>
-      <DataTableRoot isBusy={false}>
+      <DataTableRoot isBusy={unitsQuery.isPending || unitsQuery.isFetching}>
         <DataTableToolbar
           actions={
             <>
@@ -200,13 +226,7 @@ export function UnitsDataTable() {
             clearAriaLabel={unitsCopy.cityFilter.clearAriaLabel}
             counts={cityFacet.counts}
             items={cityFacet.items}
-            onValueChange={(value) => {
-              setCityFilter(value)
-              state.onPaginationChange((current) => ({
-                ...current,
-                pageIndex: 0,
-              }))
-            }}
+            onValueChange={handleCityFilterChange}
             placeholder={unitsCopy.cityFilter.placeholder}
             value={cityFilter}
           />
@@ -222,15 +242,17 @@ export function UnitsDataTable() {
               onClearFilters={clearFilters}
             />
           }
-          isInitialLoading={false}
+          isInitialLoading={unitsQuery.isPending}
           table={table}
         />
 
-        <DataTablePagination
-          itemLabel={unitsCopy.table.itemLabel}
-          rowCount={filteredUnits.length}
-          table={table}
-        />
+        {!unitsQuery.isPending ? (
+          <DataTablePagination
+            itemLabel={unitsCopy.table.itemLabel}
+            rowCount={filteredUnits.length}
+            table={table}
+          />
+        ) : null}
       </DataTableRoot>
 
       {selectedUnit ? (

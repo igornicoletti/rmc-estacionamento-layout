@@ -19,15 +19,19 @@ vi.mock("@/lib/export-to-csv", async (importOriginal) => {
   }
 })
 
+async function renderUnitsDataTable() {
+  renderWithProviders(<UnitsDataTable />)
+  await screen.findByText("18 unidades")
+}
+
 describe("UnitsDataTable", () => {
   beforeEach(() => {
     downloadCsvMock.mockClear()
   })
 
-  it("renderiza dados normalizados sem expor metadados internos", () => {
-    renderWithProviders(<UnitsDataTable />)
+  it("renderiza dados normalizados sem expor metadados internos", async () => {
+    await renderUnitsDataTable()
 
-    expect(screen.getByText("18 unidades")).toBeInTheDocument()
     expect(screen.getByText("Unidade 01")).toBeInTheDocument()
     expect(screen.getByText("88.000.000/0001-32")).toBeInTheDocument()
     expect(screen.getAllByText("Bandeira Azul").length).toBeGreaterThan(0)
@@ -42,7 +46,7 @@ describe("UnitsDataTable", () => {
 
   it("abre os detalhes da unidade pelo menu de ações", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    await renderUnitsDataTable()
 
     await user.click(
       screen.getByRole("button", { name: "Ações da unidade Unidade 01" }),
@@ -58,7 +62,7 @@ describe("UnitsDataTable", () => {
 
   it("copia todos os dados da unidade", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    await renderUnitsDataTable()
 
     await user.click(
       screen.getByRole("button", { name: "Ações da unidade Unidade 01" }),
@@ -75,7 +79,7 @@ describe("UnitsDataTable", () => {
 
   it("exporta todas as unidades ordenadas antes da paginação", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    await renderUnitsDataTable()
 
     const sortByName = screen.getByRole("button", {
       name: "Ordenar por Nome fantasia",
@@ -99,7 +103,7 @@ describe("UnitsDataTable", () => {
 
   it("exporta somente as unidades que correspondem ao filtro ativo", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    await renderUnitsDataTable()
 
     const cityFilter = screen.getByRole("combobox", {
       name: "Filtrar unidades por cidade",
@@ -125,7 +129,7 @@ describe("UnitsDataTable", () => {
 
   it("filtra unidades pela busca", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    await renderUnitsDataTable()
 
     const search = screen.getByRole("searchbox", { name: "Buscar unidades" })
     await user.type(search, "parana")
@@ -137,7 +141,7 @@ describe("UnitsDataTable", () => {
 
   it("ordena colunas permitidas e filtra pela cidade no próprio combobox", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    await renderUnitsDataTable()
 
     expect(
       screen.getByRole("button", { name: "Ordenar por Nome fantasia" }),

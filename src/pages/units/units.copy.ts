@@ -4,6 +4,7 @@ export const unitsCopy = {
     emptyDescription: "Nenhuma unidade corresponde aos critérios selecionados.",
     emptyTitle: "Nenhuma unidade encontrada",
     itemLabel: { singular: "unidade", plural: "unidades" },
+    loadError: "Não foi possível carregar as unidades.",
   },
   search: { ariaLabel: "Buscar unidades", placeholder: "Buscar unidades..." },
   cityFilter: {
