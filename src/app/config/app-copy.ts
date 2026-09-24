@@ -33,14 +33,14 @@ export const appCopy = {
       description:
         "Por segurança, sua sessão foi encerrada após um período sem atividade. Entre novamente para continuar.",
       pendingAction: "Entrando novamente",
-      title: "Sessão encerrada por inatividade",
+      title: "Sessão encerrada",
     },
     sessionTimeoutWarning: {
       continueAction: "Continuar conectado",
       continuingAction: "Mantendo sessão",
       description:
         "Sua sessão será encerrada em breve por inatividade. Continue para permanecer conectado.",
-      remainingTime: "Tempo restante",
+      timerLabel: "Tempo restante",
       title: "Sessão prestes a expirar",
     },
     sessionUnavailable: {

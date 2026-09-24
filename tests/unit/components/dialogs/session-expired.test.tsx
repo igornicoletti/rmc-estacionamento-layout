@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { SessionExpiredDialog } from "@/components/overlays/session/session-expired-dialog"
+import { SessionExpiredDialog } from "@/components/dialogs/session-expired"
 
 describe("SessionExpiredDialog", () => {
   it("encaminha a recuperação da sessão encerrada", async () => {

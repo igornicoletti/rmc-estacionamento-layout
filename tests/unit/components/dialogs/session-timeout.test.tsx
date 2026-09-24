@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { SessionTimeoutWarningDialog } from "@/components/overlays/session/session-timeout-warning-dialog"
+import { SessionTimeoutWarningDialog } from "@/components/dialogs/session-timeout"
 
 describe("SessionTimeoutWarningDialog", () => {
   it("prioriza e encaminha a continuidade da sessão", async () => {

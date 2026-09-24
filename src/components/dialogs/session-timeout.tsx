@@ -76,15 +76,12 @@ export function SessionTimeoutWarningDialog({
       <div className="flex justify-center">
         <div className="min-w-40 rounded-2xl border bg-muted/40 px-5 py-4 text-center">
           <div
-            aria-label={copy.remainingTime}
+            aria-label={copy.timerLabel}
             className="text-3xl font-semibold tracking-tight tabular-nums"
             role="timer"
           >
             {formatRemainingTime(remainingSeconds)}
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {copy.remainingTime}
-          </p>
         </div>
       </div>
     </AppAlertDialog>

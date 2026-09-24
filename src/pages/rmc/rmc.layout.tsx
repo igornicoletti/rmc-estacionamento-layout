@@ -1,9 +1,9 @@
 import { useEffect, useReducer } from "react"
 
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
-import { AvatarImageUploadDialog } from "@/components/overlays/avatar/avatar-image-upload-dialog"
-import { SessionExpiredDialog } from "@/components/overlays/session/session-expired-dialog"
-import { SessionTimeoutWarningDialog } from "@/components/overlays/session/session-timeout-warning-dialog"
+import { AvatarImageUploadDialog } from "@/components/dialogs/image-upload"
+import { SessionExpiredDialog } from "@/components/dialogs/session-expired"
+import { SessionTimeoutWarningDialog } from "@/components/dialogs/session-timeout"
 import { Button } from "@/components/ui/button"
 
 const PREVIEW_WARNING_SECONDS = 30

@@ -52,9 +52,11 @@ describe("app routing", () => {
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
-    expect(
-      Object.values(appPages).some((page) => page.path === "/rmc"),
-    ).toBe(false)
+    const appPagePaths: string[] = Object.values(appPages).map(
+      (page) => page.path,
+    )
+
+    expect(appPagePaths).not.toContain("/rmc")
     expect(
       await screen.findByRole("heading", { name: "RMC" }),
     ).toBeInTheDocument()

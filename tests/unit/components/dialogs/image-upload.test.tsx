@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { AvatarImageUploadDialog } from "@/components/overlays/avatar/avatar-image-upload-dialog"
+import { AvatarImageUploadDialog } from "@/components/dialogs/image-upload"
 
 describe("AvatarImageUploadDialog", () => {
   it("encaminha arquivo válido escolhido pelo input", async () => {
