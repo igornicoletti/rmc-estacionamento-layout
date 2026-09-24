@@ -36,7 +36,8 @@ const toneClassName: Record<AppBadgeTone, string> = {
  * Badge semântico da aplicação.
  *
  * Centraliza os tons da aplicação e a composição opcional de ícone sem expor
- * variant ou className aos consumidores.
+ * variant ou className aos consumidores. O conteúdo visível permanece em
+ * children; não existe slot estrutural BadgeTitle no componente base.
  */
 export function AppBadge({
   children,

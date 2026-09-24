@@ -32,7 +32,7 @@ interface AppEmptyProps {
 export function AppEmpty({
   children,
   description,
-  headingLevel = 1,
+  headingLevel = 2,
   media,
   title,
 }: AppEmptyProps) {
@@ -56,7 +56,7 @@ export function AppEmpty({
         ) : null}
       </EmptyHeader>
 
-      {children !== undefined ? (
+      {children !== null && children !== undefined && children !== false ? (
         <EmptyContent>{children}</EmptyContent>
       ) : null}
     </Empty>
