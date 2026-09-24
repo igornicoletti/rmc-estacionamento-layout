@@ -56,6 +56,21 @@ function createPageRoute(id: AppPageId): RouteObject {
     : { id, path: page.path, Component, handle }
 }
 
+const rmcPreviewRoute = {
+  id: "rmc-preview",
+  path: "/rmc",
+  lazy: async () => {
+    const { RmcPreviewPage } = await import("@/pages/rmc/rmc.layout")
+
+    return { Component: RmcPreviewPage }
+  },
+  handle: {
+    access: { authentication: "either" },
+    routeId: "rmc-preview",
+    title: "RMC",
+  } satisfies AppRouteHandle,
+} satisfies RouteObject
+
 const clientDetailsRoute = {
   id: "client-details",
   path: CLIENT_DETAILS_ROUTE_PATH,
@@ -95,6 +110,7 @@ export const routes = [
             children: [
               ...(Object.keys(appPages) as AppPageId[]).map(createPageRoute),
               clientDetailsRoute,
+              rmcPreviewRoute,
             ],
           },
         ],

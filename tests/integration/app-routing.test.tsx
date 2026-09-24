@@ -47,6 +47,26 @@ describe("app routing", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
+  it("resolve a rota interna de validação sem registrá-la em appPages", async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ["/rmc"] })
+
+    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+    expect(
+      Object.values(appPages).some((page) => page.path === "/rmc"),
+    ).toBe(false)
+    expect(
+      await screen.findByRole("heading", { name: "RMC" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Visualizar aviso de inatividade" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Visualizar sessão encerrada" }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("navigation")).toBeInTheDocument()
+  })
+
   it("resolve a rota dinâmica de detalhe do cliente", () => {
     const matches = matchRoutes(routes, "/clientes/3492")
 
