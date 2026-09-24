@@ -48,7 +48,7 @@ describe("app routing", () => {
   })
 
   it("resolve a rota interna de validação sem registrá-la em appPages", async () => {
-    const router = createMemoryRouter(routes, { initialEntries: ["/rmc"] })
+    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
     render(<App initialSessionSnapshot={anonymousSession} router={router} />)
 
@@ -57,6 +57,12 @@ describe("app routing", () => {
     )
 
     expect(appPagePaths).not.toContain("/rmc")
+
+    await act(async () => {
+      await router.navigate("/rmc")
+    })
+
+    expect(router.state.location.pathname).toBe("/rmc")
     expect(
       await screen.findByRole("heading", { name: "RMC" }),
     ).toBeInTheDocument()
