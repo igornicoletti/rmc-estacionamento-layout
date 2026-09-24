@@ -11,7 +11,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 
-interface AppItemProps extends Omit<ComponentProps<typeof Item>, "children"> {
+interface AppItemProps {
   actions?: ReactNode
   children?: ReactNode
   description?: ReactNode
@@ -19,14 +19,16 @@ interface AppItemProps extends Omit<ComponentProps<typeof Item>, "children"> {
   header?: ReactNode
   media?: ReactNode
   mediaVariant?: ComponentProps<typeof ItemMedia>["variant"]
+  size?: ComponentProps<typeof Item>["size"]
   title: ReactNode
+  variant?: ComponentProps<typeof Item>["variant"]
 }
 
 /**
  * Composição compartilhada para itens com mídia, conteúdo, ações e rodapé.
  *
- * O conteúdo específico permanece nos slots e em children; o wrapper cuida
- * apenas da hierarquia visual comum.
+ * O conteúdo específico permanece nos slots e em children; o wrapper expõe
+ * apenas size e variant da primitiva, sem propagar className ou render.
  */
 export function AppItem({
   actions,
@@ -36,11 +38,12 @@ export function AppItem({
   header,
   media,
   mediaVariant = "default",
+  size = "default",
   title,
-  ...props
+  variant = "default",
 }: AppItemProps) {
   return (
-    <Item {...props}>
+    <Item size={size} variant={variant}>
       {header ? <ItemHeader>{header}</ItemHeader> : null}
       {media ? <ItemMedia variant={mediaVariant}>{media}</ItemMedia> : null}
 

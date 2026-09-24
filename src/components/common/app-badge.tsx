@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { cn } from "cn"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,8 @@ export type AppBadgeTone =
   | "warning"
   | "error"
 
-interface AppBadgeProps extends Omit<ComponentProps<typeof Badge>, "variant"> {
+interface AppBadgeProps {
+  children: ReactNode
   tone?: AppBadgeTone
 }
 
@@ -25,19 +26,16 @@ const toneClassName: Record<AppBadgeTone, string> = {
 /**
  * Badge semântico da aplicação.
  *
- * Mantém a escolha de variante e tokens de status centralizada sem conhecer
- * estados ou regras de negócio dos escopos consumidores.
+ * Traduz estados visuais compartilhados para o Badge padrão sem expor variant
+ * ou className para os consumidores.
  */
 export function AppBadge({
-  className,
+  children,
   tone = "neutral",
-  ...props
 }: AppBadgeProps) {
   return (
-    <Badge
-      className={cn(toneClassName[tone], className)}
-      variant="outline"
-      {...props}
-    />
+    <Badge className={cn(toneClassName[tone])} variant="outline">
+      {children}
+    </Badge>
   )
 }
