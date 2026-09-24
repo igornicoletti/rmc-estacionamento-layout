@@ -41,7 +41,7 @@ export function PageSyncHistorySheet({
       ) : (
         <AppEmpty
           description={pageSyncHistoryCopy.empty.description}
-          headingLevel={2}
+          headingLevel={3}
           media={{ icon: HistoryIcon }}
           title={pageSyncHistoryCopy.empty.title}
         />

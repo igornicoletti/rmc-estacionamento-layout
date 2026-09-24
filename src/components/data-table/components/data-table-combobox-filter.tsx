@@ -118,7 +118,7 @@ export function DataTableComboboxFilter<TValue extends string>({
         showClear
       />
 
-      <ComboboxContent aria-label={ariaLabel}>
+      <ComboboxContent>
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {groupedItems
