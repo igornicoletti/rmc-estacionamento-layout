@@ -15,12 +15,7 @@ import {
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
-import {
-  normalizeSearchText,
-  paginateRows,
-  sortRows,
-} from "@/components/data-table/core/table-data-utils"
-import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
@@ -47,8 +42,44 @@ import {
 
 const EMPTY_CLIENTS: Client[] = []
 
-function getCityFilterValue(client: Client) {
+function getClientCityValue(client: Client) {
   return `${client.stateCode}:${client.city}`
+}
+
+function getClientSearchText(client: Client) {
+  return [
+    client.id,
+    client.name,
+    formatErpName(client.name),
+    client.tradeName,
+    formatErpName(client.tradeName),
+    client.taxId,
+    client.email,
+    client.phone,
+    formatPhone(client.phone),
+    client.city,
+    formatCityName(client.city),
+    client.state,
+    client.stateCode,
+    client.personActiveStatus,
+    client.financialBlockStatus,
+  ].join(" ")
+}
+
+function getClientSortValue(client: Client, columnId: string) {
+  if (columnId === "name") {
+    return formatErpName(client.name)
+  }
+
+  if (columnId === "tradeName") {
+    return formatErpName(client.tradeName)
+  }
+
+  if (columnId === "city") {
+    return formatCityName(client.city)
+  }
+
+  return client[columnId as keyof Client]
 }
 
 export function ClientsDataTable() {
@@ -58,9 +89,13 @@ export function ClientsDataTable() {
     staleTime: Number.POSITIVE_INFINITY,
   })
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
-  const [cityFilter, setCityFilter] = useState<string>()
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
-  const state = useDataTableState({
+  const model = useLocalDataTableModel({
+    getFacetGroup: (client: Client) => client.state,
+    getFacetLabel: (client: Client) => formatCityName(client.city),
+    getFacetValue: getClientCityValue,
+    getSearchText: getClientSearchText,
+    getSortValue: getClientSortValue,
     initialColumnVisibility: {
       activeWithin120Days: false,
       createdAt: false,
@@ -73,6 +108,7 @@ export function ClientsDataTable() {
       tradeName: false,
       updatedAt: false,
     },
+    rows: clients,
   })
 
   const handleCopyData = useCallback((client: Client) => {
@@ -93,121 +129,20 @@ export function ClientsDataTable() {
     [handleCopyData],
   )
 
-  const cityFacet = useMemo(() => {
-    const items = new Map<
-      string,
-      { group: string; label: string; value: string }
-    >()
-    const counts: Record<string, number> = {}
-
-    for (const client of clients) {
-      const value = getCityFilterValue(client)
-      counts[value] = (counts[value] ?? 0) + 1
-
-      if (!items.has(value)) {
-        items.set(value, {
-          group: client.state,
-          label: formatCityName(client.city),
-          value,
-        })
-      }
-    }
-
-    return {
-      counts,
-      items: Array.from(items.values()).sort(
-        (left, right) =>
-          left.group.localeCompare(right.group, "pt-BR") ||
-          left.label.localeCompare(right.label, "pt-BR"),
-      ),
-    }
-  }, [clients])
-
-  const handleCityFilterChange = (value: string | undefined) => {
-    setCityFilter(value)
-    state.onPaginationChange((current) => ({ ...current, pageIndex: 0 }))
-  }
-
-  const clearFilters = () => {
-    state.clearFilters()
-    setCityFilter(undefined)
-  }
-
-  const filteredClients = useMemo(() => {
-    const search = normalizeSearchText(state.globalFilter)
-
-    return clients.filter((client) => {
-      if (cityFilter && getCityFilterValue(client) !== cityFilter) {
-        return false
-      }
-
-      if (!search) {
-        return true
-      }
-
-      return normalizeSearchText(
-        [
-          client.id,
-          client.name,
-          formatErpName(client.name),
-          client.tradeName,
-          formatErpName(client.tradeName),
-          client.taxId,
-          client.email,
-          client.phone,
-          formatPhone(client.phone),
-          client.city,
-          formatCityName(client.city),
-          client.state,
-          client.stateCode,
-          client.personActiveStatus,
-          client.financialBlockStatus,
-        ].join(" "),
-      ).includes(search)
-    })
-  }, [cityFilter, clients, state.globalFilter])
-
-  const sortedClients = useMemo(
-    () =>
-      sortRows(filteredClients, state.sorting, (client, columnId) => {
-        if (columnId === "name") {
-          return formatErpName(client.name)
-        }
-
-        if (columnId === "tradeName") {
-          return formatErpName(client.tradeName)
-        }
-
-        if (columnId === "city") {
-          return formatCityName(client.city)
-        }
-
-        return client[columnId as keyof Client]
-      }),
-    [filteredClients, state.sorting],
-  )
-
-  const paginatedClients = useMemo(
-    () => paginateRows(sortedClients, state.pagination),
-    [sortedClients, state.pagination],
-  )
-
   const table = clientsTableApi.useAppTable({
     columns,
-    data: paginatedClients,
+    data: model.pageRows,
     getRowId: (client) => client.id,
-    onColumnVisibilityChange: state.setColumnVisibility,
-    onPaginationChange: state.onPaginationChange,
-    onSortingChange: state.onSortingChange,
-    rowCount: filteredClients.length,
+    onColumnVisibilityChange: model.state.setColumnVisibility,
+    onPaginationChange: model.state.onPaginationChange,
+    onSortingChange: model.state.onSortingChange,
+    rowCount: model.filteredRows.length,
     state: {
-      columnVisibility: state.columnVisibility,
-      pagination: state.pagination,
-      sorting: state.sorting,
+      columnVisibility: model.state.columnVisibility,
+      pagination: model.state.pagination,
+      sorting: model.state.sorting,
     },
   })
-
-  const hasActiveFilters = state.hasFilters || Boolean(cityFilter)
 
   if (clientsQuery.isError) {
     return (
@@ -225,39 +160,36 @@ export function ClientsDataTable() {
           actions={
             <>
               <DataTableExport
-                disabled={sortedClients.length === 0}
+                disabled={model.sortedRows.length === 0}
                 onExport={() =>
                   downloadCsv(
                     "clientes.csv",
-                    serializeCsv(sortedClients, clientRecordCsvColumns),
+                    serializeCsv(model.sortedRows, clientRecordCsvColumns),
                   )
                 }
               />
               <DataTableViewOptions table={table} />
             </>
           }
-          activeFilterCount={
-            Number(Boolean(state.searchDraft.trim())) +
-            Number(Boolean(cityFilter))
-          }
-          onClearFilters={clearFilters}
+          activeFilterCount={model.activeFilterCount}
+          onClearFilters={model.clearFilters}
         >
           <DataTableSearch
             ariaLabel={clientsCopy.list.searchAriaLabel}
-            onChange={state.handleSearchChange}
-            onClear={state.clearSearch}
-            onSubmit={state.submitSearch}
+            onChange={model.state.handleSearchChange}
+            onClear={model.state.clearSearch}
+            onSubmit={model.state.submitSearch}
             placeholder={clientsCopy.list.searchPlaceholder}
-            value={state.searchDraft}
+            value={model.state.searchDraft}
           />
           <DataTableComboboxFilter
             ariaLabel={clientsCopy.list.cityFilterAriaLabel}
             clearAriaLabel={clientsCopy.list.cityFilterClearAriaLabel}
-            counts={cityFacet.counts}
-            items={cityFacet.items}
-            onValueChange={handleCityFilterChange}
+            counts={model.facet.counts}
+            items={model.facet.items}
+            onValueChange={model.onFacetValueChange}
             placeholder={clientsCopy.list.cityFilterPlaceholder}
-            value={cityFilter}
+            value={model.facetValue}
           />
         </DataTableToolbar>
 
@@ -267,8 +199,8 @@ export function ClientsDataTable() {
             <DataTableEmpty
               emptyDescription={clientsCopy.list.emptyDescription}
               emptyTitle={clientsCopy.list.emptyTitle}
-              hasFilters={hasActiveFilters}
-              onClearFilters={clearFilters}
+              hasFilters={model.hasActiveFilters}
+              onClearFilters={model.clearFilters}
             />
           }
           isInitialLoading={clientsQuery.isPending}
@@ -278,7 +210,7 @@ export function ClientsDataTable() {
         {!clientsQuery.isPending ? (
           <DataTablePagination
             itemLabel={clientsCopy.list.itemLabel}
-            rowCount={filteredClients.length}
+            rowCount={model.filteredRows.length}
             table={table}
           />
         ) : null}
