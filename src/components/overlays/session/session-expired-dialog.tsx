@@ -30,6 +30,7 @@ export function SessionExpiredDialog({
       footer={
         <Button
           aria-busy={isPending}
+          className="col-span-2"
           disabled={isPending}
           onClick={onSignIn}
           type="button"
@@ -47,6 +48,7 @@ export function SessionExpiredDialog({
         }
       }}
       open={open}
+      size="sm"
       title={copy.title}
     />
   )

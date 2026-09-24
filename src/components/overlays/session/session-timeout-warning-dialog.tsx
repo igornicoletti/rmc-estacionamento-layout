@@ -91,18 +91,21 @@ export function SessionTimeoutWarningDialog({
         }
       }}
       open={open}
+      size="sm"
       title={copy.title}
     >
-      <div className="grid gap-1 text-center">
-        <span className="text-sm text-muted-foreground">
-          {copy.remainingTime}
-        </span>
-        <div
-          aria-label={copy.remainingTime}
-          className="text-2xl font-semibold tabular-nums"
-          role="timer"
-        >
-          {formatRemainingTime(remainingSeconds)}
+      <div className="flex justify-center">
+        <div className="min-w-40 rounded-2xl border bg-muted/40 px-5 py-4 text-center">
+          <div
+            aria-label={copy.remainingTime}
+            className="text-3xl font-semibold tracking-tight tabular-nums"
+            role="timer"
+          >
+            {formatRemainingTime(remainingSeconds)}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {copy.remainingTime}
+          </p>
         </div>
       </div>
     </AppAlertDialog>
