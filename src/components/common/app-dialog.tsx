@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-type AppDialogSize = "default" | "wide"
+type AppDialogSize = "sm" | "default" | "wide"
 type DialogRootProps = ComponentProps<typeof Dialog>
 
 interface AppDialogProps {
@@ -47,6 +47,7 @@ export function AppDialog({
           footer
             ? "grid-rows-[auto_minmax(0,1fr)_auto]"
             : "grid-rows-[auto_minmax(0,1fr)]",
+          size === "sm" && "sm:max-w-sm",
           size === "wide" && "sm:max-w-xl",
         )}
         showCloseButton

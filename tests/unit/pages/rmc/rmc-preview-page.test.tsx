@@ -32,4 +32,26 @@ describe("RmcPreviewPage", () => {
       within(expired).getByRole("button", { name: "Entrar novamente" }),
     ).toBeInTheDocument()
   })
+
+  it("abre o overlay de upload de avatar", async () => {
+    const user = userEvent.setup()
+
+    render(<RmcPreviewPage />)
+
+    await user.click(
+      screen.getByRole("button", { name: "Visualizar upload de avatar" }),
+    )
+
+    const dialog = screen.getByRole("dialog", { name: "Imagem de perfil" })
+
+    expect(
+      within(dialog).getByRole("button", { name: "Escolher imagem" }),
+    ).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole("button", {
+        name: "Selecionar arquivo de imagem",
+      }),
+    ).toBeInTheDocument()
+  })
+})
 })

@@ -64,6 +64,9 @@ describe("app routing", () => {
     expect(
       screen.getByRole("button", { name: "Visualizar sessão encerrada" }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Visualizar upload de avatar" }),
+    ).toBeInTheDocument()
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 

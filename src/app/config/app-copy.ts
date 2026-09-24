@@ -60,6 +60,20 @@ export const appCopy = {
     expand: "Expandir menu lateral",
     navigation: "Navegação principal",
   },
+  overlays: {
+    avatarImageUpload: {
+      chooseAction: "Escolher imagem",
+      choosingAction: "Carregando imagem",
+      description: "Selecione uma imagem ou arraste e solte sobre o avatar.",
+      dropTitle: "Solte a imagem aqui",
+      inputLabel: "Selecionar arquivo de imagem",
+      invalidType: "Formato de imagem não suportado.",
+      removeAction: "Remover imagem",
+      title: "Imagem de perfil",
+      tooLarge: "A imagem excede o tamanho máximo permitido.",
+      uploadTitle: "Envie uma imagem",
+    },
+  },
   pageActions: {
     back: "Voltar",
     history: "Histórico",

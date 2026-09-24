@@ -1,13 +1,14 @@
 import { useEffect, useReducer } from "react"
 
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
+import { AvatarImageUploadDialog } from "@/components/overlays/avatar/avatar-image-upload-dialog"
 import { SessionExpiredDialog } from "@/components/overlays/session/session-expired-dialog"
 import { SessionTimeoutWarningDialog } from "@/components/overlays/session/session-timeout-warning-dialog"
 import { Button } from "@/components/ui/button"
 
 const PREVIEW_WARNING_SECONDS = 30
 
-type PreviewOverlay = "expired" | "idle" | "warning"
+type PreviewOverlay = "avatar" | "expired" | "idle" | "warning"
 
 interface PreviewState {
   overlay: PreviewOverlay
@@ -15,7 +16,8 @@ interface PreviewState {
 }
 
 type PreviewAction =
-  | { type: "continue" }
+  | { type: "close" }
+  | { type: "open-avatar" }
   | { type: "open-expired" }
   | { type: "open-warning" }
   | { type: "tick" }
@@ -30,6 +32,11 @@ function previewReducer(
   action: PreviewAction,
 ): PreviewState {
   switch (action.type) {
+    case "open-avatar":
+      return {
+        ...state,
+        overlay: "avatar",
+      }
     case "open-warning":
       return {
         overlay: "warning",
@@ -40,7 +47,7 @@ function previewReducer(
         ...state,
         overlay: "expired",
       }
-    case "continue":
+    case "close":
       return {
         ...state,
         overlay: "idle",
@@ -101,17 +108,36 @@ export function RmcPreviewPage() {
         >
           Visualizar sessão encerrada
         </Button>
+        <Button
+          onClick={() => dispatch({ type: "open-avatar" })}
+          type="button"
+          variant="outline"
+        >
+          Visualizar upload de avatar
+        </Button>
       </div>
 
       <SessionTimeoutWarningDialog
-        onContinue={() => dispatch({ type: "continue" })}
+        onContinue={() => dispatch({ type: "close" })}
         open={state.overlay === "warning"}
         remainingSeconds={state.remainingSeconds}
       />
 
       <SessionExpiredDialog
-        onSignIn={() => dispatch({ type: "continue" })}
+        onSignIn={() => dispatch({ type: "close" })}
         open={state.overlay === "expired"}
+      />
+
+      <AvatarImageUploadDialog
+        displayName="Usuário de exemplo"
+        onFileSelect={() => undefined}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            dispatch({ type: "close" })
+          }
+        }}
+        onRemove={() => undefined}
+        open={state.overlay === "avatar"}
       />
     </AppPageLayout>
   )
