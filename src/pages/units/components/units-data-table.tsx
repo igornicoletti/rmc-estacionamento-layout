@@ -35,6 +35,10 @@ import {
 } from "@/pages/units/data/unit-preview-data"
 import type { Unit } from "@/pages/units/model/unit"
 import {
+  formatUnitCity,
+  formatUnitName,
+} from "@/pages/units/model/unit-presentation"
+import {
   unitRecordCsvColumns,
   unitRecordSections,
 } from "@/pages/units/model/unit-record-presentation"
@@ -97,7 +101,7 @@ export function UnitsDataTable() {
       counts[value] = (counts[value] ?? 0) + 1
       itemMap.set(value, {
         group: unit.state,
-        label: unit.city,
+        label: formatUnitCity(unit.city),
         value,
       })
     }
@@ -262,7 +266,7 @@ export function UnitsDataTable() {
             if (!open) setSelectedUnit(null)
           }}
           open
-          title={selectedUnit.tradeName}
+          title={formatUnitName(selectedUnit.tradeName)}
         >
           <RecordDetails
             record={selectedUnit}

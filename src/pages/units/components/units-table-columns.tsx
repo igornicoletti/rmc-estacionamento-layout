@@ -5,6 +5,10 @@ import {
 } from "@/components/data-table/components/data-table-row-actions"
 import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
 import type { Unit } from "@/pages/units/model/unit"
+import {
+  formatUnitCity,
+  formatUnitName,
+} from "@/pages/units/model/unit-presentation"
 import { formatUnitDateTime } from "@/pages/units/model/unit-record-presentation"
 import { unitsCopy } from "@/pages/units/units.copy"
 
@@ -31,6 +35,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "Código" },
     }),
     columnHelper.accessor("tradeName", {
+      cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -39,6 +44,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "Nome fantasia" },
     }),
     columnHelper.accessor("legalName", {
+      cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -53,6 +59,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "CNPJ" },
     }),
     columnHelper.accessor("brand", {
+      cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -68,7 +75,7 @@ export function createUnitsTableColumns({
     }),
     columnHelper.accessor("city", {
       cell: ({ getValue, row }) =>
-        `${getValue()} — ${row.original.stateCode}`,
+        `${formatUnitCity(getValue())} — ${row.original.stateCode}`,
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -127,7 +134,7 @@ export function createUnitsTableColumns({
     columnHelper.display({
       cell: ({ row }) => (
         <DataTableRowActions
-          accessibleLabel={`Ações da unidade ${row.original.tradeName}`}
+          accessibleLabel={`Ações da unidade ${formatUnitName(row.original.tradeName)}`}
           onCopyData={() => onCopyData(row.original)}
           onDetails={() => onDetails(row.original)}
         />

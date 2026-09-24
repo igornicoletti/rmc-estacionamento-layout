@@ -3,6 +3,10 @@ import {
   type RecordSectionDefinition,
 } from "@/lib/format-record-fields"
 import type { Unit } from "@/pages/units/model/unit"
+import {
+  formatUnitCity,
+  formatUnitName,
+} from "@/pages/units/model/unit-presentation"
 
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
@@ -22,15 +26,19 @@ export const unitRecordSections = [
       {
         key: "tradeName",
         label: "Nome fantasia",
-        getValue: (unit) => unit.tradeName,
+        getValue: (unit) => formatUnitName(unit.tradeName),
       },
       {
         key: "legalName",
         label: "Razão social",
-        getValue: (unit) => unit.legalName,
+        getValue: (unit) => formatUnitName(unit.legalName),
       },
       { key: "cnpj", label: "CNPJ", getValue: (unit) => unit.cnpj },
-      { key: "brand", label: "Bandeira", getValue: (unit) => unit.brand },
+      {
+        key: "brand",
+        label: "Bandeira",
+        getValue: (unit) => formatUnitName(unit.brand),
+      },
       {
         key: "brandCode",
         label: "Código da bandeira",
@@ -42,7 +50,11 @@ export const unitRecordSections = [
     key: "location",
     title: "Localização",
     fields: [
-      { key: "city", label: "Cidade", getValue: (unit) => unit.city },
+      {
+        key: "city",
+        label: "Cidade",
+        getValue: (unit) => formatUnitCity(unit.city),
+      },
       {
         key: "cityCode",
         label: "Código da cidade",

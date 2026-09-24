@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  formatCnpj,
-  mapErpUnit,
-  mapErpUnits,
-  normalizePortugueseName,
-} from "@/pages/units/model/unit-mapper"
+import { formatCnpj } from "@/lib/erp/tax-id"
+import { mapErpUnit, mapErpUnits } from "@/pages/units/model/unit-mapper"
 
 const validRecord = {
   cod_empresa: 1,
@@ -29,36 +25,68 @@ const validRecord = {
 }
 
 describe("unit mapper", () => {
-  it("normaliza o contrato legado para apresentação em português", () => {
+  it("preserva nomes canônicos do ERP e normaliza apenas tipos técnicos", () => {
     expect(mapErpUnit(validRecord)).toMatchObject({
       id: "1",
-      legalName: "Posto Monte Carlo São José Ltda.",
-      tradeName: "São José",
+      legalName: "POSTO MONTE CARLO SAO JOSE LTDA",
+      tradeName: "SAO JOSE",
       cnpj: "21.384.959/0001-48",
-      brand: "Bandeira Branca",
-      city: "São José do Rio Preto",
+      brand: "BANDEIRA BRANCA",
+      city: "SAO JOSE DO RIO PRETO",
       state: "São Paulo",
       stateCode: "SP",
       coordinates: "-20.864665, -49.413584",
     })
   })
 
+  it("usa o mapa canônico das UFs, inclusive Goiás, DF e Espírito Santo", () => {
+    expect(
+      mapErpUnit({
+        ...validRecord,
+        nom_estado: "GOIAS",
+        sgl_estado: "go",
+      }).state,
+    ).toBe("Goiás")
+    expect(
+      mapErpUnit({
+        ...validRecord,
+        nom_estado: "DISTRITO FEDERAL",
+        sgl_estado: "df",
+      }).state,
+    ).toBe("Distrito Federal")
+    expect(
+      mapErpUnit({
+        ...validRecord,
+        nom_estado: "ESPIRITO SANTO",
+        sgl_estado: "es",
+      }).state,
+    ).toBe("Espírito Santo")
+  })
+
+  it("aceita identificador inteiro em número, string ou bigint", () => {
+    expect(mapErpUnit({ ...validRecord, cod_empresa: "42" }).id).toBe("42")
+    expect(mapErpUnit({ ...validRecord, cod_empresa: 42n }).id).toBe("42")
+  })
+
   it("descarta coordenadas opcionais inválidas e ignora metadados internos", () => {
-    expect(mapErpUnit({
-      ...validRecord,
-      des_coordenada_empresa: "",
-      ip_rede: "XXX",
-    })).toMatchObject({ coordinates: null })
+    expect(
+      mapErpUnit({
+        ...validRecord,
+        des_coordenada_empresa: "",
+        ip_rede: "XXX",
+      }),
+    ).toMatchObject({ coordinates: null })
   })
 
   it("rejeita respostas e campos obrigatórios inválidos", () => {
     expect(() => mapErpUnits({})).toThrow("deve ser um array")
-    expect(() => mapErpUnit({ ...validRecord, cod_empresa: 1.5 })).toThrow("cod_empresa")
+    expect(() => mapErpUnit({ ...validRecord, cod_empresa: 1.5 })).toThrow(
+      "cod_empresa",
+    )
+    expect(() => mapErpUnit({ ...validRecord, sgl_estado: "XX" })).toThrow(
+      "UF brasileira válida",
+    )
     expect(() => formatCnpj("123")).toThrow("14 dígitos")
     expect(() => formatCnpj("11111111111111")).toThrow("validação")
-  })
-
-  it("preserva conectores em minúsculas", () => {
-    expect(normalizePortugueseName("AUTO POSTO DA CIDADE")).toBe("Auto Posto da Cidade")
   })
 })

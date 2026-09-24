@@ -1,19 +1,17 @@
-import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
-  formatCpfCnpj,
-  readErpBoolean,
   readErpDateTime,
+} from "@/lib/erp/date-time"
+import {
+  asErpRecord,
+  readErpBoolean,
   readErpIdentifier,
   readErpString,
-  type ErpRecord,
-} from "@/pages/clients/model/erp-record"
+} from "@/lib/erp/erp-record"
+import { formatCpfCnpj } from "@/lib/erp/tax-id"
+import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 
 export function mapErpClientVehicle(input: unknown): ClientVehicle {
-  if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    throw new TypeError("Veículo de cliente inválido: registro deve ser um objeto.")
-  }
-
-  const record = input as ErpRecord
+  const record = asErpRecord(input, "Veículo de cliente")
 
   return {
     id: readErpIdentifier(record, "cod_veiculo"),
