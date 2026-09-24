@@ -52,6 +52,10 @@ function getVehicleDescriptionValue(vehicle: ClientVehicle) {
     : undefined
 }
 
+function getVehicleDescriptionLabel(vehicle: ClientVehicle) {
+  return formatVehicleDescription(vehicle.description)
+}
+
 function getVehicleSearchText(vehicle: ClientVehicle) {
   return [
     vehicle.id,
@@ -100,8 +104,7 @@ export function ClientVehiclesDataTable({
     [clientVehicles],
   )
   const model = useLocalDataTableModel({
-    getFacetLabel: (vehicle: ClientVehicle) =>
-      formatVehicleDescription(vehicle.description),
+    getFacetLabel: getVehicleDescriptionLabel,
     getFacetValue: getVehicleDescriptionValue,
     getSearchText: getVehicleSearchText,
     getSortValue: getVehicleSortValue,

@@ -46,6 +46,14 @@ function getClientCityValue(client: Client) {
   return `${client.stateCode}:${client.city}`
 }
 
+function getClientCityGroup(client: Client) {
+  return client.state
+}
+
+function getClientCityLabel(client: Client) {
+  return formatCityName(client.city)
+}
+
 function getClientSearchText(client: Client) {
   return [
     client.id,
@@ -91,8 +99,8 @@ export function ClientsDataTable() {
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const model = useLocalDataTableModel({
-    getFacetGroup: (client: Client) => client.state,
-    getFacetLabel: (client: Client) => formatCityName(client.city),
+    getFacetGroup: getClientCityGroup,
+    getFacetLabel: getClientCityLabel,
     getFacetValue: getClientCityValue,
     getSearchText: getClientSearchText,
     getSortValue: getClientSortValue,

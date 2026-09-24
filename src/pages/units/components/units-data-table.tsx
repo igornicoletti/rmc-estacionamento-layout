@@ -45,6 +45,14 @@ function getUnitCityValue(unit: Unit) {
   return `${unit.stateCode}:${unit.city}`
 }
 
+function getUnitCityGroup(unit: Unit) {
+  return unit.state
+}
+
+function getUnitCityLabel(unit: Unit) {
+  return formatUnitCity(unit.city)
+}
+
 function getUnitSearchText(unit: Unit) {
   return [
     unit.id,
@@ -91,8 +99,8 @@ export function UnitsDataTable() {
   const units = unitsQuery.data ?? EMPTY_UNITS
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
   const model = useLocalDataTableModel({
-    getFacetGroup: (unit: Unit) => unit.state,
-    getFacetLabel: (unit: Unit) => formatUnitCity(unit.city),
+    getFacetGroup: getUnitCityGroup,
+    getFacetLabel: getUnitCityLabel,
     getFacetValue: getUnitCityValue,
     getSearchText: getUnitSearchText,
     getSortValue: getUnitSortValue,
