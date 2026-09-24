@@ -18,7 +18,6 @@ interface AppSheetProps {
   footer?: ReactNode
   onOpenChange: NonNullable<SheetRootProps["onOpenChange"]>
   open: boolean
-  showCloseButton?: boolean
   size?: AppSheetSize
   title: ReactNode
 }
@@ -35,7 +34,6 @@ export function AppSheet({
   footer,
   onOpenChange,
   open,
-  showCloseButton = true,
   size = "default",
   title,
 }: AppSheetProps) {
@@ -47,7 +45,7 @@ export function AppSheet({
             ? "data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
             : undefined
         }
-        showCloseButton={showCloseButton}
+        showCloseButton
       >
         <SheetHeader className="shrink-0">
           <SheetTitle>{title}</SheetTitle>
