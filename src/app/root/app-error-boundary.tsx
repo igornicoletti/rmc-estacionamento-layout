@@ -51,13 +51,12 @@ export class AppErrorBoundary extends Component<
         <AppEmpty
           description={feedback.description}
           media={{ icon: TriangleAlertIcon }}
-          primaryAction={
-            <Button onClick={this.reload} type="button">
-              {feedback.action}
-            </Button>
-          }
           title={feedback.title}
-        />
+        >
+          <Button onClick={this.reload} type="button">
+            {feedback.action}
+          </Button>
+        </AppEmpty>
       </AppRootLayout>
     )
   }

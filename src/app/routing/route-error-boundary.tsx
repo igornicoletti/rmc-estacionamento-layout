@@ -33,15 +33,14 @@ export function RootErrorContent({ kind }: { kind: RootErrorKind }) {
       <AppEmpty
         description={feedback.description}
         media={{ icon: Icon }}
-        primaryAction={
-          "action" in feedback ? (
-            <Button onClick={() => window.location.reload()} type="button">
-              {feedback.action}
-            </Button>
-          ) : undefined
-        }
         title={feedback.title}
-      />
+      >
+        {"action" in feedback ? (
+          <Button onClick={() => window.location.reload()} type="button">
+            {feedback.action}
+          </Button>
+        ) : null}
+      </AppEmpty>
     </AppRootLayout>
   )
 }
