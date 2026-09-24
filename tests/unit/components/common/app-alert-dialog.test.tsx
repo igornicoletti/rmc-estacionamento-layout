@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CircleAlertIcon } from "lucide-react"
 import { describe, expect, it, vi } from "vitest"
 
 import { AppAlertDialog } from "@/components/common/app-alert-dialog"
@@ -14,7 +13,7 @@ describe("AppAlertDialog", () => {
     render(
       <AppAlertDialog
         footer={<AlertDialogCancel>Cancelar</AlertDialogCancel>}
-        media={<CircleAlertIcon aria-label="Alerta" />}
+        media={<span data-testid="media" />}
         onOpenChange={onOpenChange}
         open
         title="Confirmação"
@@ -26,7 +25,7 @@ describe("AppAlertDialog", () => {
     expect(
       screen.getByRole("alertdialog", { name: "Confirmação" }),
     ).toBeInTheDocument()
-    expect(screen.getByLabelText("Alerta")).toBeInTheDocument()
+    expect(screen.getByTestId("media")).toBeInTheDocument()
     expect(screen.getByTestId("conteudo-adicional")).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Cancelar" }))

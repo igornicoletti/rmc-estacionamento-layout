@@ -103,6 +103,8 @@ describe("AppCombobox", () => {
       </AppCombobox>,
     )
 
+    await user.click(screen.getByRole("combobox", { name: "status" }))
+
     expect(document.querySelector('[data-selected="true"]')).toBeInTheDocument()
 
     await user.click(
