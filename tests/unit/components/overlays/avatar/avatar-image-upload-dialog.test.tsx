@@ -22,9 +22,11 @@ describe("AvatarImageUploadDialog", () => {
       />,
     )
 
-    const input = screen.getByLabelText("Selecionar arquivo de imagem")
+    const input = document.querySelector('input[type="file"]')
 
-    await user.upload(input, file)
+    expect(input).toBeInstanceOf(HTMLInputElement)
+
+    await user.upload(input as HTMLInputElement, file)
 
     expect(onFileSelect).toHaveBeenCalledWith(file)
   })

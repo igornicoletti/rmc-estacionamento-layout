@@ -320,8 +320,7 @@ export function AvatarImageUploadDialog({
 
         <input
           accept={acceptedMimeTypes.join(",")}
-          aria-label={copy.inputLabel}
-          className="sr-only"
+          className="hidden"
           disabled={isPending}
           onChange={(event) => {
             const [file] = Array.from(event.currentTarget.files ?? [])

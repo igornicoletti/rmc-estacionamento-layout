@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-type AppDialogSize = "default" | "wide"
 type DialogRootProps = ComponentProps<typeof Dialog>
 
 interface AppDialogProps {
@@ -19,7 +18,6 @@ interface AppDialogProps {
   footer?: ReactNode
   onOpenChange: NonNullable<DialogRootProps["onOpenChange"]>
   open: boolean
-  size?: AppDialogSize
   title: ReactNode
 }
 
@@ -36,7 +34,6 @@ export function AppDialog({
   footer,
   onOpenChange,
   open,
-  size = "default",
   title,
 }: AppDialogProps) {
   return (
@@ -47,7 +44,6 @@ export function AppDialog({
           footer
             ? "grid-rows-[auto_minmax(0,1fr)_auto]"
             : "grid-rows-[auto_minmax(0,1fr)]",
-          size === "wide" && "sm:max-w-xl",
         )}
         showCloseButton
       >
