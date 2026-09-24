@@ -48,7 +48,7 @@ describe("UnitsDataTable query boundary", () => {
     expect(table.closest('[aria-busy="true"]')).not.toBeNull()
     expect(screen.queryByText("18 unidades")).not.toBeInTheDocument()
 
-    await act(async () => {
+    act(() => {
       resolveUnits?.(previewUnits)
     })
 
