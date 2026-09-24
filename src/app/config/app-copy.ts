@@ -28,6 +28,23 @@ export const appCopy = {
     sessionBootstrap: {
       label: "Inicializando aplicação",
     },
+    sessionExpired: {
+      action: "Entrar novamente",
+      description:
+        "Sua sessão foi encerrada por inatividade. Entre novamente para continuar.",
+      pendingAction: "Redirecionando",
+      title: "Sessão encerrada",
+    },
+    sessionTimeoutWarning: {
+      continueAction: "Continuar sessão",
+      continuingAction: "Continuando",
+      description:
+        "Sua sessão será encerrada por inatividade se nenhuma ação for realizada.",
+      remainingTime: "Tempo restante",
+      signOutAction: "Sair agora",
+      signingOutAction: "Saindo",
+      title: "Sua sessão está prestes a expirar",
+    },
     sessionUnavailable: {
       action: "Tentar novamente",
       description: "Não foi possível confirmar sua sessão. Tente novamente.",
