@@ -1,7 +1,10 @@
+import { XIcon } from "lucide-react"
 import type { ComponentProps, ReactNode } from "react"
 
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -27,8 +30,8 @@ interface AppDialogProps {
 /**
  * Dialog padronizado da aplicação.
  *
- * Centraliza header, corpo rolável, footer e largura. Regras de negócio e o
- * conteúdo do escopo são fornecidos por children e pelos slots opcionais.
+ * Centraliza header, corpo rolável, footer, fechamento e largura. Regras de
+ * negócio e o conteúdo do escopo são fornecidos por children e pelos slots.
  */
 export function AppDialog({
   children,
@@ -49,7 +52,7 @@ export function AppDialog({
     >
       <DialogContent
         className={size === "wide" ? "sm:max-w-xl" : undefined}
-        showCloseButton={showCloseButton}
+        showCloseButton={false}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -57,6 +60,22 @@ export function AppDialog({
             <DialogDescription>{description}</DialogDescription>
           ) : null}
         </DialogHeader>
+
+        {showCloseButton ? (
+          <DialogClose
+            aria-label="Fechar"
+            render={
+              <Button
+                className="absolute top-4 right-4 bg-secondary"
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              />
+            }
+          >
+            <XIcon aria-hidden="true" />
+          </DialogClose>
+        ) : null}
 
         <div className="-mx-4 max-h-[50vh] overflow-y-auto px-4">
           {children}
