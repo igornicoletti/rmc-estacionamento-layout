@@ -1,4 +1,4 @@
-import { Trash2Icon, UploadIcon } from "lucide-react"
+import { ImageUpIcon, Trash2Icon } from "lucide-react"
 import {
   useEffect,
   useId,
@@ -230,7 +230,6 @@ export function AvatarImageUploadDialog({
     <AppDialog
       footer={
         <Button
-          className="w-full"
           disabled={isPending}
           onClick={openFilePicker}
           type="button"
@@ -238,14 +237,13 @@ export function AvatarImageUploadDialog({
           {isPending ? (
             <Spinner aria-hidden="true" data-icon="inline-start" />
           ) : (
-            <UploadIcon aria-hidden="true" data-icon="inline-start" />
+            <ImageUpIcon aria-hidden="true" data-icon="inline-start" />
           )}
           {isPending ? copy.choosingAction : copy.chooseAction}
         </Button>
       }
       onOpenChange={handleOpenChange}
       open={open}
-      size="sm"
       title={copy.title}
     >
       <div className="flex flex-col items-center gap-4 py-2">
@@ -284,14 +282,14 @@ export function AvatarImageUploadDialog({
                 isDragging && "opacity-100",
               )}
             >
-              <UploadIcon className="size-6" />
+              <ImageUpIcon className="size-6" />
             </span>
           </button>
 
           {hasImage ? (
             <Button
               aria-label={copy.removeAction}
-              className="absolute right-0 bottom-0 rounded-full bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90"
+              className="absolute right-0 bottom-0"
               disabled={isPending}
               onClick={handleRemove}
               size="icon-sm"

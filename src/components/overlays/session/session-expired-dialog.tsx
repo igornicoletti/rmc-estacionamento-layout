@@ -1,4 +1,4 @@
-import { AlarmClockOffIcon } from "lucide-react"
+import { AlarmClockOffIcon, LogInIcon } from "lucide-react"
 
 import { appCopy } from "@/app/config/app-copy"
 import { AppAlertDialog } from "@/components/common/app-alert-dialog"
@@ -28,18 +28,21 @@ export function SessionExpiredDialog({
     <AppAlertDialog
       description={copy.description}
       footer={
-        <Button
-          aria-busy={isPending}
-          className="col-span-2"
-          disabled={isPending}
-          onClick={onSignIn}
-          type="button"
-        >
-          {isPending ? (
-            <Spinner aria-hidden="true" data-icon="inline-start" />
-          ) : null}
-          {isPending ? copy.pendingAction : copy.action}
-        </Button>
+        <div className="col-span-2 flex justify-center">
+          <Button
+            aria-busy={isPending}
+            disabled={isPending}
+            onClick={onSignIn}
+            type="button"
+          >
+            {isPending ? (
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+            ) : (
+              <LogInIcon aria-hidden="true" data-icon="inline-start" />
+            )}
+            {isPending ? copy.pendingAction : copy.action}
+          </Button>
+        </div>
       }
       media={<AlarmClockOffIcon aria-hidden="true" />}
       onOpenChange={(nextOpen, eventDetails) => {
