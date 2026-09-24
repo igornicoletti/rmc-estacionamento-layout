@@ -1,5 +1,4 @@
 import type { ReactNode } from "react"
-import { cn } from "cn"
 
 import { Badge } from "@/components/ui/badge"
 
@@ -16,9 +15,9 @@ interface AppBadgeProps {
 }
 
 const toneClassName: Record<AppBadgeTone, string> = {
-  error: "border-transparent bg-destructive/10 text-destructive",
+  error: "border-transparent bg-error/10 text-error",
   info: "border-transparent bg-info/10 text-info",
-  neutral: "border-transparent bg-muted text-muted-foreground",
+  neutral: "border-transparent bg-status-neutral/10 text-status-neutral",
   success: "border-transparent bg-success/10 text-success",
   warning: "border-transparent bg-warning/10 text-warning",
 }
@@ -34,7 +33,7 @@ export function AppBadge({
   tone = "neutral",
 }: AppBadgeProps) {
   return (
-    <Badge className={cn(toneClassName[tone])} variant="outline">
+    <Badge className={toneClassName[tone]} variant="outline">
       {children}
     </Badge>
   )
