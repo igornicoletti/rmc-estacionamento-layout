@@ -80,8 +80,14 @@ export function SessionTimeoutWarningDialog({
       initialFocus={continueButtonRef}
       media={<Clock3Icon aria-hidden="true" />}
       onOpenChange={(nextOpen, eventDetails) => {
-        if (!nextOpen) {
-          eventDetails.cancel()
+        if (nextOpen) {
+          return
+        }
+
+        eventDetails.cancel()
+
+        if (eventDetails.reason === "escape-key" && !isPending) {
+          onContinue()
         }
       }}
       open={open}

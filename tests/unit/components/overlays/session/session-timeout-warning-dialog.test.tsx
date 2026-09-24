@@ -53,12 +53,13 @@ describe("SessionTimeoutWarningDialog", () => {
     expect(actions[1]).toHaveAttribute("aria-busy", "true")
   })
 
-  it("mantém o aviso aberto quando o usuário pressiona Escape", async () => {
+  it("trata Escape como presença e solicita a continuidade da sessão", async () => {
     const user = userEvent.setup()
+    const onContinue = vi.fn()
 
     render(
       <SessionTimeoutWarningDialog
-        onContinue={vi.fn()}
+        onContinue={onContinue}
         onSignOut={vi.fn()}
         open
         remainingSeconds={30}
@@ -67,6 +68,6 @@ describe("SessionTimeoutWarningDialog", () => {
 
     await user.keyboard("{Escape}")
 
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument()
+    expect(onContinue).toHaveBeenCalledOnce()
   })
 })
