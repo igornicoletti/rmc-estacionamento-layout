@@ -5,7 +5,7 @@ import { useParams } from "react-router"
 import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AppEmpty } from "@/components/common/app-empty"
-import { PageSyncHistoryActions } from "@/components/common/page-sync-history-actions"
+import { PageSyncHistoryActions } from "@/components/sync-history/page-sync-history-actions"
 import { clientsCopy } from "@/pages/clients/clients.copy"
 import { LazyClientVehiclesDataTable } from "@/pages/clients/components/lazy-client-vehicles-data-table"
 import {
