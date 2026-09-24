@@ -31,19 +31,17 @@ export const appCopy = {
     sessionExpired: {
       action: "Entrar novamente",
       description:
-        "Sua sessão foi encerrada por inatividade. Entre novamente para continuar.",
-      pendingAction: "Redirecionando",
-      title: "Sessão encerrada",
+        "Por segurança, sua sessão foi encerrada após um período sem atividade. Entre novamente para continuar.",
+      pendingAction: "Entrando novamente",
+      title: "Sessão encerrada por inatividade",
     },
     sessionTimeoutWarning: {
-      continueAction: "Continuar sessão",
-      continuingAction: "Continuando",
+      continueAction: "Continuar conectado",
+      continuingAction: "Mantendo sessão",
       description:
-        "Sua sessão será encerrada por inatividade se nenhuma ação for realizada.",
+        "Sua sessão será encerrada em breve por inatividade. Continue para permanecer conectado.",
       remainingTime: "Tempo restante",
-      signOutAction: "Sair agora",
-      signingOutAction: "Saindo",
-      title: "Sua sessão está prestes a expirar",
+      title: "Sessão prestes a expirar",
     },
     sessionUnavailable: {
       action: "Tentar novamente",

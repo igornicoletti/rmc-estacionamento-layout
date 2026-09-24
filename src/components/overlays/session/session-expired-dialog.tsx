@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from "lucide-react"
+import { AlarmClockOffIcon } from "lucide-react"
 
 import { appCopy } from "@/app/config/app-copy"
 import { AppAlertDialog } from "@/components/common/app-alert-dialog"
@@ -41,7 +41,7 @@ export function SessionExpiredDialog({
           {isPending ? copy.pendingAction : copy.action}
         </Button>
       }
-      media={<TriangleAlertIcon aria-hidden="true" />}
+      media={<AlarmClockOffIcon aria-hidden="true" />}
       onOpenChange={(nextOpen, eventDetails) => {
         if (!nextOpen) {
           eventDetails.cancel()

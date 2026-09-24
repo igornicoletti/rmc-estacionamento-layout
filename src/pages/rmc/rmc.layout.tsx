@@ -16,7 +16,6 @@ interface PreviewState {
 
 type PreviewAction =
   | { type: "continue" }
-  | { type: "expire" }
   | { type: "open-expired" }
   | { type: "open-warning" }
   | { type: "tick" }
@@ -37,7 +36,6 @@ function previewReducer(
         remainingSeconds: PREVIEW_WARNING_SECONDS,
       }
     case "open-expired":
-    case "expire":
       return {
         ...state,
         overlay: "expired",
@@ -107,7 +105,6 @@ export function RmcPreviewPage() {
 
       <SessionTimeoutWarningDialog
         onContinue={() => dispatch({ type: "continue" })}
-        onSignOut={() => dispatch({ type: "expire" })}
         open={state.overlay === "warning"}
         remainingSeconds={state.remainingSeconds}
       />

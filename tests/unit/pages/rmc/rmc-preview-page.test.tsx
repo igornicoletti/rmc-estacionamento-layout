@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 import { RmcPreviewPage } from "@/pages/rmc/rmc.layout"
 
 describe("RmcPreviewPage", () => {
-  it("permite abrir e percorrer os dois overlays de sessão", async () => {
+  it("permite abrir e validar os dois overlays de sessão", async () => {
     const user = userEvent.setup()
 
     render(<RmcPreviewPage />)
@@ -17,12 +17,9 @@ describe("RmcPreviewPage", () => {
     const warning = screen.getByRole("alertdialog")
     expect(screen.getByRole("timer")).toHaveTextContent("00:30")
 
-    const warningActions = within(warning).getAllByRole("button")
-    await user.click(warningActions[0])
-
-    const expired = screen.getByRole("alertdialog")
-    const [signInAction] = within(expired).getAllByRole("button")
-    await user.click(signInAction)
+    await user.click(
+      within(warning).getByRole("button", { name: "Continuar conectado" }),
+    )
 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
 
@@ -30,6 +27,9 @@ describe("RmcPreviewPage", () => {
       screen.getByRole("button", { name: "Visualizar sessão encerrada" }),
     )
 
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument()
+    const expired = screen.getByRole("alertdialog")
+    expect(
+      within(expired).getByRole("button", { name: "Entrar novamente" }),
+    ).toBeInTheDocument()
   })
 })

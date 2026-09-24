@@ -1,4 +1,4 @@
-import { Clock3Icon } from "lucide-react"
+import { ClockAlertIcon } from "lucide-react"
 import { useRef } from "react"
 
 import { appCopy } from "@/app/config/app-copy"
@@ -6,13 +6,10 @@ import { AppAlertDialog } from "@/components/common/app-alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
-type SessionTimeoutPendingAction = "continue" | "sign-out"
-
 interface SessionTimeoutWarningDialogProps {
+  isPending?: boolean
   onContinue: () => void
-  onSignOut: () => void
   open: boolean
-  pendingAction?: SessionTimeoutPendingAction
   remainingSeconds: number
 }
 
@@ -30,55 +27,37 @@ function formatRemainingTime(value: number) {
  * Aviso visual de expiração iminente da sessão.
  *
  * A política de inatividade e a contagem pertencem ao escopo de sessão.
- * Este componente apenas apresenta remainingSeconds e encaminha as ações.
+ * Este componente apenas apresenta remainingSeconds e encaminha a continuidade.
  */
 export function SessionTimeoutWarningDialog({
+  isPending = false,
   onContinue,
-  onSignOut,
   open,
-  pendingAction,
   remainingSeconds,
 }: SessionTimeoutWarningDialogProps) {
   const copy = appCopy.feedback.sessionTimeoutWarning
   const continueButtonRef = useRef<HTMLButtonElement>(null)
-  const isPending = pendingAction !== undefined
-  const isContinuing = pendingAction === "continue"
-  const isSigningOut = pendingAction === "sign-out"
 
   return (
     <AppAlertDialog
       description={copy.description}
       footer={
-        <>
-          <Button
-            aria-busy={isSigningOut}
-            disabled={isPending}
-            onClick={onSignOut}
-            type="button"
-            variant="outline"
-          >
-            {isSigningOut ? (
-              <Spinner aria-hidden="true" data-icon="inline-start" />
-            ) : null}
-            {isSigningOut ? copy.signingOutAction : copy.signOutAction}
-          </Button>
-
-          <Button
-            aria-busy={isContinuing}
-            disabled={isPending}
-            onClick={onContinue}
-            ref={continueButtonRef}
-            type="button"
-          >
-            {isContinuing ? (
-              <Spinner aria-hidden="true" data-icon="inline-start" />
-            ) : null}
-            {isContinuing ? copy.continuingAction : copy.continueAction}
-          </Button>
-        </>
+        <Button
+          aria-busy={isPending}
+          className="col-span-2"
+          disabled={isPending}
+          onClick={onContinue}
+          ref={continueButtonRef}
+          type="button"
+        >
+          {isPending ? (
+            <Spinner aria-hidden="true" data-icon="inline-start" />
+          ) : null}
+          {isPending ? copy.continuingAction : copy.continueAction}
+        </Button>
       }
       initialFocus={continueButtonRef}
-      media={<Clock3Icon aria-hidden="true" />}
+      media={<ClockAlertIcon aria-hidden="true" />}
       onOpenChange={(nextOpen, eventDetails) => {
         if (nextOpen) {
           return
