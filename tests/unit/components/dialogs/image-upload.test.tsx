@@ -5,10 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { AvatarImageUploadDialog } from "@/components/dialogs/image-upload"
 
 const previewUrl = "blob:avatar-preview"
+const createObjectURLMock = vi.fn(() => previewUrl)
+const revokeObjectURLMock = vi.fn()
 
 beforeEach(() => {
-  vi.spyOn(URL, "createObjectURL").mockReturnValue(previewUrl)
-  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined)
+  createObjectURLMock.mockClear()
+  revokeObjectURLMock.mockClear()
+
+  vi.spyOn(URL, "createObjectURL").mockImplementation(createObjectURLMock)
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(revokeObjectURLMock)
 })
 
 afterEach(() => {
@@ -39,12 +44,12 @@ describe("AvatarImageUploadDialog", () => {
 
     await user.upload(input as HTMLInputElement, file)
 
-    expect(URL.createObjectURL).toHaveBeenCalledWith(file)
+    expect(createObjectURLMock).toHaveBeenCalledWith(file)
     expect(onFileSelect).toHaveBeenCalledWith(file)
 
     unmount()
 
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith(previewUrl)
+    expect(revokeObjectURLMock).toHaveBeenCalledWith(previewUrl)
   })
 
   it("aceita arquivo válido por arrastar e soltar", () => {
