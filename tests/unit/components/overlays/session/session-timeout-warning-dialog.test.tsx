@@ -1,11 +1,11 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { SessionTimeoutWarningDialog } from "@/components/overlays/session/session-timeout-warning-dialog"
 
 describe("SessionTimeoutWarningDialog", () => {
-  it("expõe a contagem e encaminha as duas respostas", async () => {
+  it("prioriza a continuidade da sessão e encaminha as duas respostas", async () => {
     const user = userEvent.setup()
     const onContinue = vi.fn()
     const onSignOut = vi.fn()
@@ -19,11 +19,14 @@ describe("SessionTimeoutWarningDialog", () => {
       />,
     )
 
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument()
+    const dialog = screen.getByRole("alertdialog")
+    const actions = within(dialog).getAllByRole("button")
+
     expect(screen.getByRole("timer")).toHaveTextContent("01:05")
 
-    const actions = screen.getAllByRole("button")
-    expect(actions).toHaveLength(2)
+    await waitFor(() => {
+      expect(actions[1]).toHaveFocus()
+    })
 
     await user.click(actions[0])
     await user.click(actions[1])
@@ -32,7 +35,25 @@ describe("SessionTimeoutWarningDialog", () => {
     expect(onContinue).toHaveBeenCalledOnce()
   })
 
-  it("não permite dispensar o aviso por Escape", async () => {
+  it("bloqueia novas ações enquanto uma resposta está em andamento", () => {
+    render(
+      <SessionTimeoutWarningDialog
+        onContinue={vi.fn()}
+        onSignOut={vi.fn()}
+        open
+        pendingAction="continue"
+        remainingSeconds={30}
+      />,
+    )
+
+    const actions = within(screen.getByRole("alertdialog")).getAllByRole("button")
+
+    expect(actions[0]).toBeDisabled()
+    expect(actions[1]).toBeDisabled()
+    expect(actions[1]).toHaveAttribute("aria-busy", "true")
+  })
+
+  it("mantém o aviso aberto quando o usuário pressiona Escape", async () => {
     const user = userEvent.setup()
 
     render(

@@ -15,6 +15,7 @@ type AlertDialogRootProps = ComponentProps<typeof AlertDialog>
 interface AppAlertDialogProps {
   children?: ReactNode
   description: ReactNode
+  initialFocus?: ComponentProps<typeof AlertDialogContent>["initialFocus"]
   footer: ReactNode
   media?: ReactNode
   onOpenChange: NonNullable<AlertDialogRootProps["onOpenChange"]>
@@ -33,6 +34,7 @@ export function AppAlertDialog({
   children,
   description,
   footer,
+  initialFocus,
   media,
   onOpenChange,
   open,
@@ -41,7 +43,7 @@ export function AppAlertDialog({
 }: AppAlertDialogProps) {
   return (
     <AlertDialog onOpenChange={onOpenChange} open={open}>
-      <AlertDialogContent size={size}>
+      <AlertDialogContent initialFocus={initialFocus} size={size}>
         <AlertDialogHeader>
           {media ? <AlertDialogMedia>{media}</AlertDialogMedia> : null}
           <AlertDialogTitle>{title}</AlertDialogTitle>

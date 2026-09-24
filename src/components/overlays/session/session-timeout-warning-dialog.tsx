@@ -1,16 +1,18 @@
 import { Clock3Icon } from "lucide-react"
+import { useRef } from "react"
 
 import { appCopy } from "@/app/config/app-copy"
 import { AppAlertDialog } from "@/components/common/app-alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
+type SessionTimeoutPendingAction = "continue" | "sign-out"
+
 interface SessionTimeoutWarningDialogProps {
-  isContinuing?: boolean
-  isSigningOut?: boolean
   onContinue: () => void
   onSignOut: () => void
   open: boolean
+  pendingAction?: SessionTimeoutPendingAction
   remainingSeconds: number
 }
 
@@ -31,15 +33,17 @@ function formatRemainingTime(value: number) {
  * Este componente apenas apresenta remainingSeconds e encaminha as ações.
  */
 export function SessionTimeoutWarningDialog({
-  isContinuing = false,
-  isSigningOut = false,
   onContinue,
   onSignOut,
   open,
+  pendingAction,
   remainingSeconds,
 }: SessionTimeoutWarningDialogProps) {
   const copy = appCopy.feedback.sessionTimeoutWarning
-  const isPending = isContinuing || isSigningOut
+  const continueButtonRef = useRef<HTMLButtonElement>(null)
+  const isPending = pendingAction !== undefined
+  const isContinuing = pendingAction === "continue"
+  const isSigningOut = pendingAction === "sign-out"
 
   return (
     <AppAlertDialog
@@ -63,6 +67,7 @@ export function SessionTimeoutWarningDialog({
             aria-busy={isContinuing}
             disabled={isPending}
             onClick={onContinue}
+            ref={continueButtonRef}
             type="button"
           >
             {isContinuing ? (
@@ -72,6 +77,7 @@ export function SessionTimeoutWarningDialog({
           </Button>
         </>
       }
+      initialFocus={continueButtonRef}
       media={<Clock3Icon aria-hidden="true" />}
       onOpenChange={(nextOpen, eventDetails) => {
         if (!nextOpen) {
@@ -81,13 +87,18 @@ export function SessionTimeoutWarningDialog({
       open={open}
       title={copy.title}
     >
-      <output
-        aria-label={copy.remainingTime}
-        className="block text-center text-2xl font-semibold tabular-nums"
-        role="timer"
-      >
-        {formatRemainingTime(remainingSeconds)}
-      </output>
+      <div className="grid gap-1 text-center">
+        <span className="text-sm text-muted-foreground">
+          {copy.remainingTime}
+        </span>
+        <div
+          aria-label={copy.remainingTime}
+          className="text-2xl font-semibold tabular-nums"
+          role="timer"
+        >
+          {formatRemainingTime(remainingSeconds)}
+        </div>
+      </div>
     </AppAlertDialog>
   )
 }

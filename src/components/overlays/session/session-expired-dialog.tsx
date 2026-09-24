@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
 interface SessionExpiredDialogProps {
-  isRedirecting?: boolean
+  isPending?: boolean
   onSignIn: () => void
   open: boolean
 }
@@ -18,7 +18,7 @@ interface SessionExpiredDialogProps {
  * encaminha a ação para o escopo responsável pela sessão.
  */
 export function SessionExpiredDialog({
-  isRedirecting = false,
+  isPending = false,
   onSignIn,
   open,
 }: SessionExpiredDialogProps) {
@@ -29,15 +29,15 @@ export function SessionExpiredDialog({
       description={copy.description}
       footer={
         <Button
-          aria-busy={isRedirecting}
-          disabled={isRedirecting}
+          aria-busy={isPending}
+          disabled={isPending}
           onClick={onSignIn}
           type="button"
         >
-          {isRedirecting ? (
+          {isPending ? (
             <Spinner aria-hidden="true" data-icon="inline-start" />
           ) : null}
-          {isRedirecting ? copy.pendingAction : copy.action}
+          {isPending ? copy.pendingAction : copy.action}
         </Button>
       }
       media={<TriangleAlertIcon aria-hidden="true" />}
