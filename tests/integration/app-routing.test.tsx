@@ -47,6 +47,37 @@ describe("app routing", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
+  it("resolve a rota interna de validação sem registrá-la em appPages", async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
+
+    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+    const appPagePaths: string[] = Object.values(appPages).map(
+      (page) => page.path,
+    )
+
+    expect(appPagePaths).not.toContain("/rmc")
+
+    await act(async () => {
+      await router.navigate("/rmc")
+    })
+
+    expect(router.state.location.pathname).toBe("/rmc")
+    expect(
+      await screen.findByRole("heading", { name: "RMC" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Visualizar aviso de inatividade" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Visualizar sessão encerrada" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Visualizar upload de avatar" }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("navigation")).toBeInTheDocument()
+  })
+
   it("resolve a rota dinâmica de detalhe do cliente", () => {
     const matches = matchRoutes(routes, "/clientes/3492")
 

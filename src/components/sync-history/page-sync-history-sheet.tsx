@@ -2,9 +2,9 @@ import { HistoryIcon } from "lucide-react"
 
 import { AppEmpty } from "@/components/common/app-empty"
 import { AppSheet } from "@/components/common/app-sheet"
-import { pageSyncHistoryCopy } from "@/components/common/page-sync-history.copy"
-import { PageSyncHistoryItem } from "@/components/common/page-sync-history-item"
-import type { PageSyncHistoryExecution } from "@/components/common/page-sync-history.types"
+import { pageSyncHistoryCopy } from "@/components/sync-history/page-sync-history.copy"
+import { PageSyncHistoryItem } from "@/components/sync-history/page-sync-history-item"
+import type { PageSyncHistoryExecution } from "@/components/sync-history/page-sync-history.types"
 import { ItemGroup } from "@/components/ui/item"
 
 interface PageSyncHistorySheetProps {
@@ -41,7 +41,7 @@ export function PageSyncHistorySheet({
       ) : (
         <AppEmpty
           description={pageSyncHistoryCopy.empty.description}
-          headingLevel={2}
+          headingLevel={3}
           media={{ icon: HistoryIcon }}
           title={pageSyncHistoryCopy.empty.title}
         />

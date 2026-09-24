@@ -51,8 +51,7 @@ describe("UnitsDataTable", () => {
       await screen.findByRole("menuitem", { name: "Detalhes" }),
     )
 
-    const sheet = await screen.findByRole("dialog")
-    expect(within(sheet).getByRole("button", { name: "Fechar" })).toBeInTheDocument()
+    const sheet = await screen.findByRole("dialog", { name: "Unidade 01" })
     expect(within(sheet).getByText("Localização")).toBeInTheDocument()
     expect(within(sheet).getByText("88.000.000/0001-32")).toBeInTheDocument()
   })

@@ -23,22 +23,22 @@ export function SessionUnavailableFallback({
     <AppRootLayout>
       <AppEmpty
         description={feedback.description}
+        headingLevel={1}
         media={{ icon: WifiOffIcon }}
-        primaryAction={
-          <Button
-            aria-busy={isRetrying}
-            disabled={isRetrying}
-            onClick={onRetry}
-            type="button"
-          >
-            {isRetrying ? (
-              <Spinner aria-hidden="true" data-icon="inline-start" />
-            ) : null}
-            {isRetrying ? feedback.pendingAction : feedback.action}
-          </Button>
-        }
         title={feedback.title}
-      />
+      >
+        <Button
+          aria-busy={isRetrying}
+          disabled={isRetrying}
+          onClick={onRetry}
+          type="button"
+        >
+          {isRetrying ? (
+            <Spinner aria-hidden="true" data-icon="inline-start" />
+          ) : null}
+          {isRetrying ? feedback.pendingAction : feedback.action}
+        </Button>
+      </AppEmpty>
     </AppRootLayout>
   )
 }

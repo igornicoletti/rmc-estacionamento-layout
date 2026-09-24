@@ -37,8 +37,12 @@ interface DataTableComboboxFilterProps<TValue extends string> {
 }
 
 function groupItems<TValue extends string>(
-  items: DataTableComboboxFilterItem<TValue>[],
+  items: ReadonlyArray<DataTableComboboxFilterItem<TValue>>,
 ): DataTableComboboxFilterGroup<TValue>[] | null {
+  if (items.length === 0) {
+    return null;
+  }
+
   const groups = new Map<string, DataTableComboboxFilterItem<TValue>[]>();
 
   for (const item of items) {
@@ -117,7 +121,7 @@ export function DataTableComboboxFilter<TValue extends string>({
         showClear
       />
 
-      <ComboboxContent aria-label={ariaLabel}>
+      <ComboboxContent>
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {groupedItems

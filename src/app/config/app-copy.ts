@@ -28,6 +28,21 @@ export const appCopy = {
     sessionBootstrap: {
       label: "Inicializando aplicação",
     },
+    sessionExpired: {
+      action: "Entrar novamente",
+      description:
+        "Por segurança, sua sessão foi encerrada após um período sem atividade. Entre novamente para continuar.",
+      pendingAction: "Entrando novamente",
+      title: "Sessão encerrada",
+    },
+    sessionTimeoutWarning: {
+      continueAction: "Continuar conectado",
+      continuingAction: "Mantendo sessão",
+      description:
+        "Sua sessão será encerrada em breve por inatividade. Continue para permanecer conectado.",
+      timerLabel: "Tempo restante",
+      title: "Sessão prestes a expirar",
+    },
     sessionUnavailable: {
       action: "Tentar novamente",
       description: "Não foi possível confirmar sua sessão. Tente novamente.",
@@ -44,6 +59,19 @@ export const appCopy = {
     collapse: "Recolher menu lateral",
     expand: "Expandir menu lateral",
     navigation: "Navegação principal",
+  },
+  overlays: {
+    avatarImageUpload: {
+      chooseAction: "Escolher imagem",
+      choosingAction: "Carregando imagem",
+      dropTitle: "Solte a imagem aqui",
+      inputLabel: "Selecionar arquivo de imagem",
+      invalidType: "Formato de imagem não suportado.",
+      removeAction: "Remover imagem",
+      title: "Imagem de perfil",
+      tooLarge: "A imagem excede o tamanho máximo permitido.",
+      uploadTitle: "Envie uma imagem",
+    },
   },
   pageActions: {
     back: "Voltar",

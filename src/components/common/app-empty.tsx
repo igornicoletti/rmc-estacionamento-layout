@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import type { ComponentProps, ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import {
   Empty,
@@ -14,49 +14,50 @@ type AppEmptyMedia =
   | { avatar: ReactNode; icon?: never }
   | { avatar?: never; icon: LucideIcon }
 
-interface AppEmptyProps extends Omit<ComponentProps<typeof Empty>, "title"> {
+interface AppEmptyProps {
+  children?: ReactNode
   description?: ReactNode
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
   media?: AppEmptyMedia
-  primaryAction?: ReactNode
-  secondaryAction?: ReactNode
   title: ReactNode
 }
 
+/**
+ * Empty state padronizado da aplicação.
+ *
+ * Header e media são estruturais. Todo conteúdo complementar pertence a
+ * children e é renderizado em EmptyContent, sem impor tipo ou quantidade de
+ * ações ao consumidor.
+ */
 export function AppEmpty({
+  children,
   description,
-  headingLevel = 1,
+  headingLevel = 2,
   media,
-  primaryAction,
-  secondaryAction,
   title,
-  ...props
 }: AppEmptyProps) {
   const Icon = media?.icon
-  const hasActions = primaryAction !== undefined || secondaryAction !== undefined
 
   return (
-    <Empty {...props}>
+    <Empty>
       <EmptyHeader>
         {media ? (
           <EmptyMedia variant={Icon ? "icon" : "default"}>
             {Icon ? <Icon aria-hidden="true" /> : media.avatar}
           </EmptyMedia>
         ) : null}
+
         <EmptyTitle aria-level={headingLevel} role="heading">
           {title}
         </EmptyTitle>
+
         {description ? (
           <EmptyDescription>{description}</EmptyDescription>
         ) : null}
       </EmptyHeader>
-      {hasActions ? (
-        <EmptyContent>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {primaryAction}
-            {secondaryAction}
-          </div>
-        </EmptyContent>
+
+      {children !== null && children !== undefined && children !== false ? (
+        <EmptyContent>{children}</EmptyContent>
       ) : null}
     </Empty>
   )
