@@ -23,6 +23,7 @@ export function SessionUnavailableFallback({
     <AppRootLayout>
       <AppEmpty
         description={feedback.description}
+          headingLevel={1}
         media={{ icon: WifiOffIcon }}
         title={feedback.title}
       >

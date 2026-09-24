@@ -49,7 +49,7 @@ export function AppSheet({
         }
         showCloseButton={showCloseButton}
       >
-        <SheetHeader>
+        <SheetHeader className="shrink-0">
           <SheetTitle>{title}</SheetTitle>
           {description ? (
             <SheetDescription>{description}</SheetDescription>
@@ -60,7 +60,9 @@ export function AppSheet({
           {children}
         </div>
 
-        {footer ? <SheetFooter>{footer}</SheetFooter> : null}
+        {footer ? (
+          <SheetFooter className="shrink-0">{footer}</SheetFooter>
+        ) : null}
       </SheetContent>
     </Sheet>
   )

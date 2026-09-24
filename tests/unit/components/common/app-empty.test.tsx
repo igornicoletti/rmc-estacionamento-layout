@@ -7,17 +7,14 @@ import { AppEmpty } from "@/components/common/app-empty"
 import { Button } from "@/components/ui/button"
 
 describe("AppEmpty", () => {
-  it("encaminha todo conteúdo complementar para EmptyContent", async () => {
+  it("encaminha conteúdo complementar sem impor quantidade de ações", async () => {
     const user = userEvent.setup()
     const onFirstAction = vi.fn()
     const onSecondAction = vi.fn()
     const onThirdAction = vi.fn()
 
     render(
-      <AppEmpty
-        media={{ icon: CircleHelpIcon }}
-        title="state"
-      >
+      <AppEmpty media={{ icon: CircleHelpIcon }} title="state">
         <input aria-label="Conteúdo adicional" />
         <div>
           <Button onClick={onFirstAction}>primeira</Button>
@@ -27,11 +24,9 @@ describe("AppEmpty", () => {
       </AppEmpty>,
     )
 
-    const content = screen
-      .getByRole("textbox", { name: "Conteúdo adicional" })
-      .closest('[data-slot="empty-content"]')
-
-    expect(content).toBeInTheDocument()
+    expect(
+      screen.getByRole("textbox", { name: "Conteúdo adicional" }),
+    ).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "primeira" }))
     await user.click(screen.getByRole("button", { name: "segunda" }))

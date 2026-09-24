@@ -50,6 +50,7 @@ export class AppErrorBoundary extends Component<
       <AppRootLayout>
         <AppEmpty
           description={feedback.description}
+          headingLevel={1}
           media={{ icon: TriangleAlertIcon }}
           title={feedback.title}
         >

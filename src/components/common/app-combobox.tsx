@@ -42,7 +42,6 @@ interface AppComboboxProps<TValue extends string> {
   onValueChange: (value: TValue | undefined) => void
   placeholder: string
   showClear?: boolean
-  showGroupSeparators?: boolean
   value?: TValue
 }
 
@@ -84,8 +83,8 @@ function groupItems<TValue extends string>(
  * Combobox de seleção simples da aplicação.
  *
  * Centraliza input pesquisável, limpeza, estado vazio e agrupamento opcional.
- * Itens só são agrupados quando todos declaram group; listas sem group
- * permanecem planas.
+ * Listas totalmente agrupadas seguem a composição oficial com separadores;
+ * listas sem group permanecem planas.
  */
 export function AppCombobox<TValue extends string>({
   ariaLabel,
@@ -98,7 +97,6 @@ export function AppCombobox<TValue extends string>({
   onValueChange,
   placeholder,
   showClear = true,
-  showGroupSeparators = false,
   value,
 }: AppComboboxProps<TValue>) {
   const selectedItem = items.find((item) => item.value === value) ?? null
@@ -131,7 +129,7 @@ export function AppCombobox<TValue extends string>({
         showClear={showClear}
       />
 
-      <ComboboxContent aria-label={ariaLabel}>
+      <ComboboxContent>
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {groupedItems
@@ -139,8 +137,7 @@ export function AppCombobox<TValue extends string>({
                 <ComboboxGroup key={group.value} items={group.items}>
                   <ComboboxLabel>{group.value}</ComboboxLabel>
                   <ComboboxCollection>{renderItem}</ComboboxCollection>
-                  {showGroupSeparators &&
-                  index < groupedItems.length - 1 ? (
+                  {index < groupedItems.length - 1 ? (
                     <ComboboxSeparator />
                   ) : null}
                 </ComboboxGroup>

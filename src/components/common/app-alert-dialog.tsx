@@ -14,8 +14,8 @@ type AlertDialogRootProps = ComponentProps<typeof AlertDialog>
 
 interface AppAlertDialogProps {
   children?: ReactNode
-  description?: ReactNode
-  footer?: ReactNode
+  description: ReactNode
+  footer: ReactNode
   media?: ReactNode
   onOpenChange: NonNullable<AlertDialogRootProps["onOpenChange"]>
   open: boolean
@@ -26,8 +26,8 @@ interface AppAlertDialogProps {
 /**
  * Estrutura controlada para decisões que exigem resposta explícita.
  *
- * O wrapper preserva a composição do AlertDialog e recebe conteúdo, media e
- * ações por slots, sem incorporar regras de negócio.
+ * Exige descrição e footer para preservar contexto acessível e uma resposta
+ * explícita. Conteúdo adicional e media permanecem opcionais.
  */
 export function AppAlertDialog({
   children,
@@ -45,14 +45,12 @@ export function AppAlertDialog({
         <AlertDialogHeader>
           {media ? <AlertDialogMedia>{media}</AlertDialogMedia> : null}
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          {description ? (
-            <AlertDialogDescription>{description}</AlertDialogDescription>
-          ) : null}
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
 
         {children}
 
-        {footer ? <AlertDialogFooter>{footer}</AlertDialogFooter> : null}
+        <AlertDialogFooter>{footer}</AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )

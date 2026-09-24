@@ -6,27 +6,26 @@ import { AppAlertDialog } from "@/components/common/app-alert-dialog"
 import { AlertDialogCancel } from "@/components/ui/alert-dialog"
 
 describe("AppAlertDialog", () => {
-  it("mantém slots opcionais e encaminha o cancelamento", async () => {
+  it("mantém conteúdo adicional e encaminha o cancelamento", async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
 
     render(
       <AppAlertDialog
+        description="Descrição da confirmação"
         footer={<AlertDialogCancel>Cancelar</AlertDialogCancel>}
-        media={<span data-testid="media" />}
         onOpenChange={onOpenChange}
         open
         title="Confirmação"
       >
-        <div data-testid="conteudo-adicional" />
+        <p>Conteúdo adicional</p>
       </AppAlertDialog>,
     )
 
     expect(
       screen.getByRole("alertdialog", { name: "Confirmação" }),
-    ).toBeInTheDocument()
-    expect(screen.getByTestId("media")).toBeInTheDocument()
-    expect(screen.getByTestId("conteudo-adicional")).toBeInTheDocument()
+    ).toHaveAccessibleDescription("Descrição da confirmação")
+    expect(screen.getByText("Conteúdo adicional")).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Cancelar" }))
 

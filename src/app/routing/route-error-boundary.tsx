@@ -32,6 +32,7 @@ export function RootErrorContent({ kind }: { kind: RootErrorKind }) {
     <AppRootLayout>
       <AppEmpty
         description={feedback.description}
+          headingLevel={1}
         media={{ icon: Icon }}
         title={feedback.title}
       >

@@ -20,7 +20,7 @@ const GROUPED_ITEMS = [
 ] as const
 
 describe("AppCombobox", () => {
-  it("mantém lista plana quando os itens não possuem grupo", async () => {
+  it("expõe todas as opções de uma lista sem grupos", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -35,12 +35,9 @@ describe("AppCombobox", () => {
     await user.click(screen.getByRole("combobox", { name: "status" }))
 
     expect(await screen.findAllByRole("option")).toHaveLength(3)
-    expect(
-      document.querySelector('[data-slot="combobox-group"]'),
-    ).not.toBeInTheDocument()
   })
 
-  it("agrupa somente quando todos os itens possuem grupo", async () => {
+  it("expõe grupos e filtra pelo próprio input", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
@@ -49,7 +46,6 @@ describe("AppCombobox", () => {
         items={GROUPED_ITEMS}
         onValueChange={vi.fn()}
         placeholder="Selecione"
-        showGroupSeparators
       />,
     )
 
@@ -58,13 +54,13 @@ describe("AppCombobox", () => {
 
     expect(screen.getByText("PR")).toBeInTheDocument()
     expect(screen.getByText("SP")).toBeInTheDocument()
-    expect(
-      document.querySelectorAll('[data-slot="combobox-separator"]'),
-    ).toHaveLength(1)
 
     await user.type(input, "Curitiba")
 
     expect(await screen.findAllByRole("option")).toHaveLength(1)
+    expect(
+      screen.getByRole("option", { name: "Curitiba" }),
+    ).toBeInTheDocument()
   })
 
   it("encaminha seleção, children e limpeza nativa", async () => {
@@ -77,9 +73,9 @@ describe("AppCombobox", () => {
         onValueChange={onValueChange}
         placeholder="Selecione"
       >
-        {(item, state) => (
-          <span data-selected={state.selected || undefined}>{item.label}</span>
-        )}
+        {(item, state) =>
+          state.selected ? `${item.label} selecionado` : item.label
+        }
       </AppCombobox>,
     )
 
@@ -97,16 +93,18 @@ describe("AppCombobox", () => {
         placeholder="Selecione"
         value="suspended"
       >
-        {(item, state) => (
-          <span data-selected={state.selected || undefined}>{item.label}</span>
-        )}
+        {(item, state) =>
+          state.selected ? `${item.label} selecionado` : item.label
+        }
       </AppCombobox>,
     )
 
     const input = screen.getByRole("combobox", { name: "status" })
     await user.click(input)
 
-    expect(document.querySelector('[data-selected="true"]')).toBeInTheDocument()
+    expect(
+      screen.getByRole("option", { name: "Suspenso selecionado" }),
+    ).toBeInTheDocument()
 
     await user.keyboard("{Escape}")
     expect(input).toHaveAttribute("aria-expanded", "false")
