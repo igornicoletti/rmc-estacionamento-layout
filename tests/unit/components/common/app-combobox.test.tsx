@@ -103,9 +103,13 @@ describe("AppCombobox", () => {
       </AppCombobox>,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "status" }))
+    const input = screen.getByRole("combobox", { name: "status" })
+    await user.click(input)
 
     expect(document.querySelector('[data-selected="true"]')).toBeInTheDocument()
+
+    await user.keyboard("{Escape}")
+    expect(input).toHaveAttribute("aria-expanded", "false")
 
     await user.click(
       screen.getByRole("button", { name: "Limpar seleção" }),
