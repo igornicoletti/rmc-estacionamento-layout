@@ -7,10 +7,10 @@ import { createDataTableHook } from "@/components/data-table/hooks/create-data-t
 import type { Unit } from "@/pages/units/model/unit"
 import {
   formatUnitCity,
+  formatUnitDateTime,
   formatUnitName,
+  formatUnitOptionalText,
 } from "@/pages/units/model/unit-presentation"
-import { formatUnitDateTime } from "@/pages/units/model/unit-record-presentation"
-import { unitsCopy } from "@/pages/units/units.copy"
 
 interface UnitsTableColumnActions {
   onCopyData: (unit: Unit) => void
@@ -98,7 +98,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "Código da cidade" },
     }),
     columnHelper.accessor("coordinates", {
-      cell: ({ getValue }) => getValue() ?? unitsCopy.notInformed,
+      cell: ({ getValue }) => formatUnitOptionalText(getValue()),
       enableHiding: true,
       enableSorting: false,
       header: "Coordenadas",
