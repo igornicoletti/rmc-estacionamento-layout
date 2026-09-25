@@ -15,12 +15,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { DataTableSkeletonRows } from "@/components/data-table/components/data-table-state";
-import type { ServerTableFeatures } from "@/components/data-table/core/create-server-table-features";
+import type { DataTableFeatures } from "@/components/data-table/core/create-data-table-features";
 interface DataTableProps<
   TMeta extends object,
   TData extends RowData,
 > {
-  table: ReactTable<ServerTableFeatures<TMeta>, TData>;
+  table: ReactTable<DataTableFeatures<TMeta>, TData>;
   caption: string;
   isInitialLoading: boolean;
   emptyState: React.ReactNode;
