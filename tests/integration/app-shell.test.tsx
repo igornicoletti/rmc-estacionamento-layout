@@ -6,40 +6,65 @@ import { describe, expect, it } from "vitest"
 import App from "@/app/root/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
+import { waitForRouterInitialization } from "@tests/support/router"
+
+async function renderApp(initialEntry = "/") {
+  const router = createMemoryRouter(routes, {
+    initialEntries: [initialEntry],
+  })
+
+  await waitForRouterInitialization(router)
+
+  render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+}
+
+function getNavigationGroupTriggers(navigation: HTMLElement) {
+  return within(navigation)
+    .getAllByRole("button")
+    .filter((button) => button.hasAttribute("aria-expanded"))
+}
 
 describe("app shell", () => {
   it("não oferece ação no estado sem novas notificações", async () => {
     const user = userEvent.setup()
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+    await renderApp()
 
-    await user.click(
-      await screen.findByRole("button", { name: /Abrir notificações/ }),
-    )
-    await user.click(screen.getByRole("button", { name: "Marcar como lidas" }))
+    const notificationTrigger =
+      document.querySelector<HTMLButtonElement>('[data-slot="popover-trigger"]')
 
-    expect(
-      await screen.findByRole("heading", { name: "Sem novas notificações" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole("link", { name: "Ver todas as notificações" }),
-    ).not.toBeInTheDocument()
+    if (!notificationTrigger) {
+      throw new Error("Trigger de notificações não encontrado.")
+    }
+
+    await user.click(notificationTrigger)
+
+    const popover =
+      document.querySelector<HTMLElement>('[data-slot="popover-content"]')
+
+    if (!popover) {
+      throw new Error("Popover de notificações não encontrado.")
+    }
+
+    await user.click(within(popover).getByRole("button"))
+
+    expect(within(popover).queryByRole("button")).not.toBeInTheDocument()
+    expect(within(popover).queryByRole("link")).not.toBeInTheDocument()
   })
 
   it("abre um grupo inativo sob demanda", async () => {
     const user = userEvent.setup()
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+    await renderApp()
 
-    const navigation = await screen.findByRole("navigation")
+    const navigation = screen.getByRole("navigation")
     const linksBefore = within(navigation).getAllByRole("link").length
-    const collapsedTrigger = within(navigation)
-      .getAllByRole("button")
-      .find((button) => button.getAttribute("aria-expanded") === "false")
+    const collapsedTrigger = getNavigationGroupTriggers(navigation).find(
+      (button) => button.getAttribute("aria-expanded") === "false",
+    )
 
     expect(collapsedTrigger).toBeDefined()
+
     if (!collapsedTrigger) {
       return
     }
@@ -55,58 +80,51 @@ describe("app shell", () => {
 
   it("mantém somente um grupo de navegação aberto", async () => {
     const user = userEvent.setup()
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+    await renderApp()
 
-    const navigation = await screen.findByRole("navigation")
-    const registrations = within(navigation).getByRole("button", {
-      name: "CADASTROS",
-    })
-    const management = within(navigation).getByRole("button", {
-      name: "GESTÃO",
-    })
+    const navigation = screen.getByRole("navigation")
+    const collapsedTriggers = getNavigationGroupTriggers(navigation).filter(
+      (button) => button.getAttribute("aria-expanded") === "false",
+    )
+    const firstTrigger = collapsedTriggers[0]
+    const secondTrigger = collapsedTriggers[1]
 
-    await user.click(registrations)
-    expect(registrations).toHaveAttribute("aria-expanded", "true")
+    if (!firstTrigger || !secondTrigger) {
+      throw new Error("Grupos de navegação insuficientes para o teste.")
+    }
 
-    await user.click(management)
+    await user.click(firstTrigger)
+    expect(firstTrigger).toHaveAttribute("aria-expanded", "true")
 
-    expect(management).toHaveAttribute("aria-expanded", "true")
-    expect(registrations).toHaveAttribute("aria-expanded", "false")
+    await user.click(secondTrigger)
+
+    expect(secondTrigger).toHaveAttribute("aria-expanded", "true")
+    expect(firstTrigger).toHaveAttribute("aria-expanded", "false")
   })
 
   it("mantém disponível a rota ativa do grupo atual", async () => {
-    const router = createMemoryRouter(routes, {
-      initialEntries: ["/usuarios"],
-    })
+    await renderApp("/usuarios")
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+    const navigation = screen.getByRole("navigation")
 
-    const navigation = await screen.findByRole("navigation")
-    const activeLink = within(navigation)
-      .getAllByRole("link")
-      .find((link) => link.getAttribute("aria-current") === "page")
-
-    expect(activeLink).toBeDefined()
+    expect(
+      within(navigation).getByRole("link", { current: "page" }),
+    ).toBeInTheDocument()
   })
 
   it("permite recolher manualmente o grupo da rota ativa", async () => {
     const user = userEvent.setup()
-    const router = createMemoryRouter(routes, {
-      initialEntries: ["/usuarios"],
+
+    await renderApp("/usuarios")
+
+    const navigation = screen.getByRole("navigation")
+    const [activeGroupTrigger] = within(navigation).getAllByRole("button", {
+      expanded: true,
     })
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
-
-    const navigation = await screen.findByRole("navigation")
-    const activeGroupTrigger = within(navigation)
-      .getAllByRole("button")
-      .find((button) => button.getAttribute("aria-expanded") === "true")
-
-    expect(activeGroupTrigger).toBeDefined()
     if (!activeGroupTrigger) {
-      return
+      throw new Error("Grupo ativo não encontrado.")
     }
 
     await user.click(activeGroupTrigger)

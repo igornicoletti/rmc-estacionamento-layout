@@ -1,6 +1,6 @@
 import type { PaginationState, SortingState } from "@tanstack/react-table"
 
-type SortValue = boolean | number | string | null | undefined
+export type SortValue = boolean | number | string | null | undefined
 
 export function normalizeSearchText(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/gu, "").toLocaleLowerCase("pt-BR")

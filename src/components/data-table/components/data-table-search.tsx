@@ -49,6 +49,7 @@ export function DataTableSearch({
       {value ? (
         <InputGroupAddon align="inline-end">
           <InputGroupButton
+            data-testid="data-table-search-clear"
             size="icon-xs"
             aria-label={dataTableCopy.search.clear}
             onClick={onClear}

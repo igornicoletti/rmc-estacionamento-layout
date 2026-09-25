@@ -1,15 +1,14 @@
 export const unitsCopy = {
-  table: {
+  list: {
     caption: "Lista de unidades",
-    emptyDescription: "Nenhuma unidade corresponde aos critérios selecionados.",
+    loadError: "Não foi possível carregar as unidades.",
     emptyTitle: "Nenhuma unidade encontrada",
+    emptyDescription: "Nenhuma unidade corresponde aos critérios selecionados.",
+    searchAriaLabel: "Buscar unidades",
+    searchPlaceholder: "Buscar unidades...",
+    cityFilterAriaLabel: "Filtrar unidades por cidade",
+    cityFilterClearAriaLabel: "Limpar filtro de cidade",
+    cityFilterPlaceholder: "Todas as cidades",
     itemLabel: { singular: "unidade", plural: "unidades" },
   },
-  search: { ariaLabel: "Buscar unidades", placeholder: "Buscar unidades..." },
-  cityFilter: {
-    ariaLabel: "Filtrar unidades por cidade",
-    clearAriaLabel: "Limpar filtro de cidade",
-    placeholder: "Todas as cidades",
-  },
-  notInformed: "—",
 } as const

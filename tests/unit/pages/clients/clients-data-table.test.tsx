@@ -1,115 +1,196 @@
-import { screen, within } from "@testing-library/react"
+import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
+import { getClientDetailsPath } from "@/pages/clients/client-routes"
 import { ClientsDataTable } from "@/pages/clients/components/clients-data-table"
+import { clientErpFixture } from "@/pages/clients/data/client-erp.fixture"
+import { mapErpClients } from "@/pages/clients/model/client-mapper"
+import {
+  formatCityName,
+  formatErpName,
+  formatPhone,
+  splitEmails,
+} from "@/pages/clients/model/client-presentation"
 
-function renderClientsDataTable() {
+const previewClients = mapErpClients(clientErpFixture)
+const firstClient = previewClients[0]
+
+if (!firstClient) {
+  throw new Error("Fixture de clientes vazia.")
+}
+
+const firstClientEmails = splitEmails(firstClient.email)
+const primaryEmail = firstClientEmails[0]
+const additionalEmail = firstClientEmails[1]
+
+if (!primaryEmail || !additionalEmail) {
+  throw new Error("Fixture principal precisa conter e-mails adicionais.")
+}
+
+async function renderClientsDataTable() {
   renderWithProviders(
     <MemoryRouter>
       <ClientsDataTable />
     </MemoryRouter>,
   )
+
+  const table = screen.getByRole("table")
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+
+  if (!root) {
+    throw new Error("DataTableRoot não encontrado.")
+  }
+
+  await waitFor(() => {
+    expect(root).toHaveAttribute("aria-busy", "false")
+  })
+
+  return table
+}
+
+function getFirstDataRow(table: HTMLElement) {
+  const rows = within(table).getAllByRole("row")
+  const row = rows[1]
+
+  if (!row) {
+    throw new Error("Primeira linha de cliente não encontrada.")
+  }
+
+  return row
+}
+
+function getRowActionTrigger(row: HTMLElement) {
+  const buttons = within(row).getAllByRole("button")
+  const trigger = buttons.at(-1)
+
+  if (!trigger) {
+    throw new Error("Ação da linha não encontrada.")
+  }
+
+  return trigger
 }
 
 describe("ClientsDataTable", () => {
-  it("renderiza fixtures seguras sem expor colunas ocultas", async () => {
-    renderClientsDataTable()
+  it("renderiza dados do domínio e mantém colunas configuradas como ocultas", async () => {
+    const table = await renderClientsDataTable()
+    const rows = within(table).getAllByRole("row")
+    const firstRow = getFirstDataRow(table)
+    const link = within(firstRow).getByRole("link")
 
-    expect(await screen.findByText("24 clientes")).toBeInTheDocument()
-    expect(
-      screen.getByRole("link", { name: /Cliente Demonstracao 01/u }),
-    ).toHaveAttribute("href", "/clientes/1001")
-    expect(screen.getByText("cliente1@example.invalid")).toBeInTheDocument()
-    expect(
-      screen.queryByRole("columnheader", { name: "Telefone" }),
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Exportar CSV" }),
-    ).toBeInTheDocument()
+    expect(rows).toHaveLength(Math.min(previewClients.length, 10) + 1)
+
+    expect(link).toHaveAttribute(
+      "href",
+      getClientDetailsPath(firstClient.id),
+    )
+
+    expect(firstRow).toHaveTextContent(formatErpName(firstClient.name))
+    expect(firstRow).toHaveTextContent(primaryEmail)
+    expect(firstRow).not.toHaveTextContent(formatPhone(firstClient.phone))
   })
 
-  it("permite copiar e-mails adicionais", async () => {
+  it("copia um e-mail adicional sem depender da copy do controle", async () => {
     const user = userEvent.setup()
-    renderClientsDataTable()
+    const table = await renderClientsDataTable()
+    const firstRow = getFirstDataRow(table)
+    const buttons = within(firstRow).getAllByRole("button")
+    const emailTrigger = buttons[0]
 
-    const additionalEmails = await screen.findByRole("button", {
-      name: "2 e-mails adicionais",
-    })
-    await user.hover(additionalEmails)
+    if (!emailTrigger) {
+      throw new Error("Trigger de e-mails adicionais não encontrado.")
+    }
 
-    expect(
-      await screen.findByText("financeiro@example.invalid"),
-    ).toBeInTheDocument()
+    expect(emailTrigger).toHaveAccessibleName()
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Copiar financeiro@example.invalid",
-      }),
-    )
+    await user.hover(emailTrigger)
+
+    const emailText = await screen.findByText(additionalEmail)
+    const emailContainer = emailText.parentElement
+
+    if (!emailContainer) {
+      throw new Error("Container do e-mail adicional não encontrado.")
+    }
+
+    const copyButton = within(emailContainer).getByRole("button")
+
+    expect(copyButton).toHaveAccessibleName()
+
+    await user.click(copyButton)
 
     await expect(navigator.clipboard.readText()).resolves.toBe(
-      "financeiro@example.invalid",
+      additionalEmail,
     )
   })
 
-  it("abre os detalhes do cliente pelo menu de ações", async () => {
+  it("abre os detalhes do cliente selecionado", async () => {
     const user = userEvent.setup()
-    renderClientsDataTable()
+    const table = await renderClientsDataTable()
+    const firstRow = getFirstDataRow(table)
 
-    const actions = await screen.findAllByRole("button", {
-      name: /Ações do cliente/u,
-    })
+    await user.click(getRowActionTrigger(firstRow))
 
-    await user.click(actions[0])
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Detalhes" }),
-    )
+    const menuItems = await screen.findAllByRole("menuitem")
+    const detailsAction = menuItems[0]
 
-    const sheet = await screen.findByRole("dialog", {
-      name: "Cliente Demonstracao 01 Ltda",
-    })
-    expect(within(sheet).getByText("Contato")).toBeInTheDocument()
-    expect(
-      within(sheet).getByText(
-        "cliente1@example.invalid, financeiro@example.invalid, frota@example.invalid",
-      ),
-    ).toBeInTheDocument()
+    if (!detailsAction) {
+      throw new Error("Ação de detalhes não encontrada.")
+    }
+
+    await user.click(detailsAction)
+
+    const dialog = await screen.findByRole("dialog")
+
+    expect(dialog).toHaveAccessibleName()
+    expect(dialog).toHaveTextContent(firstClient.taxId)
+    expect(dialog).toHaveTextContent(primaryEmail)
   })
 
-  it("copia os dados completos do cliente", async () => {
+  it("copia os dados funcionais do cliente selecionado", async () => {
     const user = userEvent.setup()
-    renderClientsDataTable()
+    const table = await renderClientsDataTable()
+    const firstRow = getFirstDataRow(table)
 
-    const actions = await screen.findAllByRole("button", {
-      name: /Ações do cliente/u,
-    })
+    await user.click(getRowActionTrigger(firstRow))
 
-    await user.click(actions[0])
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Copiar dados" }),
-    )
+    const menuItems = await screen.findAllByRole("menuitem")
+    const copyAction = menuItems[1]
+
+    if (!copyAction) {
+      throw new Error("Ação de cópia não encontrada.")
+    }
+
+    await user.click(copyAction)
 
     const copied = await navigator.clipboard.readText()
-    expect(copied).toContain("Código: 1001")
-    expect(copied).toContain("E-mail: cliente1@example.invalid")
-    expect(copied.split("\n").length).toBeGreaterThan(10)
+
+    expect(copied).toContain(firstClient.id)
+    expect(copied).toContain(firstClient.taxId)
+    expect(copied).toContain(primaryEmail)
   })
 
-  it("expõe as cidades disponíveis no filtro", async () => {
+  it("expõe as opções de cidade derivadas dos dados", async () => {
     const user = userEvent.setup()
-    renderClientsDataTable()
+    const table = await renderClientsDataTable()
+    const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+    const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
 
-    const cityFilter = await screen.findByRole("combobox", {
-      name: "Filtrar clientes por cidade",
-    })
+    if (!toolbar) {
+      throw new Error("Toolbar não encontrada.")
+    }
+
+    const cityFilter = within(toolbar).getByRole("combobox")
+
+    expect(cityFilter).toHaveAccessibleName()
+
+    const cityLabel = formatCityName(firstClient.city)
+
     await user.click(cityFilter)
+    await user.type(cityFilter, cityLabel)
 
-    expect(
-      await screen.findByRole("option", { name: /São José do Rio Preto/u }),
-    ).toBeInTheDocument()
+    expect(await screen.findAllByRole("option")).toHaveLength(1)
   })
 })

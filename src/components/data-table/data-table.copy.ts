@@ -29,6 +29,7 @@ export const dataTableCopy = {
       "Tente novamente. Se o problema persistir, contate o suporte.",
     retry: "Tentar novamente",
   },
+  loading: "Carregando registros",
   updating: "Atualizando",
   rowActions: {
     label: "Ações",
@@ -43,9 +44,9 @@ export const dataTableCopy = {
     tooltip: "Exportar dados filtrados em CSV",
   },
   columns: {
-    trigger: "Colunas",
-    tooltip: "Exibir colunas",
-    label: "Colunas visíveis",
+    trigger: "Gerenciar colunas",
+    tooltip: "Gerenciar colunas",
+    label: "Colunas da tabela",
     lastVisible: "última coluna visível",
   },
 } as const

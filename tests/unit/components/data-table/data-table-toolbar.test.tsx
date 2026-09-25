@@ -19,18 +19,28 @@ describe("DataTableToolbar", () => {
       </DataTableToolbar>,
     )
 
-    await user.click(screen.getByRole("button", { name: "Limpar filtros" }))
+    const button = screen.getByRole("button")
+
+    expect(button).toHaveAccessibleName()
+
+    await user.click(button)
 
     expect(onClearFilters).toHaveBeenCalledOnce()
   })
 
-  it.each([0, 1])("não cria limpeza global com %i filtro ativo", (activeFilterCount) => {
-    render(
-      <DataTableToolbar activeFilterCount={activeFilterCount} onClearFilters={vi.fn()}>
-        <span />
-      </DataTableToolbar>,
-    )
+  it.each([0, 1])(
+    "não cria limpeza global com %i filtro ativo",
+    (activeFilterCount) => {
+      render(
+        <DataTableToolbar
+          activeFilterCount={activeFilterCount}
+          onClearFilters={vi.fn()}
+        >
+          <span />
+        </DataTableToolbar>,
+      )
 
-    expect(screen.queryByRole("button")).not.toBeInTheDocument()
-  })
+      expect(screen.queryByRole("button")).not.toBeInTheDocument()
+    },
+  )
 })

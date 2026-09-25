@@ -1,5 +1,3 @@
-import { CheckIcon } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
 import {
   Combobox,
@@ -85,20 +83,10 @@ export function DataTableComboboxFilter<TValue extends string>({
   const groupedItems = groupItems(availableItems);
   const comboboxItems = groupedItems ?? availableItems;
   const renderItem = (item: DataTableComboboxFilterItem<TValue>) => (
-    <ComboboxItem
-      className="pr-3 data-selected:[&>span:last-child]:hidden"
-      key={item.value}
-      value={item}
-    >
-      <span className="order-1 min-w-0 flex-1 truncate">{item.label}</span>
-      <span
-        aria-hidden="true"
-        className="order-2 flex size-4 shrink-0 items-center justify-center"
-      >
-        {item.value === value ? <CheckIcon className="size-4" /> : null}
-      </span>
+    <ComboboxItem key={item.value} value={item}>
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {counts !== undefined ? (
-        <Badge className="order-3 ml-auto shrink-0" variant="ghost">
+        <Badge className="ml-auto shrink-0" variant="ghost">
           {counts[item.value] ?? 0}
         </Badge>
       ) : null}

@@ -5,7 +5,7 @@ import {
   DataTableRowActions,
   DataTableRowActionsHeader,
 } from "@/components/data-table/components/data-table-row-actions"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
+import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
 import { getClientDetailsPath } from "@/pages/clients/client-routes"
 import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
 import type { Client } from "@/pages/clients/model/client"
@@ -24,7 +24,7 @@ interface ClientsTableColumnActions {
 }
 
 export const clientsTableApi =
-  createServerTableHook<Record<string, never>>()
+  createDataTableHook<Record<string, never>>()
 const columnHelper = clientsTableApi.createAppColumnHelper<Client>()
 
 export function createClientsTableColumns({

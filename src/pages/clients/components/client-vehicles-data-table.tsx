@@ -12,15 +12,11 @@ import { DataTableSearch } from "@/components/data-table/components/data-table-s
 import {
   DataTableEmpty,
   DataTableError,
+  DataTableUpdating,
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
-import {
-  normalizeSearchText,
-  paginateRows,
-  sortRows,
-} from "@/components/data-table/core/table-data-utils"
-import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
@@ -51,6 +47,44 @@ interface ClientVehiclesDataTableProps {
 
 const EMPTY_CLIENT_VEHICLES: ClientVehicle[] = []
 
+function getVehicleDescriptionValue(vehicle: ClientVehicle) {
+  return vehicle.description
+    ? formatVehicleDescription(vehicle.description)
+    : undefined
+}
+
+function getVehicleDescriptionLabel(vehicle: ClientVehicle) {
+  return formatVehicleDescription(vehicle.description)
+}
+
+function getVehicleSearchText(vehicle: ClientVehicle) {
+  return [
+    vehicle.id,
+    vehicle.plate,
+    formatLicensePlate(vehicle.plate),
+    vehicle.description,
+    formatVehicleDescription(vehicle.description),
+    vehicle.driverName,
+    formatErpName(vehicle.driverName),
+  ].join(" ")
+}
+
+function getVehicleSortValue(vehicle: ClientVehicle, columnId: string) {
+  if (columnId === "description") {
+    return formatVehicleDescription(vehicle.description)
+  }
+
+  if (columnId === "plate") {
+    return formatLicensePlate(vehicle.plate)
+  }
+
+  if (columnId === "driverName") {
+    return formatErpName(vehicle.driverName)
+  }
+
+  return vehicle[columnId as keyof ClientVehicle]
+}
+
 export function ClientVehiclesDataTable({
   clientId,
 }: ClientVehiclesDataTableProps) {
@@ -60,10 +94,21 @@ export function ClientVehiclesDataTable({
     staleTime: Number.POSITIVE_INFINITY,
   })
   const allVehicles = vehiclesQuery.data ?? EMPTY_CLIENT_VEHICLES
-  const [descriptionFilter, setDescriptionFilter] = useState<string>()
   const [selectedVehicle, setSelectedVehicle] =
     useState<ClientVehicle | null>(null)
-  const state = useDataTableState({
+  const clientVehicles = useMemo(
+    () => allVehicles.filter((vehicle) => vehicle.clientId === clientId),
+    [allVehicles, clientId],
+  )
+  const showDriver = useMemo(
+    () => clientVehicles.some((vehicle) => vehicle.driverName !== ""),
+    [clientVehicles],
+  )
+  const model = useLocalDataTableModel({
+    getFacetLabel: getVehicleDescriptionLabel,
+    getFacetValue: getVehicleDescriptionValue,
+    getSearchText: getVehicleSearchText,
+    getSortValue: getVehicleSortValue,
     initialColumnVisibility: {
       clientActiveWithin120Days: false,
       clientId: false,
@@ -71,6 +116,7 @@ export function ClientVehiclesDataTable({
       clientTaxId: false,
       clientTradeName: false,
     },
+    rows: clientVehicles,
   })
 
   const handleCopyData = useCallback((vehicle: ClientVehicle) => {
@@ -85,14 +131,6 @@ export function ClientVehiclesDataTable({
     })
   }, [])
 
-  const clientVehicles = useMemo(
-    () => allVehicles.filter((vehicle) => vehicle.clientId === clientId),
-    [allVehicles, clientId],
-  )
-  const showDriver = useMemo(
-    () => clientVehicles.some((vehicle) => vehicle.driverName !== ""),
-    [clientVehicles],
-  )
   const columns = useMemo(
     () =>
       createClientVehiclesTableColumns(showDriver, {
@@ -102,113 +140,20 @@ export function ClientVehiclesDataTable({
     [handleCopyData, showDriver],
   )
 
-  const descriptionFacet = useMemo(() => {
-    const descriptions = new Set<string>()
-    const counts: Record<string, number> = {}
-
-    for (const vehicle of clientVehicles) {
-      if (vehicle.description === "") {
-        continue
-      }
-
-      const value = formatVehicleDescription(vehicle.description)
-      descriptions.add(value)
-      counts[value] = (counts[value] ?? 0) + 1
-    }
-
-    return {
-      counts,
-      items: Array.from(descriptions)
-        .sort((left, right) => left.localeCompare(right, "pt-BR"))
-        .map((value) => ({ label: value, value })),
-    }
-  }, [clientVehicles])
-
-  const handleDescriptionFilterChange = (value: string | undefined) => {
-    setDescriptionFilter(value)
-    state.onPaginationChange((current) => ({ ...current, pageIndex: 0 }))
-  }
-
-  const clearFilters = () => {
-    state.clearFilters()
-    setDescriptionFilter(undefined)
-  }
-
-  const filteredVehicles = useMemo(() => {
-    const search = normalizeSearchText(state.globalFilter)
-
-    return clientVehicles.filter((vehicle) => {
-      if (
-        descriptionFilter &&
-        formatVehicleDescription(vehicle.description) !== descriptionFilter
-      ) {
-        return false
-      }
-
-      if (!search) {
-        return true
-      }
-
-      return normalizeSearchText(
-        [
-          vehicle.id,
-          vehicle.plate,
-          formatLicensePlate(vehicle.plate),
-          vehicle.description,
-          formatVehicleDescription(vehicle.description),
-          showDriver ? vehicle.driverName : "",
-          showDriver ? formatErpName(vehicle.driverName) : "",
-        ].join(" "),
-      ).includes(search)
-    })
-  }, [
-    clientVehicles,
-    descriptionFilter,
-    showDriver,
-    state.globalFilter,
-  ])
-
-  const sortedVehicles = useMemo(
-    () =>
-      sortRows(filteredVehicles, state.sorting, (vehicle, columnId) => {
-        if (columnId === "description") {
-          return formatVehicleDescription(vehicle.description)
-        }
-
-        if (columnId === "plate") {
-          return formatLicensePlate(vehicle.plate)
-        }
-
-        if (columnId === "driverName") {
-          return formatErpName(vehicle.driverName)
-        }
-
-        return vehicle[columnId as keyof ClientVehicle]
-      }),
-    [filteredVehicles, state.sorting],
-  )
-
-  const paginatedVehicles = useMemo(
-    () => paginateRows(sortedVehicles, state.pagination),
-    [sortedVehicles, state.pagination],
-  )
-
   const table = clientVehiclesTableApi.useAppTable({
     columns,
-    data: paginatedVehicles,
+    data: model.pageRows,
     getRowId: (vehicle) => vehicle.id,
-    onColumnVisibilityChange: state.setColumnVisibility,
-    onPaginationChange: state.onPaginationChange,
-    onSortingChange: state.onSortingChange,
-    rowCount: filteredVehicles.length,
+    onColumnVisibilityChange: model.state.setColumnVisibility,
+    onPaginationChange: model.state.onPaginationChange,
+    onSortingChange: model.state.onSortingChange,
+    rowCount: model.filteredRows.length,
     state: {
-      columnVisibility: state.columnVisibility,
-      pagination: state.pagination,
-      sorting: state.sorting,
+      columnVisibility: model.state.columnVisibility,
+      pagination: model.state.pagination,
+      sorting: model.state.sorting,
     },
   })
-
-  const hasActiveFilters = state.hasFilters || Boolean(descriptionFilter)
 
   if (vehiclesQuery.isError) {
     return (
@@ -228,12 +173,12 @@ export function ClientVehiclesDataTable({
           actions={
             <>
               <DataTableExport
-                disabled={sortedVehicles.length === 0}
+                disabled={model.sortedRows.length === 0}
                 onExport={() =>
                   downloadCsv(
                     `veiculos-cliente-${clientId}.csv`,
                     serializeCsv(
-                      sortedVehicles,
+                      model.sortedRows,
                       clientVehicleRecordCsvColumns,
                     ),
                   )
@@ -242,36 +187,37 @@ export function ClientVehiclesDataTable({
               <DataTableViewOptions table={table} />
             </>
           }
-          activeFilterCount={
-            Number(Boolean(state.searchDraft.trim())) +
-            Number(Boolean(descriptionFilter))
-          }
-          onClearFilters={clearFilters}
+          activeFilterCount={model.activeFilterCount}
+          onClearFilters={model.clearFilters}
         >
           <DataTableSearch
             ariaLabel={clientsCopy.vehicles.searchAriaLabel}
-            onChange={state.handleSearchChange}
-            onClear={state.clearSearch}
-            onSubmit={state.submitSearch}
+            onChange={model.state.handleSearchChange}
+            onClear={model.state.clearSearch}
+            onSubmit={model.state.submitSearch}
             placeholder={
               showDriver
                 ? clientsCopy.vehicles.searchWithDriverPlaceholder
                 : clientsCopy.vehicles.searchWithoutDriverPlaceholder
             }
-            value={state.searchDraft}
+            value={model.state.searchDraft}
           />
-          {descriptionFacet.items.length > 1 ? (
+          {model.facet.items.length > 1 ? (
             <DataTableComboboxFilter
               ariaLabel={clientsCopy.vehicles.filterAriaLabel}
               clearAriaLabel={clientsCopy.vehicles.filterClearAriaLabel}
-              counts={descriptionFacet.counts}
-              items={descriptionFacet.items}
-              onValueChange={handleDescriptionFilterChange}
+              counts={model.facet.counts}
+              items={model.facet.items}
+              onValueChange={model.onFacetValueChange}
               placeholder={clientsCopy.vehicles.filterPlaceholder}
-              value={descriptionFilter}
+              value={model.facetValue}
             />
           ) : null}
         </DataTableToolbar>
+
+        <DataTableUpdating
+          active={vehiclesQuery.isFetching && !vehiclesQuery.isPending}
+        />
 
         <DataTable
           caption={clientsCopy.vehicles.caption}
@@ -279,8 +225,8 @@ export function ClientVehiclesDataTable({
             <DataTableEmpty
               emptyDescription={clientsCopy.vehicles.emptyDescription}
               emptyTitle={clientsCopy.vehicles.emptyTitle}
-              hasFilters={hasActiveFilters}
-              onClearFilters={clearFilters}
+              hasFilters={model.hasActiveFilters}
+              onClearFilters={model.clearFilters}
             />
           }
           isInitialLoading={vehiclesQuery.isPending}
@@ -290,7 +236,7 @@ export function ClientVehiclesDataTable({
         {!vehiclesQuery.isPending ? (
           <DataTablePagination
             itemLabel={clientsCopy.vehicles.itemLabel}
-            rowCount={filteredVehicles.length}
+            rowCount={model.filteredRows.length}
             table={table}
           />
         ) : null}

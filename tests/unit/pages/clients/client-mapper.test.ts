@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import { formatCpfCnpj } from "@/lib/erp/tax-id"
 import {
-  formatCpfCnpj,
   mapErpClient,
   mapErpClients,
 } from "@/pages/clients/model/client-mapper"
@@ -62,9 +62,10 @@ describe("client mapper", () => {
     })
   })
 
-  it("formata CPF e CNPJ pela quantidade de dígitos", () => {
-    expect(formatCpfCnpj("12345678901")).toBe("123.456.789-01")
+  it("formata e valida CPF e CNPJ pelo contrato compartilhado", () => {
+    expect(formatCpfCnpj("11144477735")).toBe("111.444.777-35")
     expect(formatCpfCnpj("12345678000195")).toBe("12.345.678/0001-95")
+    expect(() => formatCpfCnpj("11111111111")).toThrow("validação")
   })
 
   it("rejeita respostas e campos incompatíveis com o contrato", () => {

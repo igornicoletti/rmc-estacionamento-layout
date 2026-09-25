@@ -1,54 +1,26 @@
-import type { Client } from "@/pages/clients/model/client"
 import {
-  formatCpfCnpj,
-  readErpBoolean,
+  getBrazilianStateName,
+  parseBrazilianStateCode,
+} from "@/lib/erp/brazilian-states"
+import {
   readErpDate,
   readErpDateTime,
+} from "@/lib/erp/date-time"
+import {
+  asErpRecord,
+  readErpBoolean,
   readErpIdentifier,
   readErpInteger,
   readErpString,
-  type ErpRecord,
-} from "@/pages/clients/model/erp-record"
-
-const BRAZILIAN_STATE_NAMES: Record<string, string> = {
-  AC: "Acre",
-  AL: "Alagoas",
-  AP: "Amapá",
-  AM: "Amazonas",
-  BA: "Bahia",
-  CE: "Ceará",
-  DF: "Distrito Federal",
-  ES: "Espírito Santo",
-  GO: "Goiás",
-  MA: "Maranhão",
-  MT: "Mato Grosso",
-  MS: "Mato Grosso do Sul",
-  MG: "Minas Gerais",
-  PA: "Pará",
-  PB: "Paraíba",
-  PR: "Paraná",
-  PE: "Pernambuco",
-  PI: "Piauí",
-  RJ: "Rio de Janeiro",
-  RN: "Rio Grande do Norte",
-  RS: "Rio Grande do Sul",
-  RO: "Rondônia",
-  RR: "Roraima",
-  SC: "Santa Catarina",
-  SP: "São Paulo",
-  SE: "Sergipe",
-  TO: "Tocantins",
-}
-
-export { formatCpfCnpj } from "@/pages/clients/model/erp-record"
+} from "@/lib/erp/erp-record"
+import { formatCpfCnpj } from "@/lib/erp/tax-id"
+import type { Client } from "@/pages/clients/model/client"
 
 export function mapErpClient(input: unknown): Client {
-  if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    throw new TypeError("Cliente inválido: registro deve ser um objeto.")
-  }
-
-  const record = input as ErpRecord
-  const stateCode = readErpString(record, "sgl_estado").toLocaleUpperCase("pt-BR")
+  const record = asErpRecord(input, "Cliente")
+  const stateCode = parseBrazilianStateCode(
+    readErpString(record, "sgl_estado"),
+  )
 
   return {
     id: readErpIdentifier(record, "cod_pessoa"),
@@ -58,7 +30,7 @@ export function mapErpClient(input: unknown): Client {
     email: readErpString(record, "des_email_1", { allowEmpty: true }),
     phone: readErpString(record, "num_telefone_1", { allowEmpty: true }),
     city: readErpString(record, "nom_cidade"),
-    state: BRAZILIAN_STATE_NAMES[stateCode] ?? stateCode,
+    state: getBrazilianStateName(stateCode),
     stateCode,
     registeredAt: readErpDate(record, "dta_cadastro"),
     personActiveStatus: readErpString(record, "ind_pessoa_ativa"),
@@ -66,9 +38,9 @@ export function mapErpClient(input: unknown): Client {
     vehicleCount: readErpInteger(record, "qtd_veiculos"),
     lastPurchaseAt: readErpDate(record, "dta_ultima_compra"),
     activeWithin120Days: readErpBoolean(record, "is_active_120d"),
-    synchronizedAt: readErpDateTime(record, "synced_at") as string,
-    createdAt: readErpDateTime(record, "created_at") as string,
-    updatedAt: readErpDateTime(record, "updated_at") as string,
+    synchronizedAt: readErpDateTime(record, "synced_at"),
+    createdAt: readErpDateTime(record, "created_at"),
+    updatedAt: readErpDateTime(record, "updated_at"),
   }
 }
 

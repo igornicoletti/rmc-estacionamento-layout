@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
 import { RecordDetails } from "@/components/record-details/record-details"
 import { AppSheet } from "@/components/common/app-sheet"
@@ -8,15 +9,14 @@ import { DataTableExport } from "@/components/data-table/components/data-table-e
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/components/data-table-root"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
-import { DataTableEmpty } from "@/components/data-table/components/data-table-state"
+import {
+  DataTableEmpty,
+  DataTableError,
+  DataTableUpdating,
+} from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
-import {
-  normalizeSearchText,
-  paginateRows,
-  sortRows,
-} from "@/components/data-table/core/table-data-utils"
-import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
@@ -25,25 +25,86 @@ import {
   createUnitsTableColumns,
   unitsTableApi,
 } from "@/pages/units/components/units-table-columns"
-import { unitErpFixture } from "@/pages/units/data/unit-erp.fixture"
+import {
+  loadPreviewUnits,
+  unitPreviewQueryKeys,
+} from "@/pages/units/data/unit-preview-data"
 import type { Unit } from "@/pages/units/model/unit"
-import { mapErpUnits } from "@/pages/units/model/unit-mapper"
+import {
+  formatUnitCity,
+  formatUnitName,
+} from "@/pages/units/model/unit-presentation"
 import {
   unitRecordCsvColumns,
   unitRecordSections,
 } from "@/pages/units/model/unit-record-presentation"
 import { unitsCopy } from "@/pages/units/units.copy"
 
-const units = mapErpUnits(unitErpFixture)
+const EMPTY_UNITS: Unit[] = []
 
-function getCityFilterValue(unit: Unit) {
+function getUnitCityValue(unit: Unit) {
   return `${unit.stateCode}:${unit.city}`
 }
 
+function getUnitCityGroup(unit: Unit) {
+  return unit.state
+}
+
+function getUnitCityLabel(unit: Unit) {
+  return formatUnitCity(unit.city)
+}
+
+function getUnitSearchText(unit: Unit) {
+  return [
+    unit.id,
+    unit.tradeName,
+    formatUnitName(unit.tradeName),
+    unit.legalName,
+    formatUnitName(unit.legalName),
+    unit.cnpj,
+    unit.brand,
+    formatUnitName(unit.brand),
+    unit.city,
+    formatUnitCity(unit.city),
+    unit.state,
+    unit.stateCode,
+  ].join(" ")
+}
+
+function getUnitSortValue(unit: Unit, columnId: string) {
+  if (columnId === "tradeName") {
+    return formatUnitName(unit.tradeName)
+  }
+
+  if (columnId === "legalName") {
+    return formatUnitName(unit.legalName)
+  }
+
+  if (columnId === "brand") {
+    return formatUnitName(unit.brand)
+  }
+
+  if (columnId === "city") {
+    return formatUnitCity(unit.city)
+  }
+
+  return unit[columnId as keyof Unit]
+}
+
 export function UnitsDataTable() {
-  const [cityFilter, setCityFilter] = useState<string>()
+  const unitsQuery = useQuery({
+    queryKey: unitPreviewQueryKeys.units,
+    queryFn: loadPreviewUnits,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+  const units = unitsQuery.data ?? EMPTY_UNITS
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
-  const state = useDataTableState({
+  const model = useLocalDataTableModel({
+    getFacetGroup: getUnitCityGroup,
+    getFacetLabel: getUnitCityLabel,
+    getFacetValue: getUnitCityValue,
+    getSearchText: getUnitSearchText,
+    getSortValue: getUnitSortValue,
     initialColumnVisibility: {
       brandCode: false,
       cityCode: false,
@@ -53,6 +114,7 @@ export function UnitsDataTable() {
       synchronizedAt: false,
       updatedAt: false,
     },
+    rows: units,
   })
 
   const handleCopyData = useCallback((unit: Unit) => {
@@ -73,164 +135,95 @@ export function UnitsDataTable() {
     [handleCopyData],
   )
 
-  const cityFacet = useMemo(() => {
-    const itemMap = new Map<
-      string,
-      { group: string; label: string; value: string }
-    >()
-    const counts: Record<string, number> = {}
-
-    for (const unit of units) {
-      const value = getCityFilterValue(unit)
-      counts[value] = (counts[value] ?? 0) + 1
-      itemMap.set(value, {
-        group: unit.state,
-        label: unit.city,
-        value,
-      })
-    }
-
-    return {
-      counts,
-      items: [...itemMap.values()].sort(
-        (left, right) =>
-          left.group.localeCompare(right.group, "pt-BR") ||
-          left.label.localeCompare(right.label, "pt-BR"),
-      ),
-    }
-  }, [])
-
-  const clearFilters = () => {
-    state.clearFilters()
-    setCityFilter(undefined)
-  }
-
-  const filteredUnits = useMemo(() => {
-    const search = normalizeSearchText(state.globalFilter)
-
-    return units.filter((unit) => {
-      if (cityFilter && getCityFilterValue(unit) !== cityFilter) {
-        return false
-      }
-
-      return (
-        !search ||
-        normalizeSearchText(
-          [
-            unit.id,
-            unit.tradeName,
-            unit.legalName,
-            unit.cnpj,
-            unit.brand,
-            unit.city,
-            unit.state,
-            unit.stateCode,
-          ].join(" "),
-        ).includes(search)
-      )
-    })
-  }, [cityFilter, state.globalFilter])
-
-  const sortedUnits = useMemo(
-    () =>
-      sortRows(
-        filteredUnits,
-        state.sorting,
-        (unit, columnId) => unit[columnId as keyof Unit],
-      ),
-    [filteredUnits, state.sorting],
-  )
-
-  const pageRows = useMemo(
-    () => paginateRows(sortedUnits, state.pagination),
-    [sortedUnits, state.pagination],
-  )
-
   const table = unitsTableApi.useAppTable({
     columns,
-    data: pageRows,
+    data: model.pageRows,
     getRowId: (unit) => unit.id,
-    onColumnVisibilityChange: state.setColumnVisibility,
-    onPaginationChange: state.onPaginationChange,
-    onSortingChange: state.onSortingChange,
-    rowCount: filteredUnits.length,
+    onColumnVisibilityChange: model.state.setColumnVisibility,
+    onPaginationChange: model.state.onPaginationChange,
+    onSortingChange: model.state.onSortingChange,
+    rowCount: model.filteredRows.length,
     state: {
-      columnVisibility: state.columnVisibility,
-      pagination: state.pagination,
-      sorting: state.sorting,
+      columnVisibility: model.state.columnVisibility,
+      pagination: model.state.pagination,
+      sorting: model.state.sorting,
     },
   })
 
-  const hasActiveFilters = state.hasFilters || Boolean(cityFilter)
+  if (unitsQuery.isError) {
+    return (
+      <DataTableError
+        description={unitsCopy.list.loadError}
+        onRetry={() => void unitsQuery.refetch()}
+      />
+    )
+  }
 
   return (
     <>
-      <DataTableRoot isBusy={false}>
+      <DataTableRoot isBusy={unitsQuery.isPending || unitsQuery.isFetching}>
         <DataTableToolbar
           actions={
             <>
               <DataTableExport
-                disabled={sortedUnits.length === 0}
+                disabled={model.sortedRows.length === 0}
                 onExport={() =>
                   downloadCsv(
                     "unidades.csv",
-                    serializeCsv(sortedUnits, unitRecordCsvColumns),
+                    serializeCsv(model.sortedRows, unitRecordCsvColumns),
                   )
                 }
               />
               <DataTableViewOptions table={table} />
             </>
           }
-          activeFilterCount={
-            Number(Boolean(state.searchDraft.trim())) +
-            Number(Boolean(cityFilter))
-          }
-          onClearFilters={clearFilters}
+          activeFilterCount={model.activeFilterCount}
+          onClearFilters={model.clearFilters}
         >
           <DataTableSearch
-            ariaLabel={unitsCopy.search.ariaLabel}
-            onChange={state.handleSearchChange}
-            onClear={state.clearSearch}
-            onSubmit={state.submitSearch}
-            placeholder={unitsCopy.search.placeholder}
-            value={state.searchDraft}
+            ariaLabel={unitsCopy.list.searchAriaLabel}
+            onChange={model.state.handleSearchChange}
+            onClear={model.state.clearSearch}
+            onSubmit={model.state.submitSearch}
+            placeholder={unitsCopy.list.searchPlaceholder}
+            value={model.state.searchDraft}
           />
           <DataTableComboboxFilter
-            ariaLabel={unitsCopy.cityFilter.ariaLabel}
-            clearAriaLabel={unitsCopy.cityFilter.clearAriaLabel}
-            counts={cityFacet.counts}
-            items={cityFacet.items}
-            onValueChange={(value) => {
-              setCityFilter(value)
-              state.onPaginationChange((current) => ({
-                ...current,
-                pageIndex: 0,
-              }))
-            }}
-            placeholder={unitsCopy.cityFilter.placeholder}
-            value={cityFilter}
+            ariaLabel={unitsCopy.list.cityFilterAriaLabel}
+            clearAriaLabel={unitsCopy.list.cityFilterClearAriaLabel}
+            counts={model.facet.counts}
+            items={model.facet.items}
+            onValueChange={model.onFacetValueChange}
+            placeholder={unitsCopy.list.cityFilterPlaceholder}
+            value={model.facetValue}
           />
         </DataTableToolbar>
 
+        <DataTableUpdating
+          active={unitsQuery.isFetching && !unitsQuery.isPending}
+        />
+
         <DataTable
-          caption={unitsCopy.table.caption}
+          caption={unitsCopy.list.caption}
           emptyState={
             <DataTableEmpty
-              emptyDescription={unitsCopy.table.emptyDescription}
-              emptyTitle={unitsCopy.table.emptyTitle}
-              hasFilters={hasActiveFilters}
-              onClearFilters={clearFilters}
+              emptyDescription={unitsCopy.list.emptyDescription}
+              emptyTitle={unitsCopy.list.emptyTitle}
+              hasFilters={model.hasActiveFilters}
+              onClearFilters={model.clearFilters}
             />
           }
-          isInitialLoading={false}
+          isInitialLoading={unitsQuery.isPending}
           table={table}
         />
 
-        <DataTablePagination
-          itemLabel={unitsCopy.table.itemLabel}
-          rowCount={filteredUnits.length}
-          table={table}
-        />
+        {!unitsQuery.isPending ? (
+          <DataTablePagination
+            itemLabel={unitsCopy.list.itemLabel}
+            rowCount={model.filteredRows.length}
+            table={table}
+          />
+        ) : null}
       </DataTableRoot>
 
       {selectedUnit ? (
@@ -240,7 +233,7 @@ export function UnitsDataTable() {
             if (!open) setSelectedUnit(null)
           }}
           open
-          title={selectedUnit.tradeName}
+          title={formatUnitName(selectedUnit.tradeName)}
         >
           <RecordDetails
             record={selectedUnit}

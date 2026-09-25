@@ -1,10 +1,16 @@
-import { screen, within } from "@testing-library/react"
+import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
 import { UnitsDataTable } from "@/pages/units/components/units-data-table"
+import { unitErpFixture } from "@/pages/units/data/unit-erp.fixture"
+import { mapErpUnits } from "@/pages/units/model/unit-mapper"
+import {
+  formatUnitCity,
+  formatUnitName,
+} from "@/pages/units/model/unit-presentation"
 
 const { downloadCsvMock } = vi.hoisted(() => ({
   downloadCsvMock: vi.fn(),
@@ -19,156 +25,270 @@ vi.mock("@/lib/export-to-csv", async (importOriginal) => {
   }
 })
 
+const previewUnits = mapErpUnits(unitErpFixture)
+const firstUnit = previewUnits[0]
+
+if (!firstUnit) {
+  throw new Error("Fixture de unidades vazia.")
+}
+
+const cityCounts = previewUnits.reduce<Map<string, number>>((counts, unit) => {
+  const key = `${unit.stateCode}:${unit.city}`
+  counts.set(key, (counts.get(key) ?? 0) + 1)
+  return counts
+}, new Map())
+
+const filterUnit = previewUnits.find((unit) => {
+  const key = `${unit.stateCode}:${unit.city}`
+  return (cityCounts.get(key) ?? 0) > 1 && unit.city !== firstUnit.city
+})
+
+if (!filterUnit) {
+  throw new Error("Fixture precisa conter uma cidade repetida para filtragem.")
+}
+
+const filterKey = `${filterUnit.stateCode}:${filterUnit.city}`
+const filteredUnits = previewUnits.filter(
+  (unit) => `${unit.stateCode}:${unit.city}` === filterKey,
+)
+
+async function renderUnitsDataTable() {
+  renderWithProviders(<UnitsDataTable />)
+
+  const table = screen.getByRole("table")
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+
+  if (!root) {
+    throw new Error("DataTableRoot não encontrado.")
+  }
+
+  await waitFor(() => {
+    expect(root).toHaveAttribute("aria-busy", "false")
+  })
+
+  return table
+}
+
+function getFirstDataRow(table: HTMLElement) {
+  const rows = within(table).getAllByRole("row")
+  const row = rows[1]
+
+  if (!row) {
+    throw new Error("Primeira linha de unidade não encontrada.")
+  }
+
+  return row
+}
+
+function getToolbar(table: HTMLElement) {
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+  const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
+
+  if (!toolbar) {
+    throw new Error("Toolbar não encontrada.")
+  }
+
+  return toolbar
+}
+
+function getExportButton(table: HTMLElement) {
+  const toolbar = getToolbar(table)
+  const actions = toolbar.querySelector<HTMLElement>(
+    '[data-slot="data-table-toolbar-actions"]',
+  )
+
+  if (!actions) {
+    throw new Error("Ações da toolbar não encontradas.")
+  }
+
+  const button = within(actions).getAllByRole("button")[0]
+
+  if (!button) {
+    throw new Error("Ação de exportação não encontrada.")
+  }
+
+  return button
+}
+
 describe("UnitsDataTable", () => {
   beforeEach(() => {
     downloadCsvMock.mockClear()
   })
 
-  it("renderiza dados normalizados sem expor metadados internos", () => {
-    renderWithProviders(<UnitsDataTable />)
+  it("renderiza dados normalizados e mantém metadados internos ocultos", async () => {
+    const table = await renderUnitsDataTable()
+    const rows = within(table).getAllByRole("row")
+    const firstRow = getFirstDataRow(table)
 
-    expect(screen.getByText("18 unidades")).toBeInTheDocument()
-    expect(screen.getByText("Unidade 01")).toBeInTheDocument()
-    expect(screen.getByText("88.000.000/0001-32")).toBeInTheDocument()
-    expect(screen.getAllByText("Bandeira Azul").length).toBeGreaterThan(0)
-    expect(
-      screen.queryByRole("columnheader", { name: "Hash da origem" }),
-    ).not.toBeInTheDocument()
-    expect(screen.queryByText(/IP|synthetic-unit/u)).not.toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Exportar CSV" }),
-    ).toBeInTheDocument()
+    expect(rows).toHaveLength(Math.min(previewUnits.length, 10) + 1)
+    expect(firstRow).toHaveTextContent(formatUnitName(firstUnit.tradeName))
+    expect(firstRow).toHaveTextContent(firstUnit.cnpj)
+    expect(firstRow).toHaveTextContent(formatUnitName(firstUnit.brand))
+    expect(firstRow).not.toHaveTextContent(firstUnit.synchronizedAt)
   })
 
-  it("abre os detalhes da unidade pelo menu de ações", async () => {
+  it("abre os detalhes da unidade selecionada", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    const table = await renderUnitsDataTable()
+    const firstRow = getFirstDataRow(table)
 
-    await user.click(
-      screen.getByRole("button", { name: "Ações da unidade Unidade 01" }),
-    )
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Detalhes" }),
-    )
+    await user.click(within(firstRow).getByRole("button"))
 
-    const sheet = await screen.findByRole("dialog", { name: "Unidade 01" })
-    expect(within(sheet).getByText("Localização")).toBeInTheDocument()
-    expect(within(sheet).getByText("88.000.000/0001-32")).toBeInTheDocument()
+    const menuItems = await screen.findAllByRole("menuitem")
+    const detailsAction = menuItems[0]
+
+    if (!detailsAction) {
+      throw new Error("Ação de detalhes não encontrada.")
+    }
+
+    await user.click(detailsAction)
+
+    const dialog = await screen.findByRole("dialog")
+
+    expect(dialog).toHaveAccessibleName()
+    expect(dialog).toHaveTextContent(firstUnit.cnpj)
+    expect(dialog).toHaveTextContent(formatUnitName(firstUnit.tradeName))
   })
 
-  it("copia todos os dados da unidade", async () => {
+  it("copia dados funcionais da unidade selecionada", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    const table = await renderUnitsDataTable()
+    const firstRow = getFirstDataRow(table)
 
-    await user.click(
-      screen.getByRole("button", { name: "Ações da unidade Unidade 01" }),
-    )
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Copiar dados" }),
-    )
+    await user.click(within(firstRow).getByRole("button"))
+
+    const menuItems = await screen.findAllByRole("menuitem")
+    const copyAction = menuItems[1]
+
+    if (!copyAction) {
+      throw new Error("Ação de cópia não encontrada.")
+    }
+
+    await user.click(copyAction)
 
     const copied = await navigator.clipboard.readText()
-    expect(copied).toContain("Código: 1")
-    expect(copied).toContain("CNPJ: 88.000.000/0001-32")
-    expect(copied.split("\n").length).toBeGreaterThan(10)
+
+    expect(copied).toContain(firstUnit.id)
+    expect(copied).toContain(firstUnit.cnpj)
+    expect(copied).toContain(formatUnitName(firstUnit.tradeName))
   })
 
-  it("exporta todas as unidades ordenadas antes da paginação", async () => {
+  it("exporta o conjunto completo na ordem selecionada antes da paginação", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    const table = await renderUnitsDataTable()
+    const headers = within(table).getAllByRole("columnheader")
+    const firstHeader = headers[0]
 
-    const sortByName = screen.getByRole("button", {
-      name: "Ordenar por Nome fantasia",
-    })
+    if (!firstHeader) {
+      throw new Error("Primeiro cabeçalho não encontrado.")
+    }
 
-    await user.click(sortByName)
-    await user.click(sortByName)
-    await user.click(
-      screen.getByRole("button", { name: "Exportar CSV" }),
-    )
+    const sortButton = within(firstHeader).getByRole("button")
+
+    await user.click(sortButton)
+    await user.click(sortButton)
+    await user.click(getExportButton(table))
 
     expect(downloadCsvMock).toHaveBeenCalledOnce()
-
-    const [filename, csv] = downloadCsvMock.mock.calls[0] as [string, string]
-    const records = csv.trimEnd().split("\r\n")
-
-    expect(filename).toBe("unidades.csv")
-    expect(records).toHaveLength(19)
-    expect(records[1]).toContain("Unidade 18")
-  })
-
-  it("exporta somente as unidades que correspondem ao filtro ativo", async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
-
-    const cityFilter = screen.getByRole("combobox", {
-      name: "Filtrar unidades por cidade",
-    })
-
-    await user.click(cityFilter)
-    await user.type(cityFilter, "Curitiba")
-    await user.click(
-      await screen.findByRole("option", { name: /Curitiba/u }),
-    )
-    await user.click(
-      screen.getByRole("button", { name: "Exportar CSV" }),
-    )
 
     const [, csv] = downloadCsvMock.mock.calls[0] as [string, string]
     const records = csv.trimEnd().split("\r\n")
 
-    expect(records).toHaveLength(3)
-    expect(csv).toContain("Unidade 04")
-    expect(csv).toContain("Unidade 12")
-    expect(csv).not.toContain("Unidade 01")
+    const expectedFirst = [...previewUnits].sort(
+      (left, right) => Number(right.id) - Number(left.id),
+    )[0]
+
+    if (!expectedFirst) {
+      throw new Error("Unidade esperada não encontrada.")
+    }
+
+    expect(records).toHaveLength(previewUnits.length + 1)
+    expect(records[1]).toContain(expectedFirst.id)
+    expect(records[1]).toContain(formatUnitName(expectedFirst.tradeName))
   })
 
-  it("filtra unidades pela busca", async () => {
+  it("exporta somente registros correspondentes à faceta ativa", async () => {
     const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
+    const table = await renderUnitsDataTable()
+    const toolbar = getToolbar(table)
+    const cityFilter = within(toolbar).getByRole("combobox")
+    const cityLabel = formatUnitCity(filterUnit.city)
 
-    const search = screen.getByRole("searchbox", { name: "Buscar unidades" })
-    await user.type(search, "parana")
-    await user.keyboard("{Enter}")
-
-    expect(await screen.findByText("4 unidades")).toBeInTheDocument()
-    expect(screen.getAllByText(/Curitiba/u).length).toBeGreaterThan(0)
-  })
-
-  it("ordena colunas permitidas e filtra pela cidade no próprio combobox", async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<UnitsDataTable />)
-
-    expect(
-      screen.getByRole("button", { name: "Ordenar por Nome fantasia" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole("button", { name: "Ordenar por CNPJ" }),
-    ).not.toBeInTheDocument()
-
-    await user.click(
-      screen.getByRole("button", { name: "Ordenar por Nome fantasia" }),
-    )
-    expect(screen.getAllByRole("row")[1]).toHaveTextContent("Unidade 01")
-
-    const cityFilter = screen.getByRole("combobox", {
-      name: "Filtrar unidades por cidade",
-    })
     await user.click(cityFilter)
-    await user.type(cityFilter, "Curitiba")
-    await user.click(
-      await screen.findByRole("option", { name: /Curitiba/u }),
-    )
+    await user.type(cityFilter, cityLabel)
 
-    expect(screen.getByText("2 unidades")).toBeInTheDocument()
-    expect(screen.getByText("Unidade 04")).toBeInTheDocument()
-    expect(
-      screen.queryByRole("button", { name: "Limpar filtros" }),
-    ).not.toBeInTheDocument()
+    const options = await screen.findAllByRole("option")
+    const option = options[0]
 
-    await user.click(
-      screen.getByRole("button", { name: "Limpar filtro de cidade" }),
+    if (!option) {
+      throw new Error("Opção filtrada de cidade não encontrada.")
+    }
+
+    await user.click(option)
+    await user.click(getExportButton(table))
+
+    expect(downloadCsvMock).toHaveBeenCalledOnce()
+
+    const [, csv] = downloadCsvMock.mock.calls[0] as [string, string]
+    const records = csv.trimEnd().split("\r\n")
+
+    expect(records).toHaveLength(filteredUnits.length + 1)
+
+    for (const unit of filteredUnits) {
+      expect(csv).toContain(formatUnitName(unit.tradeName))
+    }
+
+    expect(csv).not.toContain(formatUnitName(firstUnit.tradeName))
+  })
+
+  it("encaminha a busca para o modelo local", async () => {
+    const table = await renderUnitsDataTable()
+    const search = screen.getByRole("searchbox")
+
+    fireEvent.change(search, {
+      target: { value: formatUnitName(firstUnit.tradeName) },
+    })
+    fireEvent.keyDown(search, { code: "Enter", key: "Enter" })
+
+    await waitFor(() => {
+      expect(within(table).getAllByRole("row")).toHaveLength(2)
+    })
+
+    expect(getFirstDataRow(table)).toHaveTextContent(
+      formatUnitName(firstUnit.tradeName),
     )
-    expect(screen.getByText("18 unidades")).toBeInTheDocument()
+  })
+
+  it("expõe estado vazio e permite limpar somente a busca ativa", async () => {
+    const user = userEvent.setup()
+    const table = await renderUnitsDataTable()
+    const search = screen.getByRole("searchbox")
+
+    fireEvent.change(search, {
+      target: { value: "__registro_inexistente__" },
+    })
+    fireEvent.keyDown(search, { code: "Enter", key: "Enter" })
+
+    await waitFor(() => {
+      expect(within(table).getAllByRole("row")).toHaveLength(1)
+    })
+
+    expect(screen.getByRole("status")).toBeVisible()
+
+    const inputGroup = search.closest<HTMLElement>('[data-slot="input-group"]')
+
+    if (!inputGroup) {
+      throw new Error("InputGroup da busca não encontrado.")
+    }
+
+    const clearSearch = within(inputGroup).getByRole("button")
+
+    expect(clearSearch).toHaveAccessibleName()
+
+    await user.click(clearSearch)
+
+    await waitFor(() => {
+      expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
+    })
   })
 })

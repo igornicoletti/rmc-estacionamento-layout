@@ -15,12 +15,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { DataTableSkeletonRows } from "@/components/data-table/components/data-table-state";
-import type { ServerTableFeatures } from "@/components/data-table/core/create-server-table-features";
+import type { DataTableFeatures } from "@/components/data-table/core/create-data-table-features";
 interface DataTableProps<
   TMeta extends object,
   TData extends RowData,
 > {
-  table: ReactTable<ServerTableFeatures<TMeta>, TData>;
+  table: ReactTable<DataTableFeatures<TMeta>, TData>;
   caption: string;
   isInitialLoading: boolean;
   emptyState: React.ReactNode;
@@ -67,6 +67,7 @@ export function DataTable<
                 return (
                   <TableHead
                     key={header.id}
+                    data-column-id={header.column.id}
                     aria-sort={
                       sorted === "asc"
                         ? "ascending"
@@ -92,7 +93,11 @@ export function DataTable<
             />
           ) : (
             rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                data-row-id={row.id}
+                data-testid="data-table-row"
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     <table.FlexRender cell={cell} />

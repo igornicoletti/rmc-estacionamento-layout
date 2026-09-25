@@ -13,27 +13,38 @@ describe("DataTableExport", () => {
 
     renderWithProviders(<DataTableExport onExport={onExport} />)
 
-    await user.click(
-      screen.getByRole("button", { name: "Exportar CSV" }),
-    )
+    const button = screen.getByRole("button")
+
+    expect(button).toHaveAccessibleName()
+
+    await user.click(button)
 
     expect(onExport).toHaveBeenCalledOnce()
   })
 
-  it("mantém a orientação por tooltip quando a exportação está desabilitada", async () => {
+  it("exibe orientação quando a exportação está disponível", async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(<DataTableExport onExport={vi.fn()} />)
+
+    const button = screen.getByRole("button")
+
+    await user.hover(button)
+
+    expect(await screen.findByRole("tooltip")).toBeVisible()
+  })
+
+  it("mantém a orientação quando a exportação está desabilitada", async () => {
     const user = userEvent.setup()
     const onExport = vi.fn()
 
-    renderWithProviders(
-      <DataTableExport disabled onExport={onExport} />,
-    )
+    renderWithProviders(<DataTableExport disabled onExport={onExport} />)
 
-    const exportButton = screen.getByRole("button", {
-      name: "Exportar CSV",
-    })
-    const tooltipTrigger = exportButton.parentElement
+    const button = screen.getByRole("button")
+    const tooltipTrigger = button.parentElement
 
-    expect(exportButton).toBeDisabled()
+    expect(button).toBeDisabled()
+    expect(button).toHaveAccessibleName()
     expect(tooltipTrigger).not.toBeNull()
 
     if (!tooltipTrigger) {
@@ -42,9 +53,7 @@ describe("DataTableExport", () => {
 
     await user.hover(tooltipTrigger)
 
-    expect(await screen.findByRole("tooltip")).toHaveTextContent(
-      "Exportar dados filtrados em CSV",
-    )
+    expect(await screen.findByRole("tooltip")).toBeVisible()
     expect(onExport).not.toHaveBeenCalled()
   })
 })

@@ -1,3 +1,5 @@
+import { sanitizeErpText } from "@/lib/erp/erp-record"
+
 const EMPTY_DISPLAY = "—"
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -85,14 +87,6 @@ const VEHICLE_DESCRIPTION_NAMES = new Map([
   ["VOLKSWAGEN", "Volkswagen"],
   ["VOLVO", "Volvo"],
 ])
-
-function sanitizeErpText(value: string) {
-  return value
-    .normalize("NFC")
-    .replace(/[\p{Cc}\p{Cf}]+/gu, " ")
-    .replace(/\s+/gu, " ")
-    .trim()
-}
 
 function capitalize(value: string) {
   return value.length === 0
