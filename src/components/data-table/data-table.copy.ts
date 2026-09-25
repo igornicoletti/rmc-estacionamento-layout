@@ -1,5 +1,4 @@
 export const dataTableCopy = {
-  loading: "Carregando dados",
   search: {
     clear: "Limpar busca",
     defaultAriaLabel: "Buscar registros",
