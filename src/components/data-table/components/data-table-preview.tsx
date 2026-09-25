@@ -8,13 +8,11 @@ import {
   DataTableRowActionsHeader,
 } from "@/components/data-table/components/data-table-row-actions"
 import { DataTableSearch } from "@/components/data-table/components/data-table-search"
-import {
-  DataTableEmpty,
-} from "@/components/data-table/components/data-table-state"
+import { DataTableEmpty } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
-import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
+import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 
@@ -69,7 +67,6 @@ export function DataTablePreview({
   idPrefix,
   itemLabel,
 }: DataTablePreviewProps) {
-  const state = useDataTableState()
   const records = useMemo(
     () =>
       Array.from({ length: PREVIEW_RECORD_COUNT }, (_, index) => ({
@@ -77,29 +74,20 @@ export function DataTablePreview({
       })),
     [idPrefix],
   )
-  const filteredRecords = useMemo(() => {
-    const normalizedSearch = state.globalFilter.toLocaleLowerCase("pt-BR")
-
-    return normalizedSearch
-      ? records.filter((record) =>
-          record.id.toLocaleLowerCase("pt-BR").includes(normalizedSearch),
-        )
-      : records
-  }, [records, state.globalFilter])
-  const paginatedRecords = useMemo(() => {
-    const start = state.pagination.pageIndex * state.pagination.pageSize
-    return filteredRecords.slice(start, start + state.pagination.pageSize)
-  }, [filteredRecords, state.pagination.pageIndex, state.pagination.pageSize])
+  const model = useLocalDataTableModel({
+    getSearchText: (record: PreviewRecord) => record.id,
+    rows: records,
+  })
   const table = tableApi.useAppTable({
     columns,
-    data: paginatedRecords,
+    data: model.pageRows,
     getRowId: (record) => record.id,
-    onColumnVisibilityChange: state.setColumnVisibility,
-    onPaginationChange: state.onPaginationChange,
-    rowCount: filteredRecords.length,
+    onColumnVisibilityChange: model.state.setColumnVisibility,
+    onPaginationChange: model.state.onPaginationChange,
+    rowCount: model.filteredRows.length,
     state: {
-      columnVisibility: state.columnVisibility,
-      pagination: state.pagination,
+      columnVisibility: model.state.columnVisibility,
+      pagination: model.state.pagination,
     },
   })
 
@@ -107,16 +95,14 @@ export function DataTablePreview({
     <DataTableRoot isBusy={false}>
       <DataTableToolbar
         actions={<DataTableViewOptions table={table} />}
-        activeFilterCount={
-          state.columnFilters.length + Number(Boolean(state.searchDraft.trim()))
-        }
-        onClearFilters={state.clearFilters}
+        activeFilterCount={model.activeFilterCount}
+        onClearFilters={model.clearFilters}
       >
         <DataTableSearch
-          onChange={state.handleSearchChange}
-          onClear={state.clearSearch}
-          onSubmit={state.submitSearch}
-          value={state.searchDraft}
+          onChange={model.state.handleSearchChange}
+          onClear={model.state.clearSearch}
+          onSubmit={model.state.submitSearch}
+          value={model.state.searchDraft}
         />
       </DataTableToolbar>
 
@@ -124,8 +110,8 @@ export function DataTablePreview({
         caption={caption}
         emptyState={
           <DataTableEmpty
-            hasFilters={state.hasFilters}
-            onClearFilters={state.clearFilters}
+            hasFilters={model.hasActiveFilters}
+            onClearFilters={model.clearFilters}
           />
         }
         isInitialLoading={false}
@@ -134,7 +120,7 @@ export function DataTablePreview({
 
       <DataTablePagination
         itemLabel={itemLabel}
-        rowCount={filteredRecords.length}
+        rowCount={model.filteredRows.length}
         table={table}
       />
     </DataTableRoot>
