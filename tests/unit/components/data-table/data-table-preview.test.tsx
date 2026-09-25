@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react"
+import { fireEvent, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
@@ -25,8 +25,8 @@ describe("DataTablePreview", () => {
 
     expect(search).toHaveAccessibleName()
 
-    await user.type(search, recordId)
-    await user.keyboard("{Enter}")
+    fireEvent.change(search, { target: { value: recordId } })
+    fireEvent.keyDown(search, { code: "Enter", key: "Enter" })
 
     const rows = within(table).getAllByRole("row")
 
