@@ -56,7 +56,7 @@ async function renderUnitsDataTable() {
   renderWithProviders(<UnitsDataTable />)
 
   const table = screen.getByRole("table")
-  const root = table.closest('[data-slot="data-table-root"]')
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
 
   if (!root) {
     throw new Error("DataTableRoot não encontrado.")
@@ -81,8 +81,8 @@ function getFirstDataRow(table: HTMLElement) {
 }
 
 function getToolbar(table: HTMLElement) {
-  const root = table.closest('[data-slot="data-table-root"]')
-  const toolbar = root?.querySelector('[data-slot="data-table-toolbar"]')
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+  const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
 
   if (!toolbar) {
     throw new Error("Toolbar não encontrada.")
@@ -93,7 +93,7 @@ function getToolbar(table: HTMLElement) {
 
 function getExportButton(table: HTMLElement) {
   const toolbar = getToolbar(table)
-  const actions = toolbar.querySelector(
+  const actions = toolbar.querySelector<HTMLElement>(
     '[data-slot="data-table-toolbar-actions"]',
   )
 
@@ -272,7 +272,7 @@ describe("UnitsDataTable", () => {
 
     expect(screen.getByRole("status")).toBeVisible()
 
-    const inputGroup = search.closest('[data-slot="input-group"]')
+    const inputGroup = search.closest<HTMLElement>('[data-slot="input-group"]')
 
     if (!inputGroup) {
       throw new Error("InputGroup da busca não encontrado.")
