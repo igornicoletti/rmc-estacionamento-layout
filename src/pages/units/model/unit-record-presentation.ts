@@ -5,17 +5,9 @@ import {
 import type { Unit } from "@/pages/units/model/unit"
 import {
   formatUnitCity,
+  formatUnitDateTime,
   formatUnitName,
 } from "@/pages/units/model/unit-presentation"
-
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeStyle: "short",
-})
-
-export function formatUnitDateTime(value: string) {
-  return dateTimeFormatter.format(new Date(value))
-}
 
 export const unitRecordSections = [
   {
