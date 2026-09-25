@@ -23,7 +23,7 @@ export function DataTableToolbar({
   onClearFilters,
 }: DataTableToolbarProps) {
   return (
-    <div className="@container/toolbar min-w-0" data-slot="data-table-toolbar">
+    <div className="@container/toolbar min-w-0" data-testid="data-table-toolbar">
       <div className="flex min-w-0 flex-col gap-3 @sm/toolbar:flex-row @sm/toolbar:flex-wrap @sm/toolbar:items-center">
         {children}
 
@@ -32,7 +32,7 @@ export function DataTableToolbar({
             <TooltipTrigger
               render={
                 <Button
-                  data-slot="data-table-clear-filters"
+                  data-testid="data-table-clear-filters"
                   aria-label={dataTableCopy.empty.clearFilters}
                   onClick={onClearFilters}
                   size="icon"
@@ -51,7 +51,7 @@ export function DataTableToolbar({
         {actions !== undefined && actions !== null ? (
           <div
             className="flex w-full min-w-0 items-center justify-end gap-3 @sm/toolbar:ml-auto @sm/toolbar:w-auto"
-            data-slot="data-table-toolbar-actions"
+            data-testid="data-table-toolbar-actions"
           >
             {actions}
           </div>
