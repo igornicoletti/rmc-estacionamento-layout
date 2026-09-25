@@ -26,7 +26,7 @@ export function DataTableRowActions({
     <div className="flex justify-end">
       <DropdownMenu>
         <DropdownMenuTrigger
-          data-slot="data-table-row-actions-trigger"
+          data-testid="data-table-row-actions-trigger"
           render={<Button variant="ghost" size="icon-sm" />}
           aria-label={accessibleLabel}
         >
@@ -37,7 +37,7 @@ export function DataTableRowActions({
             <DropdownMenuLabel>{dataTableCopy.rowActions.label}</DropdownMenuLabel>
             {onDetails ? (
               <DropdownMenuItem
-                data-slot="data-table-row-action-details"
+                data-testid="data-table-row-action-details"
                 onClick={onDetails}
               >
                 <EyeIcon aria-hidden="true" />
@@ -45,7 +45,7 @@ export function DataTableRowActions({
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem
-              data-slot="data-table-row-action-copy"
+              data-testid="data-table-row-action-copy"
               onClick={onCopyData}
             >
               <CopyIcon aria-hidden="true" />
