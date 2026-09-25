@@ -116,8 +116,11 @@ test("filtra, ordena, pagina e abre detalhes de unidades", async ({ page }) => {
   await search.press("Enter")
   await expect(page.getByText("2 unidades")).toBeVisible()
   await expect(page.getByText("Goiânia — GO").first()).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "Limpar filtros" }),
+  ).toHaveCount(0)
 
-  await page.getByRole("button", { name: "Limpar filtros" }).click()
+  await page.getByRole("button", { name: "Limpar busca" }).click()
   await expect(page.getByText("18 unidades")).toBeVisible()
 
   const sortByName = page.getByRole("button", {
