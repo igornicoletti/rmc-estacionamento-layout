@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react"
+import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -246,8 +246,10 @@ describe("UnitsDataTable", () => {
     const table = await renderUnitsDataTable()
     const search = screen.getByRole("searchbox")
 
-    await user.type(search, formatUnitName(firstUnit.tradeName))
-    await user.keyboard("{Enter}")
+    fireEvent.change(search, {
+      target: { value: formatUnitName(firstUnit.tradeName) },
+    })
+    fireEvent.keyDown(search, { code: "Enter", key: "Enter" })
 
     await waitFor(() => {
       expect(within(table).getAllByRole("row")).toHaveLength(2)
@@ -263,8 +265,10 @@ describe("UnitsDataTable", () => {
     const table = await renderUnitsDataTable()
     const search = screen.getByRole("searchbox")
 
-    await user.type(search, "__registro_inexistente__")
-    await user.keyboard("{Enter}")
+    fireEvent.change(search, {
+      target: { value: "__registro_inexistente__" },
+    })
+    fireEvent.keyDown(search, { code: "Enter", key: "Enter" })
 
     await waitFor(() => {
       expect(within(table).getAllByRole("row")).toHaveLength(1)
