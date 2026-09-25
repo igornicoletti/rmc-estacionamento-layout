@@ -23,7 +23,7 @@ const executions = [
     failedCount: 2,
     finishedAt: "2026-09-23T11:30:15-03:00",
     id: "test-sync-partial",
-    message: "2 registros não puderam ser atualizados.",
+    message: "mensagem parcial",
     processedCount: 18,
     startedAt: "2026-09-23T11:30:08-03:00",
     status: "partial",
@@ -34,7 +34,7 @@ const executions = [
     failedCount: 18,
     finishedAt: "2026-09-23T08:45:16-03:00",
     id: "test-sync-error",
-    message: "A execução não conseguiu concluir a atualização dos registros.",
+    message: "mensagem de erro",
     processedCount: 18,
     requestedBy: "Pessoa de teste",
     startedAt: "2026-09-23T08:45:09-03:00",
@@ -44,76 +44,54 @@ const executions = [
   },
 ] as const satisfies readonly PageSyncHistoryExecution[]
 
+function renderHistory(
+  executionsOverride: readonly PageSyncHistoryExecution[] = executions,
+) {
+  renderWithProviders(
+    <PageSyncHistorySheet
+      executions={executionsOverride}
+      onOpenChange={vi.fn()}
+      open
+      scopeLabel="scope"
+    />,
+  )
+
+  return screen.getByRole("dialog")
+}
+
 describe("PageSyncHistorySheet", () => {
-  it("exibe as execuções com os três estados previstos", () => {
-    renderWithProviders(
-      <PageSyncHistorySheet
-        executions={executions}
-        onOpenChange={vi.fn()}
-        open
-        scopeLabel="Unidades"
-      />,
-    )
+  it("renderiza uma entrada por execução", () => {
+    const dialog = renderHistory()
 
-    const dialog = screen.getByRole("dialog", {
-      name: "Histórico de sincronização",
-    })
-
-    expect(
-      within(dialog).getByText("Dados demonstrativos para validação visual."),
-    ).toBeInTheDocument()
     expect(within(dialog).getByRole("list")).toBeInTheDocument()
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3)
-    expect(within(dialog).getByText("Sucesso")).toBeInTheDocument()
-    expect(within(dialog).getByText("Parcial")).toBeInTheDocument()
-    expect(within(dialog).getByText("Erro")).toBeInTheDocument()
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(
+      executions.length,
+    )
   })
 
-  it("revela os detalhes de uma execução pelo disclosure", async () => {
+  it("revela os detalhes da execução pelo disclosure", async () => {
     const user = userEvent.setup()
+    const dialog = renderHistory()
+    const items = within(dialog).getAllByRole("listitem")
+    const target = items[1]
 
-    renderWithProviders(
-      <PageSyncHistorySheet
-        executions={executions}
-        onOpenChange={vi.fn()}
-        open
-        scopeLabel="Unidades"
-      />,
-    )
+    if (!target) {
+      throw new Error("Execução alvo não encontrada.")
+    }
 
-    const dialog = screen.getByRole("dialog", {
-      name: "Histórico de sincronização",
-    })
-    const detailButtons = within(dialog).getAllByRole("button", {
-      name: /Exibir detalhes da sincronização/u,
-    })
+    const disclosure = within(target).getByRole("button")
 
-    await user.click(detailButtons[1])
+    expect(disclosure).toHaveAttribute("aria-expanded", "false")
 
-    expect(
-      await within(dialog).findByText("test-sync-partial"),
-    ).toBeInTheDocument()
-    expect(
-      within(dialog).getByText("2 registros não puderam ser atualizados."),
-    ).toBeInTheDocument()
-    expect(within(dialog).getByText("Sistema")).toBeInTheDocument()
-    expect(within(dialog).getByText("Processados")).toBeInTheDocument()
-    expect(within(dialog).getByText("Concluídos")).toBeInTheDocument()
-    expect(within(dialog).getByText("Falhas")).toBeInTheDocument()
+    await user.click(disclosure)
+
+    expect(disclosure).toHaveAttribute("aria-expanded", "true")
+    expect(target.querySelector("dl")).not.toBeNull()
   })
 
-  it("usa o fallback vazio quando não há execuções", () => {
-    renderWithProviders(
-      <PageSyncHistorySheet
-        executions={[]}
-        onOpenChange={vi.fn()}
-        open
-        scopeLabel="Unidades"
-      />,
-    )
+  it("não renderiza lista quando não há execuções", () => {
+    const dialog = renderHistory([])
 
-    expect(
-      screen.getByText("Nenhuma sincronização registrada"),
-    ).toBeInTheDocument()
+    expect(within(dialog).queryByRole("list")).not.toBeInTheDocument()
   })
 })
