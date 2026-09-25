@@ -127,15 +127,14 @@ test("filtra, ordena, pagina e abre detalhes de unidades", async ({ page }) => {
   await sortByName.click()
   await expect(page.getAllByRole("row").nth(1)).toContainText("Unidade 18")
 
-  await page.getByRole("button", { name: "Primeira página" }).click()
   await page.getByRole("button", { name: "Ações da unidade Unidade 18" }).click()
   await page.getByRole("menuitem", { name: "Detalhes" }).click()
 
-  await expect(
-    page.getByRole("dialog", { name: "Unidade 18" }),
-  ).toBeVisible()
-  await expect(page.getByText("Identificação")).toBeVisible()
-  await expect(page.getByText("Localização")).toBeVisible()
+  const details = page.getByRole("dialog", { name: "Unidade 18" })
+
+  await expect(details).toBeVisible()
+  await expect(details.getByText("Identificação")).toBeVisible()
+  await expect(details.getByText("Localização")).toBeVisible()
 })
 
 test("mantém clientes responsivos e foco de teclado em 390 px", async ({ page }) => {
