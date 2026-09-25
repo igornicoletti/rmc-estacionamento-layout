@@ -27,7 +27,7 @@ async function renderClientVehiclesDataTable() {
   renderWithProviders(<ClientVehiclesDataTable clientId={clientId} />)
 
   const table = screen.getByRole("table")
-  const root = table.closest('[data-slot="data-table-root"]')
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
 
   if (!root) {
     throw new Error("DataTableRoot não encontrado.")
@@ -62,8 +62,8 @@ describe("ClientVehiclesDataTable", () => {
     expect(firstRow).not.toHaveTextContent(firstVehicle.clientId)
     expect(firstRow).not.toHaveTextContent(firstVehicle.clientTaxId)
 
-    const root = table.closest('[data-slot="data-table-root"]')
-    const toolbar = root?.querySelector('[data-slot="data-table-toolbar"]')
+    const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+    const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
 
     if (!toolbar) {
       throw new Error("Toolbar não encontrada.")
