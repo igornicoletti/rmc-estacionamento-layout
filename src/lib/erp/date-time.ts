@@ -82,8 +82,22 @@ export function readErpDate(record: ErpRecord, key: string) {
 export function readErpDateTime(
   record: ErpRecord,
   key: string,
+): string
+export function readErpDateTime(
+  record: ErpRecord,
+  key: string,
+  nullable: false,
+): string
+export function readErpDateTime(
+  record: ErpRecord,
+  key: string,
+  nullable: true,
+): string | null
+export function readErpDateTime(
+  record: ErpRecord,
+  key: string,
   nullable = false,
-) {
+): string | null {
   const value = record[key]
 
   if (nullable && (value === null || value === undefined || value === "")) {
