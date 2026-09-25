@@ -3,7 +3,7 @@ import {
   DataTableRowActions,
   DataTableRowActionsHeader,
 } from "@/components/data-table/components/data-table-row-actions"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
+import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
 import type { Unit } from "@/pages/units/model/unit"
 import {
   formatUnitCity,
@@ -18,7 +18,7 @@ interface UnitsTableColumnActions {
 }
 
 export const unitsTableApi =
-  createServerTableHook<Record<string, never>>()
+  createDataTableHook<Record<string, never>>()
 const columnHelper = unitsTableApi.createAppColumnHelper<Unit>()
 
 export function createUnitsTableColumns({
