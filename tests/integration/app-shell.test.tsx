@@ -6,30 +6,7 @@ import { describe, expect, it } from "vitest"
 import App from "@/app/root/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
-
-type AppTestRouter = ReturnType<typeof createMemoryRouter>
-
-function waitForRouterInitialization(router: AppTestRouter) {
-  if (router.state.initialized) {
-    return Promise.resolve()
-  }
-
-  return new Promise<void>((resolve) => {
-    const unsubscribe = router.subscribe((state) => {
-      if (!state.initialized) {
-        return
-      }
-
-      unsubscribe()
-      resolve()
-    })
-
-    if (router.state.initialized) {
-      unsubscribe()
-      resolve()
-    }
-  })
-}
+import { waitForRouterInitialization } from "@tests/support/router"
 
 async function renderApp(initialEntry = "/") {
   const router = createMemoryRouter(routes, {
