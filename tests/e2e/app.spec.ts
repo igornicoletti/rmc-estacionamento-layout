@@ -69,7 +69,7 @@ if (!firstDescendingUnit) {
 }
 
 async function waitForDataTable(page: Page) {
-  const root = page.getByTestId("data-table-root")
+  const root = page.locator('[data-slot="data-table-root"]')
   const table = root.getByRole("table")
 
   await expect(root).toHaveAttribute("aria-busy", "false")
@@ -80,7 +80,7 @@ async function waitForDataTable(page: Page) {
 
 function dataRow(table: Locator, id: string) {
   return table.locator(
-    `[data-slot="data-table-row"][data-row-id="${id}"]`,
+    `[data-testid="data-table-row"][data-row-id="${id}"]`,
   )
 }
 
@@ -114,7 +114,7 @@ test("mantém a rolagem horizontal dentro da tabela de unidades", async ({
   await page.goto("/unidades")
   await waitForDataTable(page)
 
-  const tableContainer = page.getByTestId("table-container")
+  const tableContainer = page.locator('[data-slot="table-container"]')
   const tableGeometry = await tableContainer.evaluate((element) => ({
     clientWidth: element.clientWidth,
     scrollWidth: element.scrollWidth,
@@ -151,7 +151,7 @@ test("filtra, pagina e abre clientes e veículos sem depender da copy", async ({
   await root.getByTestId("data-table-page-first").click()
   await expect(dataRow(table, firstPageClient.id)).toBeVisible()
 
-  const toolbar = root.getByTestId("data-table-toolbar")
+  const toolbar = root.locator('[data-slot="data-table-toolbar"]')
   const cityCombobox = toolbar.getByRole("combobox")
   const cityLabel = formatCityName(firstClient.city)
 
@@ -218,7 +218,7 @@ test("filtra, ordena, pagina e abre detalhes de unidades sem depender da copy", 
   await root.getByTestId("data-table-page-first").click()
   await expect(dataRow(table, firstUnit.id)).toBeVisible()
 
-  const toolbar = root.getByTestId("data-table-toolbar")
+  const toolbar = root.locator('[data-slot="data-table-toolbar"]')
   const cityCombobox = toolbar.getByRole("combobox")
   const cityLabel = formatUnitCity(facetUnit.city)
 
@@ -230,7 +230,7 @@ test("filtra, ordena, pagina e abre detalhes de unidades sem depender da copy", 
 
   await expect(rows).toHaveCount(unitsInFacetCity.length)
 
-  await toolbar.getByTestId("combobox-clear").click()
+  await toolbar.locator('[data-slot="combobox-clear"]').click()
   await expect(rows).toHaveCount(Math.min(units.length, DEFAULT_PAGE_SIZE))
 
   const search = toolbar.getByRole("searchbox")
