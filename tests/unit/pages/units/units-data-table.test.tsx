@@ -139,6 +139,26 @@ describe("UnitsDataTable", () => {
     expect(screen.getAllByText(/Curitiba/u).length).toBeGreaterThan(0)
   })
 
+  it("exibe o estado vazio filtrado e permite limpar a busca", async () => {
+    const user = userEvent.setup()
+    await renderUnitsDataTable()
+
+    const search = screen.getByRole("searchbox", { name: "Buscar unidades" })
+
+    await user.type(search, "nao-existe")
+    await user.keyboard("{Enter}")
+
+    expect(
+      await screen.findByText("Nenhum resultado encontrado"),
+    ).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole("button", { name: "Limpar filtros" }),
+    )
+
+    expect(await screen.findByText("18 unidades")).toBeInTheDocument()
+  })
+
   it("ordena colunas permitidas e filtra pela cidade no próprio combobox", async () => {
     const user = userEvent.setup()
     await renderUnitsDataTable()

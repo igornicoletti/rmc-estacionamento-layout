@@ -86,6 +86,58 @@ test("filtra, pagina e abre detalhes de clientes e veículos", async ({ page }) 
   await expect(page.getByRole("columnheader", { name: /Motorista/u })).toHaveCount(0)
 })
 
+test("filtra, ordena, pagina e abre detalhes de unidades", async ({ page }) => {
+  await page.goto("/unidades")
+
+  await expect(page.getByText("18 unidades")).toBeVisible()
+  await expect(page.getByText("Unidade 01")).toBeVisible()
+
+  await page.getByRole("button", { name: "Próxima página" }).click()
+  await expect(page.getByText("Unidade 11")).toBeVisible()
+
+  await page.getByRole("button", { name: "Primeira página" }).click()
+
+  const cityCombobox = page.getByRole("combobox", {
+    name: "Filtrar unidades por cidade",
+  })
+  await cityCombobox.fill("Curitiba")
+  await expect(page.getByRole("option", { name: /Curitiba/u })).toBeVisible()
+  await page.getByRole("option", { name: /Curitiba/u }).click()
+
+  await expect(page.getByText("2 unidades")).toBeVisible()
+  await expect(page.getByText("Unidade 04")).toBeVisible()
+  await expect(page.getByText("Unidade 12")).toBeVisible()
+
+  await page.getByRole("button", { name: "Limpar filtro de cidade" }).click()
+  await expect(page.getByText("18 unidades")).toBeVisible()
+
+  const search = page.getByRole("searchbox", { name: "Buscar unidades" })
+  await search.fill("Goiânia")
+  await search.press("Enter")
+  await expect(page.getByText("2 unidades")).toBeVisible()
+  await expect(page.getByText("Goiânia — GO").first()).toBeVisible()
+
+  await page.getByRole("button", { name: "Limpar filtros" }).click()
+  await expect(page.getByText("18 unidades")).toBeVisible()
+
+  const sortByName = page.getByRole("button", {
+    name: "Ordenar por Nome fantasia",
+  })
+  await sortByName.click()
+  await sortByName.click()
+  await expect(page.getAllByRole("row").nth(1)).toContainText("Unidade 18")
+
+  await page.getByRole("button", { name: "Primeira página" }).click()
+  await page.getByRole("button", { name: "Ações da unidade Unidade 18" }).click()
+  await page.getByRole("menuitem", { name: "Detalhes" }).click()
+
+  await expect(
+    page.getByRole("dialog", { name: "Unidade 18" }),
+  ).toBeVisible()
+  await expect(page.getByText("Identificação")).toBeVisible()
+  await expect(page.getByText("Localização")).toBeVisible()
+})
+
 test("mantém clientes responsivos e foco de teclado em 390 px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto("/clientes")
