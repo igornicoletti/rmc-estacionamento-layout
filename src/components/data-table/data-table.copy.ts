@@ -30,6 +30,7 @@ export const dataTableCopy = {
       "Tente novamente. Se o problema persistir, contate o suporte.",
     retry: "Tentar novamente",
   },
+  loading: "Carregando registros",
   updating: "Atualizando",
   rowActions: {
     label: "Ações",
