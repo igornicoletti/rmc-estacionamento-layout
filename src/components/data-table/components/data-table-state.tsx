@@ -128,6 +128,22 @@ export function DataTableError({
   );
 }
 
+export function DataTableLoadingFallback() {
+  return (
+    <div
+      className="grid gap-3 rounded-3xl border p-4"
+      data-slot="data-table-loading-fallback"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="sr-only">{dataTableCopy.loading}</span>
+      <Skeleton className="h-9 w-full max-w-sm" aria-hidden="true" />
+      <Skeleton className="h-72 w-full" aria-hidden="true" />
+      <Skeleton className="h-9 w-full max-w-md" aria-hidden="true" />
+    </div>
+  );
+}
+
 export function DataTableUpdating({ active }: { active: boolean }) {
   if (!active) return null;
 
