@@ -21,6 +21,21 @@ import { Spinner } from "@/components/ui/spinner";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
+export function DataTableLazyFallback() {
+  return (
+    <div
+      className="flex flex-col gap-4"
+      data-slot="data-table-lazy-fallback"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="sr-only">{dataTableCopy.loading}</span>
+      <Skeleton className="h-9 w-full max-w-80" />
+      <Skeleton className="h-72 w-full" />
+    </div>
+  );
+}
+
 interface DataTableSkeletonRowsProps {
   columns: number;
   rows: number;
