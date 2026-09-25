@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { useDebouncer } from "@tanstack/react-pacer"
 import {
   functionalUpdate,
-  type ColumnFiltersState,
   type ColumnVisibilityState,
   type OnChangeFn,
   type PaginationState,
@@ -21,7 +20,6 @@ export function useDataTableState({
   initialPageSize = 10,
 }: UseDataTableStateOptions = {}) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>(
     initialColumnVisibility,
   )
@@ -48,29 +46,33 @@ export function useDataTableState({
     },
   )
 
-  const onSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
-    setSorting((current) => functionalUpdate(updater, current))
-    resetPage()
-  }, [resetPage])
+  const onSortingChange: OnChangeFn<SortingState> = useCallback(
+    (updater) => {
+      setSorting((current) => functionalUpdate(updater, current))
+      resetPage()
+    },
+    [resetPage],
+  )
 
-  const onColumnFiltersChange: OnChangeFn<ColumnFiltersState> = useCallback((updater) => {
-    setColumnFilters((current) => functionalUpdate(updater, current))
-    resetPage()
-  }, [resetPage])
+  const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
+    (updater) => {
+      setPagination((current) => {
+        const next = functionalUpdate(updater, current)
+        return next.pageSize === current.pageSize
+          ? next
+          : { ...next, pageIndex: 0 }
+      })
+    },
+    [],
+  )
 
-  const onPaginationChange: OnChangeFn<PaginationState> = useCallback((updater) => {
-    setPagination((current) => {
-      const next = functionalUpdate(updater, current)
-      return next.pageSize === current.pageSize
-        ? next
-        : { ...next, pageIndex: 0 }
-    })
-  }, [])
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchDraft(value)
-    searchDebouncer.maybeExecute(value)
-  }, [searchDebouncer])
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchDraft(value)
+      searchDebouncer.maybeExecute(value)
+    },
+    [searchDebouncer],
+  )
 
   const clearSearch = useCallback(() => {
     searchDebouncer.cancel()
@@ -83,65 +85,19 @@ export function useDataTableState({
     searchDebouncer.flush()
   }, [searchDebouncer])
 
-  const clearFilters = useCallback(() => {
-    searchDebouncer.cancel()
-    setSearchDraft("")
-    setGlobalFilter("")
-    setColumnFilters([])
-    resetPage()
-  }, [resetPage, searchDebouncer])
-
   return {
     sorting,
-    columnFilters,
     columnVisibility,
     pagination,
     searchDraft,
     globalFilter,
-    hasFilters: Boolean(globalFilter || columnFilters.length),
+    hasFilters: Boolean(globalFilter),
     setColumnVisibility,
     onSortingChange,
-    onColumnFiltersChange,
     onPaginationChange,
     handleSearchChange,
     clearSearch,
     submitSearch,
-    clearFilters,
+    clearFilters: clearSearch,
   }
-}
-
-interface UseDataTablePageBoundsOptions {
-  isPlaceholderData: boolean
-  onPaginationChange: OnChangeFn<PaginationState>
-  pagination: PaginationState
-  rowCount?: number
-}
-
-export function useDataTablePageBounds({
-  isPlaceholderData,
-  onPaginationChange,
-  pagination,
-  rowCount,
-}: UseDataTablePageBoundsOptions) {
-  useEffect(() => {
-    if (rowCount === undefined || isPlaceholderData) return
-
-    const lastPageIndex = Math.max(
-      Math.ceil(rowCount / pagination.pageSize) - 1,
-      0,
-    )
-
-    if (pagination.pageIndex <= lastPageIndex) return
-
-    onPaginationChange((current) => ({
-      ...current,
-      pageIndex: lastPageIndex,
-    }))
-  }, [
-    isPlaceholderData,
-    onPaginationChange,
-    pagination.pageIndex,
-    pagination.pageSize,
-    rowCount,
-  ])
 }
