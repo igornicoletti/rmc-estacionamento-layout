@@ -32,6 +32,7 @@ export function DataTableToolbar({
             <TooltipTrigger
               render={
                 <Button
+                  data-slot="data-table-clear-filters"
                   aria-label={dataTableCopy.empty.clearFilters}
                   onClick={onClearFilters}
                   size="icon"
