@@ -1,26 +1,24 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter, matchRoutes } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import App from "@/app/root/app"
-import "@/components/data-table/components/data-table-preview"
-import "@/pages/clients/components/clients-data-table"
-import "@/pages/units/components/units-data-table"
 import { appPages } from "@/app/config/app-config"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
+import { waitForRouterInitialization } from "@tests/support/router"
 
-const dataTablePages = [
-  "users",
-  "notifications",
-  "audit",
-  "permissions",
-  "units",
-  "clients",
-  "prices",
-  "rules",
-] as const
+async function renderRoute(initialEntry = "/") {
+  const router = createMemoryRouter(routes, {
+    initialEntries: [initialEntry],
+  })
+
+  await waitForRouterInitialization(router)
+
+  render(<App initialSessionSnapshot={anonymousSession} router={router} />)
+
+  return router
+}
 
 describe("app routing", () => {
   it("monta o shell na rota raiz", async () => {
