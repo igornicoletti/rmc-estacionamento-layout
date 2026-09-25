@@ -12,6 +12,7 @@ import { DataTableSearch } from "@/components/data-table/components/data-table-s
 import {
   DataTableEmpty,
   DataTableError,
+  DataTableUpdating,
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
@@ -213,6 +214,10 @@ export function ClientVehiclesDataTable({
             />
           ) : null}
         </DataTableToolbar>
+
+        <DataTableUpdating
+          active={vehiclesQuery.isFetching && !vehiclesQuery.isPending}
+        />
 
         <DataTable
           caption={clientsCopy.vehicles.caption}
