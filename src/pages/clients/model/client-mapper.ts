@@ -38,9 +38,9 @@ export function mapErpClient(input: unknown): Client {
     vehicleCount: readErpInteger(record, "qtd_veiculos"),
     lastPurchaseAt: readErpDate(record, "dta_ultima_compra"),
     activeWithin120Days: readErpBoolean(record, "is_active_120d"),
-    synchronizedAt: readErpDateTime(record, "synced_at") as string,
-    createdAt: readErpDateTime(record, "created_at") as string,
-    updatedAt: readErpDateTime(record, "updated_at") as string,
+    synchronizedAt: readErpDateTime(record, "synced_at"),
+    createdAt: readErpDateTime(record, "created_at"),
+    updatedAt: readErpDateTime(record, "updated_at"),
   }
 }
 
