@@ -39,7 +39,7 @@ async function renderClientsDataTable() {
   )
 
   const table = screen.getByRole("table")
-  const root = table.closest('[data-slot="data-table-root"]')
+  const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
 
   if (!root) {
     throw new Error("DataTableRoot não encontrado.")
@@ -175,8 +175,8 @@ describe("ClientsDataTable", () => {
   it("expõe as opções de cidade derivadas dos dados", async () => {
     const user = userEvent.setup()
     const table = await renderClientsDataTable()
-    const root = table.closest('[data-slot="data-table-root"]')
-    const toolbar = root?.querySelector('[data-slot="data-table-toolbar"]')
+    const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
+    const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
 
     if (!toolbar) {
       throw new Error("Toolbar não encontrada.")
