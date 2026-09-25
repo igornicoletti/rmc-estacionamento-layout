@@ -3,7 +3,7 @@ import {
   DataTableRowActions,
   DataTableRowActionsHeader,
 } from "@/components/data-table/components/data-table-row-actions"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
+import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
 import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
   formatDateTime,
@@ -19,7 +19,7 @@ interface ClientVehiclesTableColumnActions {
 }
 
 export const clientVehiclesTableApi =
-  createServerTableHook<Record<string, never>>()
+  createDataTableHook<Record<string, never>>()
 const columnHelper = clientVehiclesTableApi.createAppColumnHelper<ClientVehicle>()
 
 export function createClientVehiclesTableColumns(
