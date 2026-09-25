@@ -9,9 +9,8 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "html",
   use: {
     baseURL: "http://127.0.0.1:4173",
-    screenshot: "only-on-failure",
-    testIdAttribute: "data-slot",
     trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
