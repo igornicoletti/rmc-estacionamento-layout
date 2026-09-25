@@ -242,7 +242,6 @@ describe("UnitsDataTable", () => {
   })
 
   it("encaminha a busca para o modelo local", async () => {
-    const user = userEvent.setup()
     const table = await renderUnitsDataTable()
     const search = screen.getByRole("searchbox")
 
