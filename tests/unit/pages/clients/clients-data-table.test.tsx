@@ -186,12 +186,11 @@ describe("ClientsDataTable", () => {
 
     expect(cityFilter).toHaveAccessibleName()
 
-    await user.click(cityFilter)
-
     const cityLabel = formatCityName(firstClient.city)
 
-    expect(
-      await screen.findByRole("option", { name: cityLabel }),
-    ).toBeInTheDocument()
+    await user.click(cityFilter)
+    await user.type(cityFilter, cityLabel)
+
+    expect(await screen.findAllByRole("option")).toHaveLength(1)
   })
 })
