@@ -28,9 +28,9 @@ export function mapErpClientVehicle(input: unknown): ClientVehicle {
       record,
       "client_is_active_120d",
     ),
-    synchronizedAt: readErpDateTime(record, "synced_at") as string,
-    createdAt: readErpDateTime(record, "created_at") as string,
-    updatedAt: readErpDateTime(record, "updated_at") as string,
+    synchronizedAt: readErpDateTime(record, "synced_at"),
+    createdAt: readErpDateTime(record, "created_at"),
+    updatedAt: readErpDateTime(record, "updated_at"),
   }
 }
 
