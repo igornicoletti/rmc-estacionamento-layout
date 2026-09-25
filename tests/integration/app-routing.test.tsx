@@ -22,26 +22,20 @@ async function renderRoute(initialEntry = "/") {
 
 describe("app routing", () => {
   it("monta o shell na rota raiz", async () => {
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
+    const router = await renderRoute()
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
-
-    expect(await screen.findByRole("main")).toBeInTheDocument()
-    expect(screen.getByRole("navigation")).toBeInTheDocument()
     expect(router.state.location.pathname).toBe("/")
+    expect(router.state.errors).toBeNull()
+    expect(screen.getByRole("main")).toBeInTheDocument()
+    expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
   it.each(Object.values(appPages))("resolve o deep link $path", async (page) => {
-    const router = createMemoryRouter(routes, {
-      initialEntries: [page.path],
-    })
+    const router = await renderRoute(page.path)
 
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
-
-    await waitFor(() => {
-      expect(router.state.location.pathname).toBe(page.path)
-    })
-    expect(await screen.findByRole("main")).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(page.path)
+    expect(router.state.errors).toBeNull()
+    expect(screen.getByRole("main")).toBeInTheDocument()
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
