@@ -5,12 +5,24 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   DataTableEmpty,
   DataTableError,
+  DataTableLazyFallback,
   DataTableSkeletonRows,
   DataTableUpdating,
 } from "@/components/data-table/components/data-table-state"
 
 afterEach(() => {
   vi.useRealTimers()
+})
+
+describe("DataTableLazyFallback", () => {
+  it("expõe um status de carregamento sem depender da copy", () => {
+    render(<DataTableLazyFallback />)
+
+    const status = screen.getByRole("status")
+
+    expect(status).toBeVisible()
+    expect(status.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(2)
+  })
 })
 
 describe("DataTableUpdating", () => {
