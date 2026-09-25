@@ -81,6 +81,28 @@ describe("DataTableComboboxFilter", () => {
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
 
+  it("renderiza apenas o indicador nativo no item selecionado", async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <DataTableComboboxFilter
+        ariaLabel="filter"
+        counts={{ active: 5, invited: 3, suspended: 2 }}
+        items={ITEMS}
+        onValueChange={vi.fn()}
+        placeholder="placeholder"
+        value="active"
+      />,
+    )
+
+    await user.click(screen.getByRole("combobox", { name: "filter" }))
+
+    const selectedOption = await screen.findByRole("option", { name: /^A/u })
+
+    expect(selectedOption).toHaveAttribute("aria-selected", "true")
+    expect(selectedOption.querySelectorAll("svg")).toHaveLength(1)
+  })
+
   it("renderiza lista plana sem grupos", async () => {
     const user = userEvent.setup()
 

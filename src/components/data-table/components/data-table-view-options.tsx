@@ -1,4 +1,4 @@
-import { SlidersHorizontalIcon } from "lucide-react";
+import { Columns3Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -63,7 +63,7 @@ export function DataTableViewOptions({
             />
           }
         >
-          <SlidersHorizontalIcon data-icon="inline-start" aria-hidden="true" />
+          <Columns3Icon aria-hidden="true" />
         </TooltipTrigger>
         <TooltipContent role="tooltip">{dataTableCopy.columns.tooltip}</TooltipContent>
       </Tooltip>

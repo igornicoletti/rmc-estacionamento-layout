@@ -20,6 +20,22 @@ describe("DataTableExport", () => {
     expect(onExport).toHaveBeenCalledOnce()
   })
 
+  it("exibe a orientação por tooltip quando a exportação está disponível", async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(<DataTableExport onExport={vi.fn()} />)
+
+    const exportButton = screen.getByRole("button", {
+      name: "Exportar CSV",
+    })
+
+    await user.hover(exportButton)
+
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "Exportar dados filtrados em CSV",
+    )
+  })
+
   it("mantém a orientação por tooltip quando a exportação está desabilitada", async () => {
     const user = userEvent.setup()
     const onExport = vi.fn()

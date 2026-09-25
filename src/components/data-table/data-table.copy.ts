@@ -43,9 +43,9 @@ export const dataTableCopy = {
     tooltip: "Exportar dados filtrados em CSV",
   },
   columns: {
-    trigger: "Colunas",
-    tooltip: "Exibir colunas",
-    label: "Colunas visíveis",
+    trigger: "Gerenciar colunas",
+    tooltip: "Gerenciar colunas",
+    label: "Colunas da tabela",
     lastVisible: "última coluna visível",
   },
 } as const

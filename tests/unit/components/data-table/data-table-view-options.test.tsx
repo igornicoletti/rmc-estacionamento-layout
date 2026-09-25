@@ -42,7 +42,9 @@ describe("DataTableViewOptions", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button"))
+    await user.click(screen.getByRole("button", { name: "Gerenciar colunas" }))
+
+    expect(screen.getByText("Colunas da tabela")).toBeInTheDocument()
 
     const options = await screen.findAllByRole("menuitemcheckbox")
     expect(options).toHaveLength(2)
@@ -80,7 +82,7 @@ describe("DataTableViewOptions", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button"))
+    await user.click(screen.getByRole("button", { name: "Gerenciar colunas" }))
     const emailOption = await screen.findByRole("menuitemcheckbox", {
       name: "E-mail",
     })
