@@ -72,7 +72,7 @@ export function DataTablePagination({
 
   return (
     <div
-      data-testid="data-table-pagination"
+      data-slot="data-table-pagination"
       className="flex flex-col items-center gap-3 text-center md:flex-row md:justify-between md:text-left"
     >
       <p className="text-sm text-muted-foreground">
@@ -80,7 +80,7 @@ export function DataTablePagination({
       </p>
       <div className="flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap md:w-auto md:justify-end">
         <div
-          data-testid="data-table-page-size"
+          data-slot="data-table-page-size"
           className="flex items-center justify-center gap-2"
         >
           <span className="text-sm text-muted-foreground">{dataTableCopy.pagination.rowsPerPage}</span>
@@ -104,7 +104,7 @@ export function DataTablePagination({
           </Select>
         </div>
         <div
-          data-testid="data-table-page-navigation"
+          data-slot="data-table-page-navigation"
           className="flex items-center justify-center gap-2"
         >
           <span className="min-w-24 text-center text-sm">
