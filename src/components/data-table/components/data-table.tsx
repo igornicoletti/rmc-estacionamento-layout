@@ -96,7 +96,7 @@ export function DataTable<
               <TableRow
                 key={row.id}
                 data-row-id={row.id}
-                data-slot="data-table-row"
+                data-testid="data-table-row"
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
