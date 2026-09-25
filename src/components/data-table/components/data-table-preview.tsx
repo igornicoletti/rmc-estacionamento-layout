@@ -13,7 +13,7 @@ import {
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
-import { createServerTableHook } from "@/components/data-table/hooks/create-server-table-hook"
+import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
 import { useDataTableState } from "@/components/data-table/hooks/use-data-table-state"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
@@ -32,7 +32,7 @@ export interface DataTablePreviewProps {
 }
 
 const PREVIEW_RECORD_COUNT = 28
-const tableApi = createServerTableHook<Record<string, never>>()
+const tableApi = createDataTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<PreviewRecord>()
 
 function copyPreviewRecord(record: PreviewRecord) {
