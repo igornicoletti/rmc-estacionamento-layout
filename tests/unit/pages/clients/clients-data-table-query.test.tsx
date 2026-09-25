@@ -1,5 +1,6 @@
 import { act, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { MemoryRouter } from "react-router"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
@@ -28,6 +29,14 @@ import { ClientsDataTable } from "@/pages/clients/components/clients-data-table"
 
 const previewClients = mapErpClients(clientErpFixture)
 
+function renderClientsDataTable() {
+  renderWithProviders(
+    <MemoryRouter>
+      <ClientsDataTable />
+    </MemoryRouter>,
+  )
+}
+
 describe("ClientsDataTable query boundary", () => {
   beforeEach(() => {
     loadPreviewClientsMock.mockReset()
@@ -42,7 +51,7 @@ describe("ClientsDataTable query boundary", () => {
       }),
     )
 
-    renderWithProviders(<ClientsDataTable />)
+    renderClientsDataTable()
 
     const table = screen.getByRole("table")
     expect(table.closest('[aria-busy="true"]')).not.toBeNull()
@@ -65,7 +74,7 @@ describe("ClientsDataTable query boundary", () => {
       })
       .mockReturnValueOnce(previewClients)
 
-    renderWithProviders(<ClientsDataTable />)
+    renderClientsDataTable()
 
     const retry = await screen.findByRole("button", {
       name: "Tentar novamente",
