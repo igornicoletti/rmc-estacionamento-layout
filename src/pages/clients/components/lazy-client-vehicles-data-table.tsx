@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react"
 
+import { DataTableLazyFallback } from "@/components/data-table/components/data-table-state"
+
 const ClientVehiclesDataTable = lazy(() =>
   import("@/pages/clients/components/client-vehicles-data-table").then(
     (module) => ({ default: module.ClientVehiclesDataTable }),
@@ -14,7 +16,7 @@ export function LazyClientVehiclesDataTable({
   clientId,
 }: LazyClientVehiclesDataTableProps) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<DataTableLazyFallback />}>
       <ClientVehiclesDataTable clientId={clientId} />
     </Suspense>
   )
