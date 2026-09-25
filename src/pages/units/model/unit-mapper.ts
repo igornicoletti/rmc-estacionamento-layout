@@ -58,9 +58,9 @@ export function mapErpUnit(input: unknown): Unit {
     coordinates: normalizeCoordinates(
       readErpNullableString(record, "des_coordenada_empresa"),
     ),
-    synchronizedAt: readErpDateTime(record, "synced_at") as string,
-    createdAt: readErpDateTime(record, "created_at") as string,
-    updatedAt: readErpDateTime(record, "updated_at") as string,
+    synchronizedAt: readErpDateTime(record, "synced_at"),
+    createdAt: readErpDateTime(record, "created_at"),
+    updatedAt: readErpDateTime(record, "updated_at"),
   }
 }
 
