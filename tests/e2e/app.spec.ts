@@ -125,7 +125,7 @@ test("filtra, ordena, pagina e abre detalhes de unidades", async ({ page }) => {
   })
   await sortByName.click()
   await sortByName.click()
-  await expect(page.getAllByRole("row").nth(1)).toContainText("Unidade 18")
+  await expect(page.getByRole("row").nth(1)).toContainText("Unidade 18")
 
   await page.getByRole("button", { name: "Ações da unidade Unidade 18" }).click()
   await page.getByRole("menuitem", { name: "Detalhes" }).click()
