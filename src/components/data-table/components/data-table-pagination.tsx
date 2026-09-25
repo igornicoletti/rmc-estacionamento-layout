@@ -72,7 +72,7 @@ export function DataTablePagination({
 
   return (
     <div
-      data-slot="data-table-pagination"
+      data-testid="data-table-pagination"
       className="flex flex-col items-center gap-3 text-center md:flex-row md:justify-between md:text-left"
     >
       <p className="text-sm text-muted-foreground">
@@ -80,7 +80,7 @@ export function DataTablePagination({
       </p>
       <div className="flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap md:w-auto md:justify-end">
         <div
-          data-slot="data-table-page-size"
+          data-testid="data-table-page-size"
           className="flex items-center justify-center gap-2"
         >
           <span className="text-sm text-muted-foreground">{dataTableCopy.pagination.rowsPerPage}</span>
@@ -104,7 +104,7 @@ export function DataTablePagination({
           </Select>
         </div>
         <div
-          data-slot="data-table-page-navigation"
+          data-testid="data-table-page-navigation"
           className="flex items-center justify-center gap-2"
         >
           <span className="min-w-24 text-center text-sm">
@@ -112,7 +112,7 @@ export function DataTablePagination({
           </span>
           <div className="flex items-center gap-1">
             <Button
-              data-slot="data-table-page-first"
+              data-testid="data-table-page-first"
               variant="outline"
               size="icon-sm"
               aria-label={dataTableCopy.pagination.first}
@@ -122,7 +122,7 @@ export function DataTablePagination({
               <ChevronsLeftIcon data-icon="inline-start" aria-hidden="true" />
             </Button>
             <Button
-              data-slot="data-table-page-previous"
+              data-testid="data-table-page-previous"
               variant="outline"
               size="icon-sm"
               aria-label={dataTableCopy.pagination.previous}
@@ -132,7 +132,7 @@ export function DataTablePagination({
               <ChevronLeftIcon data-icon="inline-start" aria-hidden="true" />
             </Button>
             <Button
-              data-slot="data-table-page-next"
+              data-testid="data-table-page-next"
               variant="outline"
               size="icon-sm"
               aria-label={dataTableCopy.pagination.next}
@@ -142,7 +142,7 @@ export function DataTablePagination({
               <ChevronRightIcon data-icon="inline-start" aria-hidden="true" />
             </Button>
             <Button
-              data-slot="data-table-page-last"
+              data-testid="data-table-page-last"
               variant="outline"
               size="icon-sm"
               aria-label={dataTableCopy.pagination.last}
