@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react"
 
-import { DataTableLoadingFallback } from "@/components/data-table/components/data-table-state"
+import { DataTableLazyFallback } from "@/components/data-table/components/data-table-state"
 
 import type { DataTablePreviewProps } from "@/components/data-table/components/data-table-preview"
 
@@ -12,7 +12,7 @@ const DataTablePreview = lazy(() =>
 
 export function LazyDataTablePreview(props: DataTablePreviewProps) {
   return (
-    <Suspense fallback={<DataTableLoadingFallback />}>
+    <Suspense fallback={<DataTableLazyFallback />}>
       <DataTablePreview {...props} />
     </Suspense>
   )
