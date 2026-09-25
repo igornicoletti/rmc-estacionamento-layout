@@ -1,7 +1,5 @@
 import { lazy, Suspense } from "react"
 
-import { DataTableLoadingFallback } from "@/components/data-table/components/data-table-state"
-
 import { DataTableLazyFallback } from "@/components/data-table/components/data-table-state"
 
 const ClientVehiclesDataTable = lazy(() =>
