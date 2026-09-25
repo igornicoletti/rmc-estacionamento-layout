@@ -152,7 +152,7 @@ export function UnitsDataTable() {
   if (unitsQuery.isError) {
     return (
       <DataTableError
-        description={unitsCopy.table.loadError}
+        description={unitsCopy.list.loadError}
         onRetry={() => void unitsQuery.refetch()}
       />
     )
@@ -180,30 +180,30 @@ export function UnitsDataTable() {
           onClearFilters={model.clearFilters}
         >
           <DataTableSearch
-            ariaLabel={unitsCopy.search.ariaLabel}
+            ariaLabel={unitsCopy.list.searchAriaLabel}
             onChange={model.state.handleSearchChange}
             onClear={model.state.clearSearch}
             onSubmit={model.state.submitSearch}
-            placeholder={unitsCopy.search.placeholder}
+            placeholder={unitsCopy.list.searchPlaceholder}
             value={model.state.searchDraft}
           />
           <DataTableComboboxFilter
-            ariaLabel={unitsCopy.cityFilter.ariaLabel}
-            clearAriaLabel={unitsCopy.cityFilter.clearAriaLabel}
+            ariaLabel={unitsCopy.list.cityFilterAriaLabel}
+            clearAriaLabel={unitsCopy.list.cityFilterClearAriaLabel}
             counts={model.facet.counts}
             items={model.facet.items}
             onValueChange={model.onFacetValueChange}
-            placeholder={unitsCopy.cityFilter.placeholder}
+            placeholder={unitsCopy.list.cityFilterPlaceholder}
             value={model.facetValue}
           />
         </DataTableToolbar>
 
         <DataTable
-          caption={unitsCopy.table.caption}
+          caption={unitsCopy.list.caption}
           emptyState={
             <DataTableEmpty
-              emptyDescription={unitsCopy.table.emptyDescription}
-              emptyTitle={unitsCopy.table.emptyTitle}
+              emptyDescription={unitsCopy.list.emptyDescription}
+              emptyTitle={unitsCopy.list.emptyTitle}
               hasFilters={model.hasActiveFilters}
               onClearFilters={model.clearFilters}
             />
@@ -214,7 +214,7 @@ export function UnitsDataTable() {
 
         {!unitsQuery.isPending ? (
           <DataTablePagination
-            itemLabel={unitsCopy.table.itemLabel}
+            itemLabel={unitsCopy.list.itemLabel}
             rowCount={model.filteredRows.length}
             table={table}
           />
