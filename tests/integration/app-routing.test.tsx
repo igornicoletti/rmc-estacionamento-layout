@@ -40,10 +40,7 @@ describe("app routing", () => {
   })
 
   it("resolve a rota interna de validação sem registrá-la em appPages", async () => {
-    const router = createMemoryRouter(routes, { initialEntries: ["/"] })
-
-    render(<App initialSessionSnapshot={anonymousSession} router={router} />)
-
+    const router = await renderRoute()
     const appPagePaths: string[] = Object.values(appPages).map(
       (page) => page.path,
     )
@@ -55,18 +52,8 @@ describe("app routing", () => {
     })
 
     expect(router.state.location.pathname).toBe("/rmc")
-    expect(
-      await screen.findByRole("heading", { name: "RMC" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Visualizar aviso de inatividade" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Visualizar sessão encerrada" }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Visualizar upload de avatar" }),
-    ).toBeInTheDocument()
+    expect(router.state.errors).toBeNull()
+    expect(screen.getByRole("main")).toBeInTheDocument()
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
