@@ -32,6 +32,7 @@ describe("DataTablePagination", () => {
     )
 
     const navigationButtons = screen.getAllByRole("button")
+
     expect(navigationButtons).toHaveLength(4)
     expect(navigationButtons[0]).toBeEnabled()
     expect(navigationButtons[1]).toBeEnabled()
@@ -58,6 +59,7 @@ describe("DataTablePagination", () => {
   it("encaminha navegação e alteração de tamanho", async () => {
     const user = userEvent.setup()
     const table = createTable()
+
     table.getCanPreviousPage = () => true
 
     render(
@@ -68,10 +70,13 @@ describe("DataTablePagination", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button", { name: "Primeira página" }))
-    await user.click(screen.getByRole("button", { name: "Página anterior" }))
-    await user.click(screen.getByRole("button", { name: "Próxima página" }))
-    await user.click(screen.getByRole("button", { name: "Última página" }))
+    const navigationButtons = screen.getAllByRole("button")
+
+    expect(navigationButtons).toHaveLength(4)
+
+    for (const button of navigationButtons) {
+      await user.click(button)
+    }
 
     expect(table.firstPage).toHaveBeenCalledOnce()
     expect(table.previousPage).toHaveBeenCalledOnce()
@@ -80,6 +85,7 @@ describe("DataTablePagination", () => {
 
     await user.click(screen.getByRole("combobox"))
     await user.click(await screen.findByRole("option", { selected: false }))
+
     expect(table.setPageSize).toHaveBeenCalledWith(25)
   })
 })

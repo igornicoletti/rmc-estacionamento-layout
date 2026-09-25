@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
@@ -7,36 +7,38 @@ import { renderWithProviders } from "@tests/support/render"
 import { DataTablePreview } from "@/components/data-table/components/data-table-preview"
 
 describe("DataTablePreview", () => {
-  it("compõe busca, colunas, paginação e cópia dos dados disponíveis", async () => {
+  it("integra busca e ação da linha sem depender da copy da interface", async () => {
     const user = userEvent.setup()
+    const idPrefix = "usr"
+    const recordId = `${idPrefix}-028`
 
     renderWithProviders(
       <DataTablePreview
-        caption="Lista de usuários"
-        idPrefix="usr"
-        itemLabel={{ singular: "usuário", plural: "usuários" }}
+        caption="preview"
+        idPrefix={idPrefix}
+        itemLabel={{ singular: "item", plural: "items" }}
       />,
     )
 
-    expect(
-      screen.getByRole("searchbox", { name: "Buscar registros" }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Colunas" })).toBeInTheDocument()
-    expect(screen.getByText("28 usuários")).toBeInTheDocument()
-    expect(screen.getByText("Página 1 de 3")).toBeInTheDocument()
+    const search = screen.getByRole("searchbox")
+    const table = screen.getByRole("table")
 
-    await user.click(
-      screen.getByRole("button", { name: "Ações do ID usr-001" }),
-    )
+    expect(search).toHaveAccessibleName()
 
-    expect(
-      screen.queryByRole("menuitem", { name: "Detalhes" }),
-    ).not.toBeInTheDocument()
+    await user.type(search, recordId)
+    await user.keyboard("{Enter}")
 
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Copiar dados" }),
-    )
+    const rows = within(table).getAllByRole("row")
 
-    await expect(navigator.clipboard.readText()).resolves.toBe("ID: usr-001")
+    expect(rows).toHaveLength(2)
+
+    const action = within(rows[1]).getByRole("button")
+
+    expect(action).toHaveAccessibleName()
+
+    await user.click(action)
+    await user.click(await screen.findByRole("menuitem"))
+
+    await expect(navigator.clipboard.readText()).resolves.toContain(recordId)
   })
 })

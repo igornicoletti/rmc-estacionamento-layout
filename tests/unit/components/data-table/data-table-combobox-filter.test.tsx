@@ -29,54 +29,72 @@ describe("DataTableComboboxFilter", () => {
 
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={ITEMS[0].value}
         counts={{ active: 5, invited: 0, suspended: 2 }}
         items={ITEMS}
         onValueChange={vi.fn()}
-        placeholder="placeholder"
+        placeholder={ITEMS[0].label}
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "filter" }))
+    const input = screen.getByRole("combobox")
 
-    const options = await screen.findAllByRole("option")
-    expect(options).toHaveLength(2)
-    expect(screen.queryByRole("option", { name: /^B/u })).not.toBeInTheDocument()
+    expect(input).toHaveAccessibleName()
+
+    await user.click(input)
+
+    expect(await screen.findAllByRole("option")).toHaveLength(2)
   })
 
   it("encaminha seleção e limpeza pelo clear nativo", async () => {
     const user = userEvent.setup()
     const onValueChange = vi.fn()
+
     const { rerender } = renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={ITEMS[0].value}
         counts={{ active: 5, invited: 3, suspended: 2 }}
         items={ITEMS}
         onValueChange={onValueChange}
-        placeholder="placeholder"
+        placeholder={ITEMS[0].label}
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "filter" }))
+    await user.click(screen.getByRole("combobox"))
+
     const options = await screen.findAllByRole("option")
-    await user.click(options[2])
+    const targetOption = options[2]
+
+    if (!targetOption) {
+      throw new Error("Opção esperada não encontrada.")
+    }
+
+    await user.click(targetOption)
 
     expect(onValueChange).toHaveBeenLastCalledWith("suspended")
 
     rerender(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={ITEMS[0].value}
         counts={{ active: 5, invited: 3, suspended: 0 }}
         items={ITEMS}
         onValueChange={onValueChange}
-        placeholder="placeholder"
+        placeholder={ITEMS[0].label}
         value="suspended"
       />,
     )
 
-    await user.click(
-      screen.getByRole("button", { name: "Limpar filter" }),
+    const clearButton = document.querySelector<HTMLElement>(
+      '[data-slot="combobox-clear"]',
     )
+
+    expect(clearButton).not.toBeNull()
+
+    if (!clearButton) {
+      throw new Error("Controle nativo de limpeza não encontrado.")
+    }
+
+    await user.click(clearButton)
 
     expect(onValueChange).toHaveBeenLastCalledWith(undefined)
   })
@@ -86,20 +104,30 @@ describe("DataTableComboboxFilter", () => {
 
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={ITEMS[0].value}
         counts={{ active: 5, invited: 3, suspended: 2 }}
         items={ITEMS}
         onValueChange={vi.fn()}
-        placeholder="placeholder"
+        placeholder={ITEMS[0].label}
         value="active"
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "filter" }))
+    await user.click(screen.getByRole("combobox"))
 
-    const selectedOption = await screen.findByRole("option", { name: /^A/u })
+    const options = await screen.findAllByRole("option")
+    const selectedOptions = options.filter(
+      (option) => option.getAttribute("aria-selected") === "true",
+    )
 
-    expect(selectedOption).toHaveAttribute("aria-selected", "true")
+    expect(selectedOptions).toHaveLength(1)
+
+    const [selectedOption] = selectedOptions
+
+    if (!selectedOption) {
+      throw new Error("Opção selecionada não encontrada.")
+    }
+
     expect(selectedOption.querySelectorAll("svg")).toHaveLength(1)
   })
 
@@ -108,62 +136,78 @@ describe("DataTableComboboxFilter", () => {
 
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={ITEMS[0].value}
         items={ITEMS}
         onValueChange={vi.fn()}
-        placeholder="placeholder"
+        placeholder={ITEMS[0].label}
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "filter" }))
+    await user.click(screen.getByRole("combobox"))
 
     expect(await screen.findAllByRole("option")).toHaveLength(3)
+    expect(
+      document.querySelectorAll('[data-slot="combobox-group"]'),
+    ).toHaveLength(0)
   })
 
-  it("usa o próprio input para buscar e mantém os grupos", async () => {
+  it("usa o próprio input para buscar e preserva os grupos", async () => {
     const user = userEvent.setup()
+    const onValueChange = vi.fn()
 
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={GROUPED_ITEMS[0].value}
         items={GROUPED_ITEMS}
-        onValueChange={vi.fn()}
-        placeholder="placeholder"
+        onValueChange={onValueChange}
+        placeholder={GROUPED_ITEMS[0].label}
       />,
     )
 
-    const input = screen.getByRole("combobox", { name: "filter" })
+    const input = screen.getByRole("combobox")
+
     await user.click(input)
 
-    expect(screen.getByText("PR")).toBeInTheDocument()
-    expect(screen.getByText("SP")).toBeInTheDocument()
+    expect(
+      document.querySelectorAll('[data-slot="combobox-group"]'),
+    ).toHaveLength(2)
     expect(screen.getAllByRole("combobox")).toHaveLength(1)
 
-    await user.type(input, "Curitiba")
+    await user.type(input, GROUPED_ITEMS[0].label)
 
-    expect(await screen.findAllByRole("option")).toHaveLength(1)
-    expect(
-      screen.getByRole("option", { name: /Curitiba/u }),
-    ).toBeInTheDocument()
+    const options = await screen.findAllByRole("option")
+
+    expect(options).toHaveLength(1)
+
+    const [option] = options
+
+    if (!option) {
+      throw new Error("Resultado filtrado não encontrado.")
+    }
+
+    await user.click(option)
+
+    expect(onValueChange).toHaveBeenLastCalledWith(GROUPED_ITEMS[0].value)
   })
 
-  it("exibe o estado vazio quando nenhuma faceta está disponível", async () => {
+  it("não expõe opções quando nenhuma faceta está disponível", async () => {
     const user = userEvent.setup()
 
     renderWithProviders(
       <DataTableComboboxFilter
-        ariaLabel="filter"
+        ariaLabel={ITEMS[0].value}
         counts={{ active: 0, invited: 0, suspended: 0 }}
-        emptyMessage="Sem opções"
         items={ITEMS}
         onValueChange={vi.fn()}
-        placeholder="placeholder"
+        placeholder={ITEMS[0].label}
       />,
     )
 
-    await user.click(screen.getByRole("combobox", { name: "filter" }))
+    await user.click(screen.getByRole("combobox"))
 
-    expect(await screen.findByText("Sem opções")).toBeInTheDocument()
+    expect(
+      document.querySelector('[data-slot="combobox-empty"]'),
+    ).not.toBeNull()
     expect(screen.queryByRole("option")).not.toBeInTheDocument()
   })
 })

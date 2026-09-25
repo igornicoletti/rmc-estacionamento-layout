@@ -42,16 +42,20 @@ describe("DataTableViewOptions", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button", { name: "Gerenciar colunas" }))
+    const trigger = screen.getByRole("button")
 
-    expect(screen.getByText("Colunas da tabela")).toBeInTheDocument()
+    expect(trigger).toHaveAccessibleName()
+
+    await user.click(trigger)
 
     const options = await screen.findAllByRole("menuitemcheckbox")
+
     expect(options).toHaveLength(2)
     expect(options[0]).toHaveAttribute("aria-disabled", "true")
     expect(toggleTitle).not.toHaveBeenCalled()
 
     await user.click(options[1])
+
     expect(toggleStatus).toHaveBeenCalledWith(true)
   })
 
@@ -65,14 +69,14 @@ describe("DataTableViewOptions", () => {
           getAllLeafColumns: () => [
             {
               id: "name",
-              columnDef: { meta: { visibilityLabel: "Nome" } },
+              columnDef: { meta: { visibilityLabel: "A" } },
               getCanHide: () => false,
               getIsVisible: () => true,
               toggleVisibility: vi.fn(),
             },
             {
               id: "email",
-              columnDef: { meta: { visibilityLabel: "E-mail" } },
+              columnDef: { meta: { visibilityLabel: "B" } },
               getCanHide: () => true,
               getIsVisible: () => true,
               toggleVisibility: toggleEmail,
@@ -82,13 +86,22 @@ describe("DataTableViewOptions", () => {
       />,
     )
 
-    await user.click(screen.getByRole("button", { name: "Gerenciar colunas" }))
-    const emailOption = await screen.findByRole("menuitemcheckbox", {
-      name: "E-mail",
-    })
+    await user.click(screen.getByRole("button"))
 
-    expect(emailOption).not.toHaveAttribute("aria-disabled", "true")
-    await user.click(emailOption)
+    const options = await screen.findAllByRole("menuitemcheckbox")
+
+    expect(options).toHaveLength(1)
+
+    const [option] = options
+
+    if (!option) {
+      throw new Error("Opção ocultável não encontrada.")
+    }
+
+    expect(option).not.toHaveAttribute("aria-disabled", "true")
+
+    await user.click(option)
+
     expect(toggleEmail).toHaveBeenCalledWith(false)
   })
 

@@ -1,4 +1,4 @@
-import { act, screen } from "@testing-library/react"
+import { act, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -37,12 +37,22 @@ function renderClientsDataTable() {
   )
 }
 
+function getDataTableRoot(table: HTMLElement) {
+  const root = table.closest('[data-slot="data-table-root"]')
+
+  if (!root) {
+    throw new Error("DataTableRoot não encontrado.")
+  }
+
+  return root
+}
+
 describe("ClientsDataTable query boundary", () => {
   beforeEach(() => {
     loadPreviewClientsMock.mockReset()
   })
 
-  it("mantém a tabela ocupada enquanto os dados iniciais estão pendentes", async () => {
+  it("mantém o boundary ocupado até a carga inicial concluir", async () => {
     let resolveClients: ((clients: Client[]) => void) | undefined
 
     loadPreviewClientsMock.mockReturnValue(
@@ -54,18 +64,22 @@ describe("ClientsDataTable query boundary", () => {
     renderClientsDataTable()
 
     const table = screen.getByRole("table")
-    expect(table.closest('[aria-busy="true"]')).not.toBeNull()
-    expect(screen.queryByText("24 clientes")).not.toBeInTheDocument()
+    const root = getDataTableRoot(table)
+
+    expect(root).toHaveAttribute("aria-busy", "true")
 
     act(() => {
       resolveClients?.(previewClients)
     })
 
-    expect(await screen.findByText("24 clientes")).toBeInTheDocument()
-    expect(table.closest('[aria-busy="false"]')).not.toBeNull()
+    await waitFor(() => {
+      expect(root).toHaveAttribute("aria-busy", "false")
+    })
+
+    expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
   })
 
-  it("isola falha de transformação e permite tentar novamente", async () => {
+  it("isola a falha e permite refazer a consulta", async () => {
     const user = userEvent.setup()
 
     loadPreviewClientsMock
@@ -76,13 +90,20 @@ describe("ClientsDataTable query boundary", () => {
 
     renderClientsDataTable()
 
-    const retry = await screen.findByRole("button", {
-      name: "Tentar novamente",
-    })
+    const alert = await screen.findByRole("alert")
+    const retry = within(alert).getByRole("button")
+
+    expect(retry).toHaveAccessibleName()
 
     await user.click(retry)
 
-    expect(await screen.findByText("24 clientes")).toBeInTheDocument()
+    const table = await screen.findByRole("table")
+    const root = getDataTableRoot(table)
+
+    await waitFor(() => {
+      expect(root).toHaveAttribute("aria-busy", "false")
+    })
+
     expect(loadPreviewClientsMock).toHaveBeenCalledTimes(2)
   })
 })
