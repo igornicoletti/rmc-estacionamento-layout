@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react"
 
+import { DataTableLazyFallback } from "@/components/data-table/components/data-table-state"
+
 const UnitsDataTable = lazy(() =>
   import("@/pages/units/components/units-data-table").then((module) => ({
     default: module.UnitsDataTable,
@@ -8,7 +10,7 @@ const UnitsDataTable = lazy(() =>
 
 export function LazyUnitsDataTable() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<DataTableLazyFallback />}>
       <UnitsDataTable />
     </Suspense>
   )
