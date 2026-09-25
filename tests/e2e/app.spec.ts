@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { getClientDetailsPath } from "../../src/pages/clients/client-routes"
 import {
@@ -7,10 +7,7 @@ import {
 } from "../../src/pages/clients/data/client-erp.fixture"
 import { mapErpClients } from "../../src/pages/clients/model/client-mapper"
 import { mapErpClientVehicles } from "../../src/pages/clients/model/client-vehicle-mapper"
-import {
-  formatCityName,
-  formatUnitName as formatClientUnitName,
-} from "../../src/pages/clients/model/client-presentation"
+import { formatCityName } from "../../src/pages/clients/model/client-presentation"
 import { unitErpFixture } from "../../src/pages/units/data/unit-erp.fixture"
 import { mapErpUnits } from "../../src/pages/units/model/unit-mapper"
 import {
@@ -81,7 +78,7 @@ async function waitForDataTable(page: Page) {
   return { root, table }
 }
 
-function dataRow(table: ReturnType<Page["getByRole"]>, id: string) {
+function dataRow(table: Locator, id: string) {
   return table.locator(
     `[data-slot="data-table-row"][data-row-id="${id}"]`,
   )
