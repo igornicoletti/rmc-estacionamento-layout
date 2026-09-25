@@ -67,6 +67,7 @@ export function DataTable<
                 return (
                   <TableHead
                     key={header.id}
+                    data-column-id={header.column.id}
                     aria-sort={
                       sorted === "asc"
                         ? "ascending"
@@ -92,7 +93,11 @@ export function DataTable<
             />
           ) : (
             rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                data-row-id={row.id}
+                data-slot="data-table-row"
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     <table.FlexRender cell={cell} />
