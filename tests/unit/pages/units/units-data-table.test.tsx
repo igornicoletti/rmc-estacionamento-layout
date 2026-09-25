@@ -215,10 +215,14 @@ describe("UnitsDataTable", () => {
     const cityLabel = formatUnitCity(filterUnit.city)
 
     await user.click(cityFilter)
+    await user.type(cityFilter, cityLabel)
 
-    const option = await screen.findByRole("option", {
-      name: cityLabel,
-    })
+    const options = await screen.findAllByRole("option")
+    const option = options[0]
+
+    if (!option) {
+      throw new Error("Opção filtrada de cidade não encontrada.")
+    }
 
     await user.click(option)
     await user.click(getExportButton(table))
