@@ -20,7 +20,7 @@ interface UseLocalDataTableModelOptions<TRow> {
   getFacetLabel?: (row: TRow) => string
   getFacetValue?: (row: TRow) => string | null | undefined
   getSearchText: (row: TRow) => string
-  getSortValue: (row: TRow, columnId: string) => SortValue
+  getSortValue?: (row: TRow, columnId: string) => SortValue
   initialColumnVisibility?: ColumnVisibilityState
   initialPageSize?: number
   rows: readonly TRow[]
@@ -124,7 +124,10 @@ export function useLocalDataTableModel<TRow>({
   ])
 
   const sortedRows = useMemo(
-    () => sortRows(filteredRows, state.sorting, getSortValue),
+    () =>
+      getSortValue
+        ? sortRows(filteredRows, state.sorting, getSortValue)
+        : [...filteredRows],
     [filteredRows, getSortValue, state.sorting],
   )
 
