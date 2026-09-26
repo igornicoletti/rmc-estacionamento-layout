@@ -2,131 +2,171 @@
 
 ## Princípio
 
-Implementação em blocos pequenos, auditáveis e reversíveis. Nenhum bloco começa enquanto houver inconsistência documental relevante.
+Implementação futura em blocos pequenos, auditáveis e reversíveis. A documentação atual fecha o desenho; ela não autoriza código.
 
-## Fase 0 — documentação
+## Fase 0 — aprovação documental
 
-Entregável desta branch:
+Entregáveis:
 - auditoria;
-- pesquisa oficial;
+- referências oficiais;
 - contrato;
-- nomenclatura/diretórios;
-- integração TanStack;
+- registro de decisões;
+- diretórios/imports;
+- TanStack Query;
 - testes;
-- decisões;
 - rollout.
 
-Gate: aprovação explícita.
+Gate: aprovação explícita do dossiê.
 
-## Fase 1 — reaudit da main
+## Fase 1 — preflight da main
 
-Imediatamente antes do primeiro código:
+Antes de qualquer alteração:
 - confirmar HEAD da \`main\`;
-- buscar \`toast.add\`, import de \`toast\` e implementações equivalentes;
+- buscar \`toast.add\`, import de \`toast\`, \`createToastManager\`, \`useToastManager\` e equivalentes;
 - rever \`src/components/ui/toast.tsx\`;
 - rever \`AppProviders\`;
 - rever \`QueryClient\`;
-- rever \`eslint.config.js\`;
-- rever configuração Vitest/TypeScript;
-- inventariar mutations reais do domínio piloto.
+- rever ESLint;
+- rever Vitest/TypeScript;
+- inventariar mutations reais do domínio piloto;
+- selecionar um evento real de feedback.
 
-Se premissas mudaram, atualizar documentação antes do código.
+Se uma premissa técnica mudou, interromper implementação e atualizar o dossiê.
 
-## Fase 2 — infraestrutura mínima
+## Fase 2 — contrato TypeScript
 
 Criar somente:
+
 \`\`\`text
-src/app/feedback/
-├─ feedback-contract.ts
-└─ notify.ts
+src/app/feedback/feedback-contract.ts
 \`\`\`
 
-Sem alterar domínio.
+Implementar os tipos fechados no contrato:
+- \`FeedbackType\`;
+- \`FeedbackDefinition\`;
+- \`FeedbackFactory\`;
+- \`FeedbackCatalog\`.
 
-Validar:
-- formatter do projeto, se aplicável;
-- lint;
-- typecheck;
-- testes focados;
-- build.
+Validar compile-time antes de criar o adapter.
 
-## Fase 3 — testes independentes da infraestrutura
+## Fase 3 — testes do contrato
 
-Criar:
+Criar subtree novo:
+
 \`\`\`text
-tests/unit/feedback/
-├─ notify.test.ts
+tests/unit/app/feedback/
 └─ feedback-contract.test.ts
 \`\`\`
 
-Não modificar testes existentes para "encaixar" a nova abstração.
+Confirmar:
+- tipos válidos;
+- tipo inválido;
+- description opcional;
+- retorno inválido de factory;
+- inferência preservada;
+- objeto de parâmetros específico.
 
-## Fase 4 — piloto Units
+## Fase 4 — adapter
 
 Criar:
+
+\`\`\`text
+src/app/feedback/notify.ts
+tests/unit/app/feedback/notify.test.ts
+\`\`\`
+
+Comportamento fechado:
+- assinatura retorna \`void\`;
+- mapeia somente title/description/type;
+- uma chamada ao manager;
+- sem spread;
+- sem catch;
+- sem timeout/priority/id/action.
+
+## Fase 5 — validação da infraestrutura
+
+Executar:
+- formatter configurado no projeto, se houver;
+- lint;
+- typecheck;
+- Vitest focado;
+- suite relevante;
+- build.
+
+Bloquear commit se qualquer check falhar.
+
+## Fase 6 — piloto Units
+
+Criar:
+
 \`\`\`text
 src/pages/units/content/units-feedback.ts
 \`\`\`
 
-Usar somente eventos reais. Não inventar notificações para demonstrar infraestrutura.
+Somente para um fluxo mutável real identificado no preflight. Não inventar Toast para demonstrar infraestrutura.
 
-Incluir ao menos um caso dinâmico se houver fluxo real que necessite dele.
+Se o fluxo necessitar dado dinâmico, aplicar factory desde o primeiro uso.
 
-## Fase 5 — testes do domínio quando houver lógica
+## Fase 7 — teste do catálogo quando houver lógica
 
-Se factory possuir pluralização/branching ou transformação relevante:
+Somente se existir pluralização, branch ou formatação própria:
+
 \`\`\`text
-tests/unit/pages/units/units-feedback.test.ts
+tests/unit/pages/units/content/units-feedback.test.ts
 \`\`\`
 
-Não testar frase estática apenas para congelar copy.
+Não congelar redação estática em testes sem comportamento.
 
-## Fase 6 — revisão pós-piloto
+## Fase 8 — revisão pós-piloto
 
-Revisar:
-- ergonomia do \`notify()\`;
-- clareza dos nomes;
+Verificar:
+- ergonomia;
 - inferência TypeScript;
-- tamanho do adapter;
-- separação de responsabilidades;
-- duplicação;
-- necessidades reais de timeout/action/dedupe.
+- clareza das responsabilidades;
+- ausência de objeto inline;
+- ausência de mensagens técnicas;
+- nenhuma duplicação;
+- necessidade real de qualquer capacidade fora da v1.
 
-Nenhuma expansão antes desse gate.
+Mudança de contrato exige voltar à documentação antes de expandir.
 
-## Fase 7 — expansão controlada
+## Fase 9 — expansão por domínio
 
-Aplicar por domínio, um de cada vez.
+Migrar/adotar um domínio por vez, sempre com eventos reais.
 
-## Fase 8 — enforcement
+## Fase 10 — enforcement ESLint
 
-Somente depois que imports diretos forem eliminados:
-- adicionar restrição ESLint;
-- permitir explicitamente a camada de feedback;
-- validar \`npm run check\`.
+Após não existirem consumidores legítimos do manager fora do adapter/composição:
+- aplicar a regra definida no registro de decisões;
+- preservar \`Toaster\`;
+- cobrir alias e caminhos relativos equivalentes;
+- rodar \`npm run lint\` e \`npm run check\`.
 
-## Fase 9 — TanStack Query metadata
+## Fase 11 — revisão TanStack Query
 
-Somente após inventário suficiente de mutations. Implementar apenas se reduzir repetição sem ocultar dados específicos.
+Auditar mutations implementadas.
 
-## Fase 10 — capacidades adicionais
+Somente se houver boilerplate estático recorrente, abrir decisão separada para \`mutation.meta.feedback\`.
 
-Avaliar separadamente, mediante casos reais:
+## Fase 12 — extensões
+
+Somente mediante casos reais:
 - dedupe/id;
-- \`promise\` lifecycle;
+- promise lifecycle;
 - actions;
 - priority;
 - timeout;
 - observabilidade.
 
-## Checklist por commit futuro
+## Checklist de cada commit futuro
 
 1. Mudança pequena e auditável.
-2. Documentação oficial vigente confrontada.
-3. Testes próprios necessários identificados.
-4. Lint/typecheck/test/build executados.
-5. Nenhum arquivo não relacionado incluído.
-6. Nenhuma mensagem técnica exposta.
-7. Nenhum hardcode de feedback criado fora do catálogo.
-8. Nenhum TODO arquitetural ignorado.
-9. Commit bloqueado se qualquer premissa estiver sem evidência.
+2. Premissas confrontadas com documentação oficial vigente.
+3. Nenhum arquivo não relacionado.
+4. Nenhum hardcode de feedback fora de catálogo.
+5. Nenhuma mensagem técnica exposta.
+6. Factories recebem somente dados mínimos.
+7. TypeScript preserva inferência.
+8. Testes cobrem comportamento próprio, não biblioteca.
+9. Lint, typecheck, testes e build passam.
+10. Nenhuma decisão arquitetural implícita é introduzida no código.

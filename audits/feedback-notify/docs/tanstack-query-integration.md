@@ -1,38 +1,45 @@
 # Integração com TanStack Query
 
-## 1. Objetivo
+## 1. Decisão
 
-Permitir evolução para feedback declarativo de mutations sem tornar \`notify()\` dependente de TanStack Query.
+\`notify()\` não depende de TanStack Query.
 
-## 2. Capacidade oficial
+A v1 usa callbacks locais de mutation quando o feedback faz parte do efeito de uma operação. Integração por \`mutation.meta\` fica fora da v1 e só será adotada mediante repetição comprovada de feedback estático.
 
-TanStack Query documenta \`meta\` em mutations como payload adicional armazenado na entrada do MutationCache e disponível onde a mutation está acessível, inclusive callbacks globais.
+## 2. Base oficial
 
-Também permite tipar globalmente \`mutationMeta\` por module augmentation.
+TanStack Query documenta que:
+- \`meta\` é payload adicional armazenado na mutation;
+- ele pode ser lido onde a mutation está disponível, inclusive callbacks globais do \`MutationCache\`;
+- callbacks globais executam para todas as mutations do cache;
+- nesses callbacks, \`data\` e \`variables\` são \`unknown\`;
+- \`mutationMeta\` pode ser tipado globalmente por \`Register\`.
 
 Referências:
-- https://tanstack.com/query/latest/docs/framework/react/reference/interfaces/MutationOptions
+- https://tanstack.com/query/latest/docs/framework/react/reference/interfaces/UseMutationOptions
 - https://tanstack.com/query/latest/docs/framework/react/reference/interfaces/MutationCacheConfig
 - https://tanstack.com/query/latest/docs/framework/react/typescript
 
-## 3. Fase 1 — callbacks explícitos
+## 3. V1 — callback local
 
-Conteúdo estático:
+Feedback estático:
 
 \`\`\`ts
 useMutation({
   mutationFn: updateUnit,
+
   onError: () => {
     notify(UNITS_FEEDBACK.updateFailed)
   },
 })
 \`\`\`
 
-Conteúdo dinâmico vindo do resultado:
+Feedback dinâmico vindo de \`data\`:
 
 \`\`\`ts
 useMutation({
   mutationFn: updateUnit,
+
   onSuccess: (unit) => {
     notify(
       UNITS_FEEDBACK.updated({
@@ -43,7 +50,7 @@ useMutation({
 })
 \`\`\`
 
-Conteúdo derivado das variables:
+Feedback vindo de \`variables\`:
 
 \`\`\`ts
 onSuccess: (_data, variables) => {
@@ -55,15 +62,45 @@ onSuccess: (_data, variables) => {
 }
 \`\`\`
 
-Vantagem: tipos naturais de \`data\` e \`variables\`, fluxo explícito e sem DSL adicional.
+Esse modelo preserva inferência dos tipos reais da mutation.
 
-## 4. Evolução — metadata
+## 4. Classificação de erro
 
-Se surgirem muitos casos completamente estáticos e repetitivos:
+\`notify()\` não recebe \`error\`.
+
+Quando a operação possui erros semanticamente diferentes:
+
+\`\`\`ts
+onError: (error) => {
+  if (isUnitConflict(error)) {
+    notify(UNITS_FEEDBACK.conflict)
+    return
+  }
+
+  notify(UNITS_FEEDBACK.updateFailed)
+}
+\`\`\`
+
+A classificação pertence à integração/domínio que conhece o erro.
+
+## 5. \`mutate\` callback versus \`useMutation\` callback
+
+Callbacks configurados em \`useMutation\` pertencem à mutation e são adequados para efeitos que devem ocorrer mesmo que a composição de UI mude.
+
+Callbacks adicionais passados a \`mutate(..., { onSuccess })\` são mais apropriados para efeitos específicos do componente; a documentação alerta que esses callbacks podem não executar se o componente desmontar antes da conclusão.
+
+Regra do projeto:
+- feedback de resultado da operação deve preferir callbacks configurados em \`useMutation\`;
+- callbacks no \`mutate\` ficam reservados a efeitos estritamente locais de UI.
+
+## 6. Evolução por metadata
+
+Somente para feedback estático repetitivo:
 
 \`\`\`ts
 useMutation({
   mutationFn: archiveUnit,
+
   meta: {
     feedback: {
       success: UNITS_FEEDBACK.archived,
@@ -73,48 +110,55 @@ useMutation({
 })
 \`\`\`
 
-Um \`MutationCache\` global poderia ler esse metadata e chamar \`notify()\`.
+Um \`MutationCache\` global poderia encaminhar essas definições para \`notify()\`.
 
-## 5. Por que não implementar já
+## 7. Critério objetivo para adotar metadata
 
-Callbacks globais recebem dados amplos/unknown no nível do cache. Feedbacks dinâmicos frequentemente dependem de tipos específicos de:
-- \`data\`;
-- \`variables\`;
-- erro classificado;
-- contexto de negócio.
+Metadata só entra quando:
+1. houver múltiplas mutations reais repetindo o mesmo boilerplate estático;
+2. feedback não depender de \`data\`, \`variables\` ou classificação específica;
+3. o ganho de remoção de repetição superar a indireção;
+4. \`mutationMeta\` for tipado globalmente;
+5. ausência de \`meta.feedback\` continuar significando ausência de Toast automático.
 
-Criar imediatamente uma DSL capaz de resolver todos esses casos adicionaria indireção e casts antes de termos evidência de repetição.
+Não existe quantidade numérica arbitrária mínima; a decisão deve ser justificada por duplicação real no diff/auditoria.
 
-## 6. Regra de adoção
-
-Adicionar integração com \`mutation.meta\` somente quando o levantamento de mutations reais mostrar repetição relevante deste padrão:
-
-\`\`\`ts
-onSuccess: () => notify(STATIC_SUCCESS)
-onError: () => notify(STATIC_ERROR)
-\`\`\`
-
-Metadata continua opt-in. Ausência de \`meta.feedback\` significa ausência de Toast automático.
-
-## 7. Regra contra automação indiscriminada
+## 8. Proibições
 
 Nunca:
+
 \`\`\`text
-qualquer mutation success -> Toast success
-qualquer mutation error   -> Toast error
+toda mutation success -> notify(success)
+toda mutation error   -> notify(error)
 \`\`\`
 
-Nem toda mutation precisa de feedback adicional.
+Não adicionar \`MutationCache\` só para criar uma camada "centralizada".
 
-## 8. Queries
+## 9. Queries
 
-Não introduzir Toast global para query error. Queries podem refazer requisições em background, reconnect e outros ciclos sem ação direta do usuário. Feedback visual persistente/contextual costuma ser mais apropriado.
+Não haverá Toast global automático para query errors.
 
-## 9. Tipagem futura
+Razões:
+- retries;
+- background refetch;
+- reconnect;
+- múltiplos observers;
+- erro de leitura costuma ter representação contextual melhor.
 
-Se metadata for adotado:
+Exceção futura exige decisão específica, não reutilização automática da política de mutations.
+
+## 10. Tipagem futura de metadata
+
+Se adotada:
 
 \`\`\`ts
+interface AppMutationMeta extends Record<string, unknown> {
+  feedback?: {
+    success?: FeedbackDefinition
+    error?: FeedbackDefinition
+  }
+}
+
 declare module "@tanstack/react-query" {
   interface Register {
     mutationMeta: AppMutationMeta
@@ -122,14 +166,16 @@ declare module "@tanstack/react-query" {
 }
 \`\`\`
 
-Evitar casts espalhados como \`mutation.meta as ...\`.
+Esse exemplo é direcional; a versão final deverá evitar permitir objeto inline fora dos catálogos e respeitar o contrato vigente no momento da adoção.
 
-## 10. Não impacto sobre o contrato
+## 11. Não impacto
 
-Mesmo após integração futura, o contrato continua sendo:
+A integração futura muda somente a origem do despacho.
+
+O contrato continua:
 
 \`\`\`ts
-notify(FeedbackDefinition)
+notify(FeedbackDefinition): void
 \`\`\`
 
-Metadata apenas muda a origem da chamada. Catálogos e dispatcher não precisam ser redesenhados.
+Catálogos e adapter não precisam ser redesenhados.

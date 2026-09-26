@@ -1,110 +1,130 @@
 # Plano independente de testes
 
-**Status:** planejamento. Nenhum teste executável adicionado nesta branch.
+**Status:** planejamento fechado para aprovação. Nenhum teste executável foi adicionado nesta branch.
 
-## 1. Isolamento futuro
+## 1. Estrutura futura
 
-Criar novo subtree:
-
-\`\`\`text
-tests/unit/feedback/
-├─ notify.test.ts
-└─ feedback-contract.test.ts
-\`\`\`
-
-Não editar testes existentes apenas para acomodar a infraestrutura.
-
-Testes de catálogo do domínio somente quando houver comportamento:
+Infraestrutura:
 
 \`\`\`text
-tests/unit/pages/units/units-feedback.test.ts
+tests/
+└─ unit/
+   └─ app/
+      └─ feedback/
+         ├─ feedback-contract.test.ts
+         └─ notify.test.ts
 \`\`\`
 
-O \`vitest.config.ts\` atual já inclui \`tests/unit/**/*\`, portanto \`tests/unit/feedback/\` não exige alteração de include.
+Catálogo com lógica:
 
-## 2. Filosofia
+\`\`\`text
+tests/
+└─ unit/
+   └─ pages/
+      └─ units/
+         └─ content/
+            └─ units-feedback.test.ts
+\`\`\`
 
-Testing Library recomenda testes próximos ao uso real e evita detalhes internos. Vitest oferece mocks/spies para isolar side effects.
+Esses caminhos são novos e não exigem alterar o include atual do Vitest.
 
-Para o dispatcher, o comportamento próprio é: encaminhar uma definição válida ao adapter/manager esperado. Não precisamos testar Base UI.
+## 2. Escopo
 
-## 3. Casos mínimos de \`notify()\`
+Testar somente comportamento do projeto.
 
-- encaminha \`title\`, \`description\` e \`type\` sem mutação arbitrária;
-- chama o manager exatamente uma vez por invocação;
-- não adiciona timeout/priority não definidos sem política explícita;
-- não depende de React render para funcionar.
+Não testar Base UI, Tailwind, animações ou detalhes visuais que a aplicação não implementa.
 
-## 4. Contrato TypeScript
+## 3. \`feedback-contract.test.ts\`
 
-O typecheck deve demonstrar:
-- \`type: "sucess"\` é inválido;
-- definição sem \`title\` falha;
-- definição sem \`description\` falha enquanto a decisão O-01 permanecer;
-- factory cujo retorno possui \`type\` inválido falha;
-- parâmetro dinâmico obrigatório ausente falha;
-- parâmetro dinâmico de tipo incorreto falha;
-- inferência dos parâmetros da factory permanece específica.
+Objetivos de typecheck:
+- aceita \`success | info | warning | error\`;
+- rejeita \`"sucess"\` e outros valores;
+- exige \`title\`;
+- aceita ausência de \`description\`;
+- rejeita retorno de factory que não satisfaça \`FeedbackDefinition\`;
+- preserva parâmetros concretos de factory;
+- rejeita parâmetro dinâmico ausente ou de tipo incorreto;
+- confirma que \`as const satisfies FeedbackCatalog\` não degrada a assinatura da factory.
 
-Evitar casts para satisfazer testes de tipo.
+Ferramentas:
+- \`expectTypeOf\` quando útil;
+- \`@ts-expect-error\` para contratos negativos deliberados.
+
+Evitar casts apenas para fazer o teste passar.
+
+## 4. \`notify.test.ts\`
+
+Mockar somente o manager exportado pelo módulo visual e verificar:
+- exatamente uma chamada a \`toast.add\`;
+- payload contém apenas \`title\`, \`description\` e \`type\`;
+- \`description: undefined\` é aceitável ou omitida de forma equivalente;
+- retorno público é \`undefined\`;
+- ID retornado pelo mock não é exposto;
+- nenhuma propriedade extra é encaminhada;
+- erro lançado pelo mock não é silenciosamente engolido.
+
+Não montar árvore React; o dispatcher não depende de render.
 
 ## 5. Factories
 
-Testar factory somente quando houver lógica que possa quebrar:
+Adicionar teste somente quando a factory possui lógica:
 - pluralização;
-- branches;
+- branch;
 - formatação;
-- seleção condicional de mensagem.
+- seleção condicional.
 
-Não testar cada literal estático apenas para verificar redação.
+Factory que apenas interpola um valor tipado pode ser coberta pelo typecheck e pelo fluxo consumidor, sem snapshot de redação.
 
 ## 6. Segurança
 
-Quando houver resolver de erro em um domínio, testar que:
-- erro não classificado resulta em definição pública controlada;
+Quando existir resolver/classificador de erro:
+- erro não classificado escolhe definição pública controlada;
 - \`error.message\` não é repassado;
-- valores sensíveis não são interpolados sem contrato explícito.
+- dados sensíveis não são interpolados sem contrato explícito.
 
-Esses testes pertencem ao resolver/feature que classifica o erro, não a \`notify()\` quando o dispatcher não conhece \`Error\`.
+Esses testes pertencem ao resolver/domínio, não a \`notify()\`.
 
 ## 7. TanStack Query
 
-Fase 1:
-- testar callback de mutation somente quando seu comportamento de feedback fizer parte do fluxo do domínio;
-- mockar \`notify()\` de maneira tipada;
-- não testar internals do MutationCache.
+V1:
+- testar feedback da mutation quando ele for comportamento observável relevante;
+- preferir callback configurado em \`useMutation\`;
+- mockar \`notify()\`, não internals do MutationCache.
 
-Se \`mutation.meta\` for adotado futuramente:
-- metadata ausente não notifica;
-- success configurado notifica uma vez;
-- error configurado notifica uma vez;
-- metadata continua opt-in;
-- types globais impedem metadata inválido.
+Se metadata for adotado futuramente:
+- ausência de metadata não notifica;
+- success/error configurados notificam uma vez;
+- metadata inválido falha no typecheck;
+- nenhuma política global notifica mutations sem opt-in.
 
 ## 8. ESLint
 
-Após enforcement, validar fixture/caso de lint quando viável:
-- feature importando \`toast\` deve falhar;
-- \`notify.ts\` pode importar \`toast\`.
+Após enforcement:
+- \`npm run lint\` deve falhar para consumidor importando manager/primitives de Toast;
+- \`Toaster\` permanece importável onde necessário;
+- \`notify.ts\` permanece exceção autorizada.
 
-Não introduzir teste duplicado se a própria execução de \`npm run lint\` já cobre suficientemente a regra.
+Não criar teste customizado se a própria execução do ESLint prova a regra de forma suficiente.
 
 ## 9. Não testar
 
-- animações do Toast;
-- classes Tailwind do primitive;
-- implementação interna do Base UI;
-- funcionamento do \`toast.add\` da biblioteca;
-- cores;
-- ícones salvo quando comportamento próprio depender deles;
-- snapshots de copy estática.
+- animações;
+- classes;
+- cor;
+- ícones do primitive;
+- stacking do Base UI;
+- implementação de \`toast.add\`;
+- timeout default da biblioteca;
+- texto estático literal sem lógica;
+- internals de React Query.
 
 ## 10. Gate futuro
 
-Bloco de implementação só é aceito com:
+Cada bloco deve passar:
 - lint;
 - typecheck;
 - Vitest focado;
-- suite completa relevante;
+- suite relevante;
 - build;
-- ausência de alterações não relacionadas.
+- revisão do diff;
+- confirmação de ausência de alteração não relacionada.

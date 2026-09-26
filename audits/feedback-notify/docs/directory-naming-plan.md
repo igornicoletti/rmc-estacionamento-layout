@@ -1,8 +1,8 @@
 # Plano de diretórios, nomes e fronteiras
 
-**Importante:** esta é a estrutura proposta para implementação futura. Nenhum destes caminhos de produção/teste foi criado nesta branch.
+**Status:** estrutura fechada para aprovação; nenhum caminho funcional foi criado.
 
-## 1. Estrutura de produção proposta
+## 1. Produção futura
 
 \`\`\`text
 src/
@@ -20,65 +20,100 @@ src/
          └─ units-feedback.ts
 \`\`\`
 
-Outros domínios:
+Demais domínios seguem:
 
 \`\`\`text
 src/pages/clients/content/clients-feedback.ts
 src/pages/users/content/users-feedback.ts
 \`\`\`
 
-## 2. Por que \`src/app/feedback\`
+## 2. \`src/app/feedback\`
 
-\`notify()\` é infraestrutura transversal da aplicação, mas não é primitive visual. Portanto não pertence a:
-- \`components/ui\`;
-- \`lib\` genérico;
-- domínio Units/Clients;
-- React Context.
+Justificativa:
+- \`notify()\` é infraestrutura de aplicação;
+- não é primitive visual;
+- não é utilitário genérico independente do produto;
+- não pertence a um domínio específico;
+- não exige React Context.
 
-## 3. Por que \`<domain>/content\`
+Arquivos v1:
+- \`feedback-contract.ts\`: tipos do contrato;
+- \`notify.ts\`: único adapter permitido ao manager de Toast.
 
-A definição textual pertence ao domínio. \`content\` permite, no futuro, contratos próprios para outras famílias de conteúdo sem tornar o Toast dono de todo texto do domínio.
+Não criar na v1:
+- provider;
+- context;
+- hook;
+- service class;
+- registry;
+- resolver global;
+- pipeline em arquivos separados;
+- barrel.
 
-Esta auditoria não migra nem depende de sistemas de copy existentes.
+## 3. \`<domain>/content\`
 
-## 4. Nomes
+Catálogos são conteúdo de domínio e ficam em:
 
-Infraestrutura:
-- \`feedback-contract.ts\`
-- \`notify.ts\`
-
-Catálogo:
-- constante: \`<DOMAIN>_FEEDBACK\`
-- arquivo: \`<domain>-feedback.ts\`
-
-Exemplo:
-\`\`\`ts
-UNITS_FEEDBACK.updated
-CLIENTS_FEEDBACK.createFailed
+\`\`\`text
+src/pages/<domain>/content/<domain>-feedback.ts
 \`\`\`
 
-## 5. Imports
+Isso não implica migração de outros conteúdos existentes. O diretório passa a ser o ownership dos novos contratos de feedback daquele domínio.
+
+## 4. Nomenclatura
+
+Tipos:
+- \`FeedbackType\`
+- \`FeedbackDefinition\`
+- \`FeedbackFactory\`
+- \`FeedbackCatalog\`
+
+Dispatcher:
+- \`notify\`
+
+Catálogo:
+- constante: \`<DOMAIN>_FEEDBACK\`;
+- arquivo: \`<domain>-feedback.ts\`.
+
+Entradas:
+- nomeadas pelo evento/resultado, não por UI ou severidade.
+
+## 5. Imports canônicos
 
 Consumidor:
+
 \`\`\`ts
 import { notify } from "@/app/feedback/notify"
 import { UNITS_FEEDBACK } from "@/pages/units/content/units-feedback"
 \`\`\`
 
-Não criar barrel automaticamente. Avaliar apenas se o padrão do repositório justificar.
+Catálogo:
 
-## 6. Grafo de dependências permitido
+\`\`\`ts
+import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
+\`\`\`
+
+\`notify.ts\`:
+
+\`\`\`ts
+import type { FeedbackDefinition } from "@/app/feedback/feedback-contract"
+import { toast } from "@/components/ui/toast"
+\`\`\`
+
+Não criar barrel na v1. Imports explícitos preservam ownership e evitam uma API pública maior do que o necessário.
+
+## 6. Grafo permitido
 
 \`\`\`text
-page/component
-   ├─> domain/content/*-feedback
+feature/page/component
+   ├─> pages/<domain>/content/*-feedback
    └─> app/feedback/notify
 
-domain/content/*-feedback
-   └─> app/feedback/feedback-contract (type only quando possível)
+pages/<domain>/content/*-feedback
+   └─> app/feedback/feedback-contract (type-only)
 
 app/feedback/notify
-   ├─> app/feedback/feedback-contract
+   ├─> app/feedback/feedback-contract (type-only)
    └─> components/ui/toast
 
 components/ui/toast
@@ -93,41 +128,50 @@ Não importar:
 - TanStack Query;
 - router;
 - QueryClient;
-- componentes visuais;
+- componentes UI;
 - manager de Toast;
-- serviços HTTP.
+- serviços HTTP;
+- DTO amplo sem necessidade.
 
-Factories devem ser puras.
+Factories são funções puras.
 
-## 8. Estrutura de testes futura
+## 8. Testes futuros
 
-Criar subtree novo, sem editar testes existentes:
+Infraestrutura espelha \`src/app/feedback\`:
 
 \`\`\`text
 tests/
 └─ unit/
-   └─ feedback/
-      ├─ notify.test.ts
-      └─ feedback-contract.test.ts
+   └─ app/
+      └─ feedback/
+         ├─ feedback-contract.test.ts
+         └─ notify.test.ts
 \`\`\`
 
-Testes específicos de catálogo podem ficar no domínio correspondente apenas quando houver lógica de factory relevante:
+Catálogo com lógica própria:
 
 \`\`\`text
-tests/unit/pages/units/units-feedback.test.ts
+tests/
+└─ unit/
+   └─ pages/
+      └─ units/
+         └─ content/
+            └─ units-feedback.test.ts
 \`\`\`
 
-Não adicionar testes de copy estática apenas para congelar redação.
+Isso cria subtrees novos e não mistura os arquivos com testes existentes.
 
-## 9. Enforcement futuro
+## 9. ESLint futuro
 
-Depois que o piloto e a migração forem aprovados, configurar \`no-restricted-imports\` para restringir import do símbolo \`toast\` pelas features.
+Após o piloto:
+- consumidores normais podem importar somente \`Toaster\` do módulo visual;
+- \`notify.ts\` é a exceção autorizada para importar o manager;
+- paths relativos equivalentes também entram na restrição;
+- a configuração existente de \`@tests/*\` deve continuar efetiva.
 
-A regra não deve bloquear o próprio \`src/app/feedback/notify.ts\` nem ferramentas explicitamente autorizadas.
+A forma normativa está registrada em \`decision-register.md\`.
 
-## 10. Estrutura documental desta auditoria
-
-A documentação permanece isolada em:
+## 10. Documentação desta auditoria
 
 \`\`\`text
 audits/feedback-notify/
@@ -137,4 +181,4 @@ audits/feedback-notify/
 └─ tests/
 \`\`\`
 
-Ela não deve ser misturada aos arquivos funcionais do projeto.
+A documentação não deve ser movida para \`src/\` ou misturada aos testes executáveis.

@@ -2,29 +2,31 @@
 
 **Projeto:** \`rmc-estacionamento-layout\`  
 **Base auditada:** \`main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818\`  
-**Status:** documentação para revisão; implementação bloqueada  
-**Escopo desta branch:** pesquisa, auditoria, contrato arquitetural, estratégia de testes e plano de implementação.
+**Última revisão documental:** 26/09/2026  
+**Status:** contrato arquitetural fechado para aprovação; implementação bloqueada  
+**Escopo desta branch:** pesquisa, auditoria, decisões arquiteturais, estratégia de testes e plano de implementação.
 
 ## Regra de isolamento
 
-Esta auditoria é deliberadamente independente da implementação atual. Esta branch não altera \`src/\`, \`tests/\`, configurações, dependências, \`README.md\` raiz nem conteúdos existentes. O material fica integralmente sob \`audits/feedback-notify/\`.
+Esta auditoria é independente da implementação atual. A branch não altera \`src/\`, \`tests/\`, configurações, dependências, \`README.md\` raiz nem conteúdos existentes. Todo o material permanece em \`audits/feedback-notify/\`.
 
-A futura estrutura de produção e de testes é somente proposta nos documentos. Ela não deve ser criada antes da aprovação explícita deste dossiê.
+A estrutura futura de produção e testes aparece somente como especificação. Nenhum arquivo funcional deve ser criado antes de aprovação explícita.
 
 ## Estrutura
 
-- \`research/current-state.md\`: evidências do estado atual do repositório e problemas/riscos.
-- \`research/official-references.md\`: pesquisa e referências oficiais.
-- \`docs/architecture-contract.md\`: contrato arquitetural completo do \`notify()\`.
-- \`docs/directory-naming-plan.md\`: diretórios, nomenclaturas, dependências e fronteiras.
-- \`docs/tanstack-query-integration.md\`: integração progressiva com mutations.
-- \`docs/implementation-plan.md\`: rollout em blocos pequenos e critérios de bloqueio.
-- \`docs/decision-register.md\`: decisões aprovadas, rejeitadas, adiadas e ainda abertas.
-- \`tests/test-plan.md\`: plano independente de validação; nenhum teste executável foi adicionado.
+- \`research/current-state.md\`: evidências do estado atual.
+- \`research/official-references.md\`: pesquisa em documentação oficial e consequências para o projeto.
+- \`docs/architecture-contract.md\`: contrato normativo do \`notify()\`.
+- \`docs/decision-register.md\`: decisões fechadas, rejeições e itens deliberadamente fora da v1.
+- \`docs/directory-naming-plan.md\`: diretórios, nomes, imports e fronteiras.
+- \`docs/tanstack-query-integration.md\`: estratégia de integração com mutations.
+- \`docs/implementation-plan.md\`: rollout por blocos e gates.
+- \`docs/review-findings.md\`: revisão crítica documento por documento.
+- \`tests/test-plan.md\`: plano independente de testes futuros.
 
 ## Objetivo
 
-Substituir, quando a implementação for aprovada, decisões locais como:
+Quando a implementação for autorizada, substituir decisões locais como:
 
 \`\`\`ts
 toast.add({
@@ -34,13 +36,13 @@ toast.add({
 })
 \`\`\`
 
-por uma API semântica e tipada:
+por uma API semântica:
 
 \`\`\`ts
 notify(UNITS_FEEDBACK.updated)
 \`\`\`
 
-e, para conteúdo dinâmico:
+ou, para conteúdo dinâmico:
 
 \`\`\`ts
 notify(
@@ -50,16 +52,32 @@ notify(
 )
 \`\`\`
 
-A feature informa o evento. O catálogo do domínio possui a linguagem. \`notify()\` adapta a definição para o Toast. O componente visual permanece sem regras de domínio.
+A feature informa o evento. O catálogo do domínio define a mensagem. \`notify()\` adapta a definição ao Toast. O primitive visual permanece sem regras de domínio.
+
+## Decisões centrais já fechadas
+
+- \`notify()\` é função normal, não Hook.
+- A API recebe uma \`FeedbackDefinition\` resolvida e retorna \`void\`.
+- Catálogos são separados por domínio.
+- Conteúdo dinâmico existe desde a v1 por factory pura.
+- \`title\` é obrigatório; \`description\` é opcional quando não acrescenta informação.
+- \`type\` é \`success | info | warning | error\`.
+- HTML, JSX, \`ReactNode\`, erros crus e overrides no call site não fazem parte do contrato.
+- \`notify()\` não interpreta \`Error\`, HTTP, Supabase ou regra de negócio.
+- TanStack Query permanece integração opt-in; não existe Toast global para toda mutation/query.
+- O manager Base UI continua encapsulado pelo adapter.
+- A v1 não expõe timeout, prioridade, actions, dedupe, loading lifecycle ou observabilidade.
+
+Não existem decisões arquiteturais abertas nesta revisão. Permanecem somente precondições de execução, como reaudar a \`main\` antes do primeiro bloco.
 
 ## Não objetivos
 
-Esta auditoria não define contratos gerais de copy, i18n, notificações persistentes, logging ou observabilidade. Conteúdos existentes fora deste escopo são ignorados; não existe plano de migração para eles nesta iniciativa.
+Esta iniciativa não define contratos gerais de copy, i18n, notificações persistentes, logging ou observabilidade. Conteúdos existentes fora deste escopo são ignorados e não possuem plano de migração aqui.
 
 ## Gate
 
-Nenhuma implementação deve começar até:
-1. a documentação ser revisada integralmente;
-2. todas as decisões abertas relevantes serem resolvidas;
-3. a \`main\` ser auditada novamente imediatamente antes da implementação;
-4. houver aprovação explícita para iniciar o primeiro bloco.
+Nenhum código é autorizado por esta revisão. A implementação só poderá começar depois de:
+1. aprovação explícita desta documentação;
+2. reaudit da \`main\` no momento da implementação;
+3. confirmação de que as premissas técnicas continuam válidas;
+4. seleção de um fluxo real para o piloto, sem inventar feedbacks.

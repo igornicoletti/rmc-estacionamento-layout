@@ -8,22 +8,23 @@ Auditoria realizada sobre \`main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818\`.
 
 ### Toast
 
-\`src/components/ui/toast.tsx\` utiliza \`@base-ui/react/toast\` e cria um manager global por \`ToastPrimitive.createToastManager()\`.
+\`src/components/ui/toast.tsx\` usa \`@base-ui/react/toast\` e cria um manager global com \`ToastPrimitive.createToastManager()\`.
 
 O renderer atual:
-- exibe \`title\` e \`description\`;
-- seleciona ícones para \`success\`, \`info\`, \`warning\`, \`error\` e \`loading\`;
-- exporta \`toast\`, \`createToastManager\` e \`useToastManager\`.
+- renderiza \`title\` e \`description\`;
+- reconhece visualmente \`success\`, \`info\`, \`warning\`, \`error\` e \`loading\`;
+- exporta \`toast\`, \`createToastManager\` e \`useToastManager\`;
+- já possui o \`Toaster\` necessário para o viewport/renderer.
 
-Isso é compatível com a documentação atual do Toast Base UI do shadcn e com o manager global do Base UI.
+O primitive Base UI aceita uma superfície maior do que a necessária para o contrato de aplicação. A proposta reduz deliberadamente essa superfície.
 
 ### Provider
 
-\`src/app/root/app-providers.tsx\` já instala \`<Toaster>\` na árvore da aplicação. Portanto, o padrão proposto não necessita de novo React Context, Provider ou Hook apenas para despachar mensagens.
+\`src/app/root/app-providers.tsx\` instala \`<Toaster>\` na árvore. Não há justificativa para novo Provider, Context ou Hook apenas para despachar feedback.
 
 ### Consumidores
 
-A busca na \`main\` não encontrou consumidores de \`toast.add\` nem uma função \`notify()\` existente. A arquitetura pode ser definida antes que chamadas diretas se espalhem.
+A busca na \`main\` não encontrou consumidores de \`toast.add\` nem uma implementação de \`notify()\`. O padrão pode ser introduzido antes de existir dívida de migração.
 
 ### QueryClient
 
@@ -35,33 +36,35 @@ A busca na \`main\` não encontrou consumidores de \`toast.add\` nem uma funçã
 - \`staleTime\`;
 - \`refetchOnReconnect\`.
 
-Não existe \`MutationCache\` customizado. Portanto, integração global de feedback com mutations ainda não está acoplada ao projeto.
+Não existe \`MutationCache\` customizado. Nenhum mecanismo global de feedback está acoplado às mutations.
 
 ### ESLint
 
-\`eslint.config.js\` já utiliza \`no-restricted-imports\` para impedir que código de produção importe infraestrutura de testes. O mesmo mecanismo pode, depois de uma migração aprovada, restringir import direto de \`@/components/ui/toast\` por features.
+\`eslint.config.js\` já usa \`no-restricted-imports\` para impedir imports de infraestrutura de testes em produção. O mesmo mecanismo pode restringir o módulo de Toast para consumidores, preservando \`Toaster\` e o adapter autorizado.
 
 ### Testes
 
-Vitest inclui somente:
+Vitest inclui:
 - \`tests/unit/**/*.{test,spec}.{ts,tsx}\`;
 - \`tests/integration/**/*.{test,spec}.{ts,tsx}\`.
 
-A estratégia futura pode criar um novo subtree \`tests/unit/feedback/\` sem misturar os testes com arquivos existentes. Nenhuma alteração de configuração é necessária para esse caminho.
+O caminho futuro \`tests/unit/app/feedback/\` já está coberto pelo include atual e espelha \`src/app/feedback/\`.
 
 ## Problemas e riscos confirmados
 
-1. **API pública ainda não existe.** Sem contrato, futuros consumidores podem importar \`toast\` diretamente.
-2. **\`type\` do primitive é aberto.** Base UI aceita \`string\`; o projeto deve restringir seu próprio contrato para valores reconhecidos pelo renderer.
-3. **Conteúdo do primitive aceita \`ReactNode\`.** O projeto pode reduzir a superfície para \`string\`, já que não existe requisito atual para HTML/JSX em feedback transitório.
-4. **Acessibilidade não deve ser derivada da cor ou do tipo.** Base UI distingue prioridade \`low\` e \`high\`; \`error\` não implica automaticamente anúncio urgente.
-5. **Erro técnico não pode virar copy pública.** A fronteira deve impedir práticas como \`description: error.message\`.
-6. **Conteúdo dinâmico é necessidade previsível.** Projetar apenas strings estáticas criaria refatoração evitável.
+1. **Não existe API pública de feedback.** Sem contrato, futuros consumidores podem depender diretamente do manager.
+2. **\`type\` do Base UI é aberto (\`string\`).** O projeto deve restringir os tipos aceitos aos que o renderer realmente suporta na v1.
+3. **\`title\` e \`description\` do primitive aceitam \`ReactNode\`.** O projeto não tem requisito atual para conteúdo rico e reduzirá ambos a texto.
+4. **Acessibilidade não deve ser inferida do tipo visual.** Prioridade \`high\` é um comportamento de live region urgente; \`error\` não é sinônimo de urgência.
+5. **Erro técnico não pode virar conteúdo público.** \`error.message\`, stack e detalhes de infraestrutura permanecem fora do contrato.
+6. **Conteúdo dinâmico é necessidade previsível.** A v1 já deve suportar factories tipadas.
+7. **Definição inline não resolve centralização.** Trocar \`toast.add({...})\` por \`notify({...})\` manteria o mesmo problema.
+8. **Automação global de mutations seria prematura.** Callbacks globais do MutationCache recebem \`unknown\` para data/variables; conteúdo dinâmico deve permanecer próximo do contexto tipado até aparecer repetição comprovada.
 
 ## Observação fora do escopo
 
-O botão de fechamento do Toast atual contém \`aria-label="Close toast"\`. Isso demonstra que inconsistências transversais podem surgir, mas esta branch não corrige o componente. Qualquer revisão visual/acessível do primitive deverá ser tratada em bloco próprio, após aprovação do contrato.
+O botão de fechamento do Toast atual contém \`aria-label="Close toast"\`. Isso demonstra uma inconsistência transversal real, mas esta auditoria não altera o primitive. Qualquer revisão visual/acessível do componente deve ocorrer em bloco próprio.
 
 ## Conclusão
 
-A infraestrutura existente é suficiente para introduzir um adapter pequeno. Não há justificativa atual para Provider adicional, Context, store global, event bus ou hook \`useNotify\`.
+A infraestrutura existente é suficiente para um adapter síncrono e pequeno. Não há justificativa atual para Context, Provider adicional, store, event bus, registry runtime, parser de tokens ou \`useNotify\`.

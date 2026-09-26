@@ -1,16 +1,16 @@
 # Contrato arquitetural de feedback transitório
 
-**Status:** proposta. Nenhum código autorizado.
+**Status:** contrato fechado para aprovação. Nenhum código autorizado.
 
 ## 1. Decisão central
 
-API pública canônica:
+Uso estático:
 
 \`\`\`ts
-notify(UNITS_FEEDBACK.updated)
+notify(UNITS_FEEDBACK.createFailed)
 \`\`\`
 
-Conteúdo dinâmico:
+Uso dinâmico:
 
 \`\`\`ts
 notify(
@@ -20,77 +20,31 @@ notify(
 )
 \`\`\`
 
-A feature informa o evento ocorrido; não monta Toast.
+A feature escolhe o evento ocorrido. Ela não monta Toast nem altera a definição.
 
-## 2. Responsabilidades
-
-### Domínio / catálogo
-
-Responsável por:
-- título;
-- descrição;
-- tipo;
-- factories de conteúdo dinâmico;
-- terminologia do domínio.
-
-Não pode:
-- executar I/O;
-- navegar;
-- invalidar queries;
-- chamar \`notify()\`;
-- chamar Toast;
-- conhecer DTOs inteiros quando apenas um valor de apresentação é necessário.
-
-### \`notify()\`
-
-Responsável por:
-- receber uma \`FeedbackDefinition\` já resolvida;
-- aplicar apenas políticas transversais aprovadas;
-- adaptar para o manager de Toast.
-
-Não é responsável por:
-- descobrir se a operação teve sucesso;
-- interpretar qualquer \`Error\` universalmente;
-- mapear HTTP/Supabase/RBAC;
-- fazer retry;
-- navegar;
-- persistir;
-- alterar query cache.
-
-### \`components/ui/toast\`
-
-Responsável apenas pela apresentação e integração Base UI. Não conhece catálogos de domínio.
-
-## 3. Contrato mínimo v1
+## 2. Contrato v1
 
 \`\`\`ts
-type FeedbackType =
+export type FeedbackType =
   | "success"
   | "info"
   | "warning"
   | "error"
 
-interface FeedbackDefinition {
-  title: string
-  description: string
-  type: FeedbackType
+export interface FeedbackDefinition {
+  readonly title: string
+  readonly description?: string
+  readonly type: FeedbackType
 }
+
+export type FeedbackFactory =
+  (...args: never[]) => FeedbackDefinition
+
+export type FeedbackCatalog =
+  Readonly<Record<string, FeedbackDefinition | FeedbackFactory>>
 \`\`\`
 
-Decisões:
-- \`title\` obrigatório;
-- \`description\` obrigatório inicialmente;
-- somente \`string\`;
-- sem HTML;
-- sem \`ReactNode\`;
-- sem \`loading\` no contrato comum;
-- sem timeout/prioridade/action por definição na v1.
-
-O Base UI aceita uma superfície maior; restringir a API da aplicação é intencional.
-
-## 4. Catálogo
-
-Formato:
+Uso normativo:
 
 \`\`\`ts
 export const UNITS_FEEDBACK = {
@@ -100,26 +54,139 @@ export const UNITS_FEEDBACK = {
     type: "error",
   },
 
+  copied: {
+    title: "Conteúdo copiado",
+    type: "success",
+  },
+
   updated: ({ unitName }: { unitName: string }) => ({
     title: "Unidade atualizada",
     description: \`\${unitName} foi atualizada com sucesso.\`,
     type: "success",
   }),
-} satisfies FeedbackCatalog
+} as const satisfies FeedbackCatalog
 \`\`\`
 
-O tipo exato de \`FeedbackCatalog\` deverá preservar a inferência das funções e validar seus retornos. Não aceitar solução que transforme parâmetros específicos das factories em \`unknown\`/genéricos inúteis.
+### Por que \`FeedbackFactory = (...args: never[])\`
 
-## 5. Conteúdo dinâmico
+Esse tipo serve como constraint do catálogo: aceita factories específicas e valida que o retorno é uma \`FeedbackDefinition\`, sem substituir a assinatura concreta inferida de cada função.
 
-Conteúdo dinâmico faz parte da fase 1.
+Regra adicional de estilo: toda factory dinâmica da v1 recebe exatamente **um objeto nomeado** como parâmetro. Essa regra é normativa mesmo que o constraint estrutural não tente codificá-la com um helper genérico mais complexo.
 
-Regras:
+## 3. \`title\` obrigatório; \`description\` opcional
+
+Decisão final:
+- \`title\` é obrigatório e deve comunicar sozinho o resultado;
+- \`description\` só existe quando acrescenta contexto, consequência ou próxima ação;
+- não criar descrição redundante apenas para preencher o Toast.
+
+Exemplo suficiente:
+
+\`\`\`ts
+copied: {
+  title: "E-mail copiado",
+  type: "success",
+}
+\`\`\`
+
+Exemplo em que descrição agrega valor:
+
+\`\`\`ts
+updateFailed: {
+  title: "Não foi possível atualizar a unidade",
+  description: "Tente novamente.",
+  type: "error",
+}
+\`\`\`
+
+Strings vazias são proibidas por convenção e review; a v1 não adiciona validator runtime apenas para verificar conteúdo interno compilado.
+
+## 4. \`notify()\`
+
+Assinatura normativa:
+
+\`\`\`ts
+export function notify(
+  feedback: FeedbackDefinition,
+): void
+\`\`\`
+
+Comportamento:
+1. recebe definição já resolvida;
+2. seleciona explicitamente apenas \`title\`, \`description\` e \`type\`;
+3. chama o manager global existente;
+4. ignora deliberadamente o ID retornado pelo manager;
+5. retorna \`void\`;
+6. não captura nem transforma exceções do manager.
+
+Forma conceitual:
+
+\`\`\`ts
+toast.add({
+  title: feedback.title,
+  description: feedback.description,
+  type: feedback.type,
+})
+\`\`\`
+
+Não usar spread do objeto no adapter. A seleção explícita impede que novas propriedades do catálogo sejam encaminhadas ao primitive sem decisão arquitetural.
+
+## 5. Responsabilidades
+
+### Catálogo do domínio
+
+Responsável por:
+- linguagem pública;
+- \`type\`;
 - factories puras;
-- parâmetros por objeto nomeado;
-- receber dados mínimos já apropriados para apresentação;
-- não receber \`ApiResponse\`, \`Error\`, QueryClient ou objetos de infraestrutura;
-- nenhuma possibilidade de override livre no call site.
+- interpolação e formatação estritamente ligadas à mensagem.
+
+Não pode:
+- executar I/O;
+- chamar \`notify()\`;
+- chamar Toast;
+- navegar;
+- acessar QueryClient;
+- invalidar/refazer queries;
+- receber DTO completo quando valores mínimos bastam;
+- decidir autorização ou regra de negócio.
+
+### \`notify()\`
+
+Responsável apenas por adaptar \`FeedbackDefinition\` para o manager.
+
+Não pode:
+- decidir se a operação teve sucesso;
+- receber \`Error\`;
+- mapear status HTTP;
+- interpretar Supabase/RBAC/API;
+- escolher fallback automaticamente;
+- fazer retry;
+- navegar;
+- persistir;
+- fazer logging;
+- deduplicar na v1.
+
+### \`components/ui/toast\`
+
+Responsável por primitive, renderer, viewport, ícones, ações visuais e integração Base UI. Não conhece domínios.
+
+## 6. Conteúdo dinâmico
+
+Conteúdo dinâmico faz parte da v1.
+
+Regra:
+
+\`\`\`ts
+event: ({ valueA, valueB }: Params) => FeedbackDefinition
+\`\`\`
+
+Parâmetros:
+- um único objeto nomeado;
+- tipos específicos;
+- somente valores necessários à apresentação;
+- não receber \`Error\`, \`Response\`, DTO amplo, QueryClient ou objeto de infraestrutura;
+- nullable/optional somente quando a própria mensagem prevê esse estado.
 
 Correto:
 
@@ -132,7 +199,7 @@ notify(
 )
 \`\`\`
 
-Incorreto:
+Proibido:
 
 \`\`\`ts
 notify({
@@ -141,9 +208,22 @@ notify({
 })
 \`\`\`
 
-## 6. Nomenclatura dos eventos
+## 7. Definição inline
 
-Entradas descrevem evento/resultado:
+Proibido:
+
+\`\`\`ts
+notify({
+  title: "Unidade atualizada",
+  type: "success",
+})
+\`\`\`
+
+A v1 não introduz branding/helper runtime apenas para impedir structural typing. A regra será garantida por arquitetura, review e, se necessário após o piloto, lint específico. Não distorcer o contrato TypeScript para resolver um problema que ainda não exige infraestrutura própria.
+
+## 8. Nomenclatura das entradas
+
+Usar eventos/resultados:
 - \`created\`
 - \`updated\`
 - \`deleted\`
@@ -155,95 +235,106 @@ Entradas descrevem evento/resultado:
 - \`synchronized\`
 - \`synchronizationFailed\`
 
-Evitar:
+Evitar nomes orientados ao componente ou à severidade:
 - \`success\`
 - \`error\`
 - \`toastSuccess\`
 - \`formError\`
-- \`message1\`
+- \`tableError\`
 
-## 7. API proibida
+## 9. Segurança
 
-Não adotar:
-\`\`\`ts
-notify.success(...)
-notify.error(...)
-notify("units.updated")
-notify({ title: "...", description: "...", type: "success" })
-toast.add(...) // fora da infraestrutura autorizada
-notify(error.message)
-\`\`\`
-
-A severidade pertence ao catálogo. Strings-token criariam registry/resolver desnecessário.
-
-## 8. Erros e segurança
-
-Erro técnico deve ser classificado antes de chegar ao dispatcher.
+Erro técnico deve ser classificado antes:
 
 \`\`\`text
-Error/Response
-   ↓
-regra conhecida da operação
-   ↓
+Error / Response
+      ↓
+classificação da operação/domínio
+      ↓
 FeedbackDefinition controlada
-   ↓
+      ↓
 notify()
 \`\`\`
 
-Não propagar:
-- stack;
-- SQL;
-- endpoint interno;
-- token;
-- CPF ou identificador sensível sem necessidade explícita;
+Proibido propagar diretamente:
 - \`error.message\`;
-- \`statusText\`;
-- mensagens de banco.
+- stack;
+- status text arbitrário;
+- SQL;
+- nome de tabela;
+- endpoint interno;
+- token/credencial;
+- identificador sensível sem necessidade explícita;
+- mensagem crua de banco/serviço.
 
-## 9. Sanitização
+A v1 não possui sanitizer HTML porque HTML não entra no contrato. Também não possui redactor universal: conteúdo inseguro não deve chegar ao catálogo/dispatcher.
 
-Não criar sanitizer HTML na v1. O controle é estrutural: HTML/JSX não entram no contrato.
+## 10. Tipos e conteúdo
 
-Também não criar um "normalizador mágico" que altere automaticamente capitalização, pontuação ou nomes. Linguagem é responsabilidade do catálogo.
+\`FeedbackType\` v1:
+- \`success\`: ação concluída;
+- \`info\`: informação transitória neutra;
+- \`warning\`: condição que requer atenção, sem caracterizar necessariamente falha;
+- \`error\`: ação não concluída.
 
-## 10. Loading, promise e lifecycle
+\`loading\` fica fora do contrato comum porque representa lifecycle, não resultado final.
 
-\`loading\` fica fora do contrato comum. Base UI já possui \`promise\`, \`update\` e \`close\`; não recriar essas capacidades antes de um caso real.
+## 11. Timeout e prioridade
 
-Não duplicar:
+A v1 não envia \`timeout\` nem \`priority\`.
+
+Consequência:
+- timeout segue o default do Base UI;
+- prioridade segue \`low\`;
+- \`error\` nunca implica automaticamente prioridade \`high\`.
+
+Qualquer mudança futura exige decisão explícita de política.
+
+## 12. Dedupe, ID, update e close
+
+Fora da v1.
+
+Embora Base UI ofereça ID, upsert, \`update\` e \`close\`, \`notify()\` retorna \`void\` e não expõe o manager.
+
+Caso surja lifecycle real, uma extensão separada será desenhada; consumidores não devem guardar IDs do primitive por fora do adapter.
+
+## 13. Actions
+
+Fora da v1. Callbacks nunca pertencem ao catálogo.
+
+Se action for necessária no futuro:
+- texto/definição permanece em contrato de conteúdo;
+- comportamento permanece no chamador/application layer;
+- API será desenhada separadamente.
+
+## 14. Promise/lifecycle
+
+Fora da v1. Não encapsular \`toast.promise\` preventivamente.
+
+Evitar duplicação:
+
 \`\`\`text
-botão com Spinner "Salvando…"
-+
-Toast "Salvando…"
+Button: [spinner] Salvando…
+Toast:  Salvando…
 \`\`\`
 
-Lifecycle de Toast deve ser reservado a operações cujo estado precisa sobreviver ao ponto de interação ou seja realmente útil fora dele.
+Lifecycle só será adotado quando a operação precisar de feedback transitório além do ponto de interação.
 
-## 11. Timeout
+## 15. Fallbacks
 
-Base UI documenta 5000 ms como padrão. A v1 não expõe timeout por domínio. Caso seja necessário alterar, política global vem antes de overrides locais.
+\`notify()\` não possui fallback automático.
 
-## 12. Prioridade
+Se uma operação precisa comunicar erro inesperado, o domínio/application scope deve escolher uma definição genérica controlada. Isso mantém classificação de erro fora do adapter.
 
-Base UI documenta \`low\` e \`high\`. A v1 não expõe prioridade no catálogo. \`error\` não implica \`high\`.
+## 16. Observabilidade
 
-## 13. Deduplicação
+Fora da v1. \`notify()\` não loga nem envia analytics.
 
-Base UI atualiza um Toast quando \`add\` recebe um \`id\` existente. Preservar essa possibilidade, mas não adicionar \`id\` sem caso comprovado.
+O ponto único preserva possibilidade futura, mas instrumentação deverá receber contrato próprio e não usar conteúdo textual/sensível como identidade de evento.
 
-Deduplicação futura deve identificar operação/evento, não comparar texto.
+## 17. Critério de sucesso
 
-## 14. Actions
-
-Callbacks não pertencem ao catálogo. Se actions forem necessárias, texto e comportamento deverão continuar separados e receber contrato próprio.
-
-## 15. Observabilidade
-
-Não faz parte da v1. O ponto único \`notify()\` permite instrumentação futura, mas qualquer telemetria deverá usar identificador semântico e políticas próprias de dados.
-
-## 16. Critério de sucesso
-
-Para o consumidor, todo o sistema deve continuar reduzido a:
+O consumidor conhece apenas:
 
 \`\`\`ts
 notify(DOMAIN_FEEDBACK.event)
@@ -252,7 +343,11 @@ notify(DOMAIN_FEEDBACK.event)
 ou:
 
 \`\`\`ts
-notify(DOMAIN_FEEDBACK.event({ namedData }))
+notify(
+  DOMAIN_FEEDBACK.event({
+    namedData,
+  }),
+)
 \`\`\`
 
-Se o consumidor precisar conhecer Base UI, timeout, priority, manager ou pipeline, a abstração falhou.
+Se a feature precisar conhecer manager, timeout, priority, ID, pipeline ou Base UI, a abstração falhou.
