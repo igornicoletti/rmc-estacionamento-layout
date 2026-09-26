@@ -10,8 +10,9 @@ Concluído:
 - enforcement ESLint para acesso direto ao Toast;
 - suporte opcional a `priority` preservando a prioridade alta do erro de logout;
 - separação da operação de Clipboard do feedback visual;
-- feedback reutilizável para cópia de registros de DataTable;
-- primeiro caso real de conteúdo dinâmico com `CLIENTS_FEEDBACK.emailCopied({ email })`.
+- ação e catálogo reutilizáveis para cópia de registros de DataTable;
+- primeiro caso real de conteúdo dinâmico com `CLIENTS_FEEDBACK.emailCopied({ email })`;
+- testes das novas fronteiras de Clipboard e DataTable.
 
 A validação local completa deve ser repetida no HEAD atual antes do merge. O GitHub Actions não é evidência útil enquanto os jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`).
 
@@ -20,13 +21,13 @@ A validação local completa deve ser repetida no HEAD atual antes do merge. O G
 Antes do merge:
 1. sincronizar a branch local;
 2. executar `git diff --check`;
-3. executar testes focados de feedback, clipboard, DataTable e integração do shell;
+3. executar testes focados de feedback, clipboard, DataTable, Clients e integração do shell;
 4. executar lint, typecheck e build;
 5. executar `check:full`;
 6. revisar o diff final;
 7. manter o merge bloqueado se qualquer etapa falhar.
 
-## Próximo domínio
+## Próximos domínios
 
 Não criar catálogo apenas para preencher arquitetura. Novos catálogos entram somente quando houver uma ação real que necessite feedback transitório.
 
@@ -40,6 +41,12 @@ O caso de Clients validou:
 - nenhuma regra de negócio dentro da definição.
 
 Próximos casos devem manter as mesmas fronteiras e reutilizar presentation helpers existentes quando os valores necessitarem normalização.
+
+## Operações reutilizáveis
+
+Operações técnicas, como Clipboard, não incorporam feedback visual. Orquestradores reutilizáveis pertencem ao escopo que conhece a ação e selecionam o catálogo adequado.
+
+Blocos `catch` classificam somente a operação técnica correspondente; erros do manager de feedback continuam propagando normalmente.
 
 ## TanStack Query
 
