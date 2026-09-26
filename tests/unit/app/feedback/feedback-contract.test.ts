@@ -23,8 +23,9 @@ describe("feedback contract", () => {
     expectTypeOf(catalog.updated).parameter(0).toEqualTypeOf<{
       unitName: string
     }>()
-    expectTypeOf(catalog.updated({ unitName: "Posto Central" }))
-      .toMatchTypeOf<FeedbackDefinition>()
+    expectTypeOf(
+      catalog.updated({ unitName: "Posto Central" }),
+    ).toExtend<FeedbackDefinition>()
 
     expect(catalog.created.title).toBe("Unidade cadastrada")
   })
