@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from "react"
 import { Outlet } from "react-router"
 
-import { appCopy } from "@/app/config/app-copy"
 import { appPages } from "@/app/config/app-config"
+import { notify } from "@/app/feedback/notify"
 import { navigationSections, primaryNavigation } from "@/app/shell/app-navigation"
 import { shellPreviewData } from "@/app/shell/app-preview"
 import {
@@ -12,10 +12,10 @@ import {
 } from "@/app/shell/components/app-notifications"
 import { AppToolbar } from "@/app/shell/components/app-toolbar"
 import { AppUserMenu } from "@/app/shell/components/app-user-menu"
+import { SESSION_FEEDBACK } from "@/app/session/content/session-feedback"
 import { useSession } from "@/app/session/session-context"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { toast } from "@/components/ui/toast"
 
 interface AppShellUser {
   avatarSrc?: string
@@ -99,12 +99,7 @@ export function AppShellRoute() {
 
   const handleLogout = () => {
     void signOut().catch(() => {
-      toast.add({
-        description: appCopy.feedback.logoutFailure.description,
-        priority: "high",
-        title: appCopy.feedback.logoutFailure.title,
-        type: "error",
-      })
+      notify(SESSION_FEEDBACK.signOutFailed)
     })
   }
 
