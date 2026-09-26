@@ -50,7 +50,7 @@ describe("app shell feedback", () => {
     await user.click(
       screen.getByRole("button", { name: "Abrir menu do usuário" }),
     )
-    await user.click(screen.getByRole("menuitem", { name: "Sair" }))
+    await user.click(await screen.findByRole("menuitem", { name: "Sair" }))
 
     await waitFor(() => {
       expect(notify).toHaveBeenCalledOnce()
