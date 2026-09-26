@@ -39,47 +39,21 @@ notify(
 )
 ```
 
-A feature informa o evento. O catálogo proprietário define conteúdo, `type` e, quando necessário, `priority`. `notify()` somente adapta a definição ao manager existente. O primitive visual continua sem regras de domínio.
-
-## Decisões v1
-
-- `notify()` é função normal, não Hook.
-- `notify(FeedbackDefinition): void`.
-- Catálogos pertencem ao menor domínio/escopo semanticamente proprietário do evento.
-- `title` obrigatório; `description` opcional.
-- `type`: `success | info | warning | error`.
-- `priority`: `low | high`, opcional e pertencente à definição.
-- ausência de `priority` preserva o default `low` do Base UI.
-- `type: "error"` não implica automaticamente `priority: "high"`.
-- Conteúdo dinâmico existe desde a v1 por factory pura com objeto nomeado.
-- HTML, JSX, `ReactNode`, erros crus e overrides livres no call site ficam fora do contrato.
-- `notify()` não interpreta `Error`, HTTP, Supabase, RBAC ou regra de negócio.
-- Operações técnicas reutilizáveis não embutem feedback visual.
-- Valores externos reutilizam formatadores/normalizadores de apresentação existentes no domínio.
-- TanStack Query permanece integração opt-in; não existe Toast automático para toda mutation/query.
-- Timeout customizado, actions, dedupe, lifecycle/promise e observabilidade continuam fora da v1.
+O catálogo pertence ao menor domínio/escopo semanticamente proprietário do evento. `notify()` somente adapta a definição ao manager existente. Operações técnicas reutilizáveis não incorporam política visual.
 
 ## Estado de implementação
 
 Concluído na branch:
-- contrato TypeScript;
-- adapter `notify()`;
-- testes unitários do contrato/adapter;
-- catálogo real de Session para falha de logout;
-- migração do logout para `notify()`;
-- teste de integração do fluxo de logout;
-- enforcement de import direto do manager via ESLint;
-- preservação explícita da prioridade alta do feedback de logout;
-- separação de Clipboard e feedback visual;
-- catálogo reutilizável para cópia de registros de DataTable;
-- factory dinâmica real em Clients para cópia de e-mail;
-- testes próprios das novas fronteiras.
+- contrato TypeScript e adapter `notify()`;
+- catálogos por escopo proprietário;
+- piloto Session/logout com prioridade acessível preservada;
+- enforcement ESLint do manager de Toast;
+- separação entre Clipboard e feedback visual;
+- ação compartilhada de cópia de registros da DataTable;
+- primeiro feedback dinâmico real em Clients;
+- testes unitários e de integração das fronteiras próprias.
 
-O GitHub Actions permanece indisponível para validação porque os jobs são encerrados sem runner (`runner_id: 0`, `steps: []`). A validação local completa é o gate confiável enquanto essa condição persistir.
-
-## Regra para próximos domínios
-
-Não criar catálogo apenas para preencher arquitetura. Novos domínios entram quando existir ação real que necessite feedback transitório.
+O GitHub Actions permanece indisponível para validação enquanto os jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`). A validação local completa permanece o gate confiável.
 
 ## Gate de merge
 
