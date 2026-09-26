@@ -23,6 +23,7 @@ describe("notify", () => {
     const feedback = {
       description: "As alterações foram salvas.",
       internal: "não encaminhar",
+      priority: "high" as const,
       title: "Unidade atualizada",
       type: "success" as const,
     }
@@ -33,12 +34,13 @@ describe("notify", () => {
     expect(addToast).toHaveBeenCalledOnce()
     expect(addToast).toHaveBeenCalledWith({
       description: "As alterações foram salvas.",
+      priority: "high",
       title: "Unidade atualizada",
       type: "success",
     })
   })
 
-  it("aceita feedback sem description", () => {
+  it("aceita feedback sem description ou priority", () => {
     const feedback = {
       title: "E-mail copiado",
       type: "success",
@@ -48,6 +50,7 @@ describe("notify", () => {
 
     expect(addToast).toHaveBeenCalledWith({
       description: undefined,
+      priority: undefined,
       title: "E-mail copiado",
       type: "success",
     })

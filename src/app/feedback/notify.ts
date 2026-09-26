@@ -5,6 +5,7 @@ export function notify(feedback: FeedbackDefinition): void {
   toast.add({
     title: feedback.title,
     description: feedback.description,
+    priority: feedback.priority,
     type: feedback.type,
   })
 }

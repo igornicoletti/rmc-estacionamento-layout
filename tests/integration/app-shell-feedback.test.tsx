@@ -28,7 +28,7 @@ const authenticatedSession = {
 } satisfies ResolvedSessionSnapshot
 
 describe("app shell feedback", () => {
-  it("notifica uma falha de logout com feedback controlado", async () => {
+  it("notifica uma falha de logout com feedback controlado e urgente", async () => {
     const user = userEvent.setup()
     const sessionCommands: SessionCommands = {
       getSession: vi.fn(),
@@ -55,6 +55,7 @@ describe("app shell feedback", () => {
     await waitFor(() => {
       expect(notify).toHaveBeenCalledOnce()
     })
+    expect(SESSION_FEEDBACK.signOutFailed.priority).toBe("high")
     expect(notify).toHaveBeenCalledWith(SESSION_FEEDBACK.signOutFailed)
   })
 })

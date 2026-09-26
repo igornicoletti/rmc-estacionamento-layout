@@ -4,9 +4,12 @@ export type FeedbackType =
   | "warning"
   | "error"
 
+export type FeedbackPriority = "low" | "high"
+
 export interface FeedbackDefinition {
   readonly title: string
   readonly description?: string
+  readonly priority?: FeedbackPriority
   readonly type: FeedbackType
 }
 

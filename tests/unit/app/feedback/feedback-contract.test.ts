@@ -12,6 +12,11 @@ describe("feedback contract", () => {
         title: "Unidade cadastrada",
         type: "success",
       },
+      failed: {
+        title: "Não foi possível concluir",
+        priority: "high",
+        type: "error",
+      },
       updated: ({ unitName }: { unitName: string }) => ({
         title: "Unidade atualizada",
         description: `${unitName} foi atualizada com sucesso.`,
@@ -20,6 +25,7 @@ describe("feedback contract", () => {
     } as const satisfies FeedbackCatalog
 
     expectTypeOf(catalog.created.type).toEqualTypeOf<"success">()
+    expectTypeOf(catalog.failed.priority).toEqualTypeOf<"high">()
     expectTypeOf(catalog.updated).parameter(0).toEqualTypeOf<{
       unitName: string
     }>()
@@ -30,7 +36,7 @@ describe("feedback contract", () => {
     expect(catalog.created.title).toBe("Unidade cadastrada")
   })
 
-  it("aceita description opcional", () => {
+  it("aceita description e priority opcionais", () => {
     const feedback = {
       title: "E-mail copiado",
       type: "success",
@@ -39,11 +45,18 @@ describe("feedback contract", () => {
     expect(feedback.title).toBe("E-mail copiado")
   })
 
-  it("rejeita tipos e retornos incompatíveis em compile time", () => {
-    const invalidFeedback = {
+  it("rejeita type, priority e retornos incompatíveis em compile time", () => {
+    const invalidType = {
       title: "Inválido",
       // @ts-expect-error valor inválido deliberado para provar o contrato.
       type: "sucess",
+    } satisfies FeedbackDefinition
+
+    const invalidPriority = {
+      title: "Inválido",
+      // @ts-expect-error valor inválido deliberado para provar o contrato.
+      priority: "urgent",
+      type: "error",
     } satisfies FeedbackDefinition
 
     const invalidCatalog = {
@@ -51,7 +64,8 @@ describe("feedback contract", () => {
       invalidFactory: () => ({ title: "Inválido", type: "sucess" }),
     } satisfies FeedbackCatalog
 
-    expect(invalidFeedback.type).toBe("sucess")
+    expect(invalidType.type).toBe("sucess")
+    expect(invalidPriority.priority).toBe("urgent")
     expect(invalidCatalog.invalidFactory().type).toBe("sucess")
   })
 })
