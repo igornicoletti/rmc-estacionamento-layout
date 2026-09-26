@@ -1,6 +1,6 @@
 # Registro de decisões
 
-**Status:** decisões v1 aprovadas e parcialmente implementadas.  
+**Status:** decisões v1 aprovadas e implementadas no escopo atual.  
 Não existem decisões arquiteturais abertas necessárias para concluir o PR atual.
 
 ## Decisões v1
@@ -10,25 +10,25 @@ Não existem decisões arquiteturais abertas necessárias para concluir o PR atu
 | D-01 | API pública chamada `notify()` | implementada |
 | D-02 | `notify()` é função normal, não Hook | implementada |
 | D-03 | Assinatura: `notify(FeedbackDefinition): void` | implementada |
-| D-04 | Catálogo separado por domínio | implementada no piloto Session |
-| D-05 | Nome do catálogo: `<DOMAIN>_FEEDBACK` | implementada |
-| D-06 | Arquivo do catálogo: `<domain>-feedback.ts` | implementada |
-| D-07 | Catálogo fica em `<domain>/content/` | implementada |
+| D-04 | Catálogos separados por domínio/escopo proprietário | implementada em Session, Clients e DataTable |
+| D-05 | Nome dos catálogos de domínio: `<DOMAIN>_FEEDBACK` | implementada |
+| D-06 | Arquivo de catálogo de domínio: `<domain>-feedback.ts` | implementada |
+| D-07 | Catálogo de domínio fica em `<domain>/content/` | implementada |
 | D-08 | Referência TypeScript real; sem token string | implementada |
 | D-09 | `type` pertence à definição, não ao chamador | implementada |
 | D-10 | Tipos v1: success/info/warning/error | implementada |
 | D-11 | `title` obrigatório | implementada |
 | D-12 | `description` opcional | implementada |
 | D-13 | Conteúdo restrito a string; sem HTML/JSX/ReactNode | implementada |
-| D-14 | Conteúdo dinâmico suportado na v1 por factory pura | implementada no contrato; aguarda primeiro caso real |
-| D-15 | Factory dinâmica recebe um objeto nomeado | fechada |
+| D-14 | Conteúdo dinâmico suportado por factory pura | implementada em Clients |
+| D-15 | Factory dinâmica recebe um objeto nomeado | implementada em Clients |
 | D-16 | `FeedbackCatalog = Readonly<Record<string, FeedbackDefinition | FeedbackFactory>>` | implementada |
 | D-17 | `FeedbackFactory = (...args: never[]) => FeedbackDefinition` como constraint | implementada |
 | D-18 | Catálogos usam `as const satisfies FeedbackCatalog` | implementada |
 | D-19 | Definição inline é proibida, sem branding/runtime helper na v1 | fechada |
 | D-20 | `notify()` seleciona campos explicitamente; não usa spread | implementada |
 | D-21 | `notify()` ignora ID do manager e não captura exceções | implementada |
-| D-22 | Erro técnico não é conteúdo público | implementada no piloto Session |
+| D-22 | Erro técnico não é conteúdo público | implementada |
 | D-23 | Sem sanitizer HTML/redactor universal na v1 | fechada |
 | D-24 | Valores externos reutilizam presentation helpers do domínio | fechada |
 | D-25 | Sem fallback automático dentro de `notify()` | implementada |
@@ -70,6 +70,14 @@ Regras:
 - `type` e `priority` são conceitos independentes;
 - `high` deve ser raro e deliberado.
 
+## Separação de Clipboard e feedback
+
+A operação técnica de Clipboard permanece neutra e retorna a Promise da API nativa. O escopo consumidor é responsável por selecionar a definição de feedback adequada.
+
+Para ações reutilizáveis de tabela, a orquestração fica em `data-table/actions`, evitando duplicação de `try/catch` entre páginas. Clients possui catálogo próprio para o feedback dinâmico de e-mail.
+
+Falhas do manager de feedback não são capturadas como se fossem falhas da Clipboard API.
+
 ## Alternativas rejeitadas
 
 | Alternativa | Razão |
@@ -91,6 +99,7 @@ Regras:
 | expor ID retornado por `toast.add` | acopla consumidores ao lifecycle do primitive |
 | exigir `description` sempre | força conteúdo redundante |
 | mapear todo `error` para `high` | confunde severidade visual com urgência acessível |
+| feedback dentro de `copyToClipboard` | mistura operação técnica reutilizável com política de apresentação |
 
 ## Fora da v1
 
@@ -119,4 +128,4 @@ A escolha usa mecanismos oficiais da regra (`paths`, `patterns` e `allowImportNa
 
 ## Gate para novos domínios
 
-Um novo catálogo só deve ser criado quando houver evento real de produto. O primeiro caso real de conteúdo dinâmico deve validar factories e presentation helpers sem antecipar DTOs ou regras inexistentes.
+Um novo catálogo só deve ser criado quando houver evento real de produto. Novos casos dinâmicos devem manter factories com parâmetros mínimos e tipados, sem antecipar DTOs ou regras inexistentes.
