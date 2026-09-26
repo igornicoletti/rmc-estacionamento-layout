@@ -12,7 +12,7 @@ Concluído:
 - separação da operação de Clipboard do feedback visual;
 - ação e catálogo reutilizáveis para cópia de registros de DataTable;
 - primeiro caso real de conteúdo dinâmico com `CLIENTS_FEEDBACK.emailCopied({ email })`;
-- testes das novas fronteiras de Clipboard e DataTable.
+- testes de Clipboard, DataTable, Clients e integração do shell.
 
 A validação local completa deve ser repetida no HEAD atual antes do merge. O GitHub Actions não é evidência útil enquanto os jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`).
 
@@ -33,14 +33,7 @@ Não criar catálogo apenas para preencher arquitetura. Novos catálogos entram 
 
 ## Conteúdo dinâmico
 
-O caso de Clients validou:
-- factory com objeto nomeado;
-- parâmetro mínimo e tipado;
-- ausência de DTO inteiro ou erro técnico;
-- conteúdo controlado pelo catálogo;
-- nenhuma regra de negócio dentro da definição.
-
-Próximos casos devem manter as mesmas fronteiras e reutilizar presentation helpers existentes quando os valores necessitarem normalização.
+O caso de Clients validou factory com objeto nomeado, parâmetro mínimo/tipado e conteúdo controlado pelo catálogo. Próximos casos devem manter as mesmas fronteiras e reutilizar presentation helpers quando necessário.
 
 ## Operações reutilizáveis
 
