@@ -139,7 +139,8 @@ Responsável por:
 - linguagem pública;
 - \`type\`;
 - factories puras;
-- interpolação e formatação estritamente ligadas à mensagem.
+- interpolação;
+- reutilização de formatadores/normalizadores puros já existentes no próprio domínio quando o valor dinâmico precisar de apresentação consistente.
 
 Não pode:
 - executar I/O;
@@ -148,8 +149,9 @@ Não pode:
 - navegar;
 - acessar QueryClient;
 - invalidar/refazer queries;
-- receber DTO completo quando valores mínimos bastam;
-- decidir autorização ou regra de negócio.
+- receber DTO completo quando valores escalares bastam;
+- decidir autorização ou regra de negócio;
+- duplicar sanitizer/formatter já existente.
 
 ### \`notify()\`
 
@@ -165,6 +167,7 @@ Não pode:
 - navegar;
 - persistir;
 - fazer logging;
+- sanitizar/formatar dados de domínio;
 - deduplicar na v1.
 
 ### \`components/ui/toast\`
@@ -184,9 +187,29 @@ event: ({ valueA, valueB }: Params) => FeedbackDefinition
 Parâmetros:
 - um único objeto nomeado;
 - tipos específicos;
-- somente valores necessários à apresentação;
+- somente valores necessários à mensagem;
 - não receber \`Error\`, \`Response\`, DTO amplo, QueryClient ou objeto de infraestrutura;
 - nullable/optional somente quando a própria mensagem prevê esse estado.
+
+### Normalização dos valores interpolados
+
+Regra final:
+- \`notify()\` nunca sanitiza o conteúdo;
+- a factory pode reutilizar um formatter/normalizer puro já existente no domínio;
+- se a camada chamadora já trabalha com um valor de apresentação oficialmente produzido pelo domínio, ele pode ser passado diretamente;
+- não criar um segundo algoritmo de casing, correção ortográfica, Unicode ou whitespace dentro do catálogo.
+
+Exemplo conceitual para Units:
+
+\`\`\`ts
+updated: ({ unitName }: { unitName: string }) => ({
+  title: "Unidade atualizada",
+  description: \`\${formatUnitName(unitName)} foi atualizada com sucesso.\`,
+  type: "success",
+})
+\`\`\`
+
+Isso reutiliza a apresentação existente e mantém a regra fora de \`notify()\`.
 
 Correto:
 

@@ -50,6 +50,15 @@ Vitest inclui:
 
 O caminho futuro \`tests/unit/app/feedback/\` já está coberto pelo include atual e espelha \`src/app/feedback/\`.
 
+### Normalização e apresentação de dados
+
+O projeto já possui normalização e formatação de apresentação fora do Toast:
+- \`src/lib/erp/erp-record.ts\` exporta \`sanitizeErpText\`, que normaliza Unicode NFC, remove caracteres de controle/formatação, compacta whitespace e aplica trim;
+- \`src/pages/units/model/unit-presentation.ts\` reutiliza esse sanitizer e aplica regras de nome/cidade/data;
+- \`src/pages/clients/model/client-presentation.ts\` faz o mesmo para nomes, cidades, telefone, placa e outros valores.
+
+Consequência: a arquitetura de feedback não deve criar um segundo sanitizer genérico. Valores interpolados devem reutilizar a apresentação já existente no domínio quando vierem dessas fontes.
+
 ## Problemas e riscos confirmados
 
 1. **Não existe API pública de feedback.** Sem contrato, futuros consumidores podem depender diretamente do manager.
@@ -60,6 +69,7 @@ O caminho futuro \`tests/unit/app/feedback/\` já está coberto pelo include atu
 6. **Conteúdo dinâmico é necessidade previsível.** A v1 já deve suportar factories tipadas.
 7. **Definição inline não resolve centralização.** Trocar \`toast.add({...})\` por \`notify({...})\` manteria o mesmo problema.
 8. **Automação global de mutations seria prematura.** Callbacks globais do MutationCache recebem \`unknown\` para data/variables; conteúdo dinâmico deve permanecer próximo do contexto tipado até aparecer repetição comprovada.
+9. **Sanitização duplicada seria dívida técnica.** \`notify()\` não deve repetir regras que já pertencem a \`sanitizeErpText\` e aos formatadores de apresentação dos domínios.
 
 ## Observação fora do escopo
 
@@ -67,4 +77,4 @@ O botão de fechamento do Toast atual contém \`aria-label="Close toast"\`. Isso
 
 ## Conclusão
 
-A infraestrutura existente é suficiente para um adapter síncrono e pequeno. Não há justificativa atual para Context, Provider adicional, store, event bus, registry runtime, parser de tokens ou \`useNotify\`.
+A infraestrutura existente é suficiente para um adapter síncrono e pequeno. Não há justificativa atual para Context, Provider adicional, store, event bus, registry runtime, parser de tokens, sanitizer global de feedback ou \`useNotify\`.

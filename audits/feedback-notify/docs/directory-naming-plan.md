@@ -16,6 +16,7 @@ src/
       ├─ components/
       ├─ data/
       ├─ model/
+      │  └─ unit-presentation.ts
       └─ content/
          └─ units-feedback.ts
 \`\`\`
@@ -47,6 +48,7 @@ Não criar na v1:
 - service class;
 - registry;
 - resolver global;
+- sanitizer;
 - pipeline em arquivos separados;
 - barrel.
 
@@ -60,7 +62,22 @@ src/pages/<domain>/content/<domain>-feedback.ts
 
 Isso não implica migração de outros conteúdos existentes. O diretório passa a ser o ownership dos novos contratos de feedback daquele domínio.
 
-## 4. Nomenclatura
+## 4. Relação com apresentação do domínio
+
+Catálogos podem importar **formatadores/normalizadores puros de apresentação do mesmo domínio** quando precisarem interpolar dados externos de forma consistente.
+
+Exemplo permitido:
+
+\`\`\`text
+pages/units/content/units-feedback
+   └─> pages/units/model/unit-presentation
+\`\`\`
+
+Não mover \`sanitizeErpText\` para a infraestrutura de feedback e não duplicar suas regras.
+
+Se o chamador já possui um valor oficialmente formatado para apresentação, a factory pode recebê-lo diretamente. O importante é existir uma única regra de apresentação para aquele dado.
+
+## 5. Nomenclatura
 
 Tipos:
 - \`FeedbackType\`
@@ -78,7 +95,7 @@ Catálogo:
 Entradas:
 - nomeadas pelo evento/resultado, não por UI ou severidade.
 
-## 5. Imports canônicos
+## 6. Imports canônicos
 
 Consumidor:
 
@@ -93,6 +110,12 @@ Catálogo:
 import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
 \`\`\`
 
+Quando necessário:
+
+\`\`\`ts
+import { formatUnitName } from "@/pages/units/model/unit-presentation"
+\`\`\`
+
 \`notify.ts\`:
 
 \`\`\`ts
@@ -102,7 +125,7 @@ import { toast } from "@/components/ui/toast"
 
 Não criar barrel na v1. Imports explícitos preservam ownership e evitam uma API pública maior do que o necessário.
 
-## 6. Grafo permitido
+## 7. Grafo permitido
 
 \`\`\`text
 feature/page/component
@@ -110,7 +133,8 @@ feature/page/component
    └─> app/feedback/notify
 
 pages/<domain>/content/*-feedback
-   └─> app/feedback/feedback-contract (type-only)
+   ├─> app/feedback/feedback-contract (type-only)
+   └─> pages/<domain>/model/*-presentation (opcional, puro)
 
 app/feedback/notify
    ├─> app/feedback/feedback-contract (type-only)
@@ -121,7 +145,7 @@ components/ui/toast
    X-> domain catalog
 \`\`\`
 
-## 7. Dependências proibidas em catálogos
+## 8. Dependências proibidas em catálogos
 
 Não importar:
 - React;
@@ -133,9 +157,9 @@ Não importar:
 - serviços HTTP;
 - DTO amplo sem necessidade.
 
-Factories são funções puras.
+Factories são funções puras. Import de formatter puro do próprio domínio é permitido.
 
-## 8. Testes futuros
+## 9. Testes futuros
 
 Infraestrutura espelha \`src/app/feedback\`:
 
@@ -161,7 +185,7 @@ tests/
 
 Isso cria subtrees novos e não mistura os arquivos com testes existentes.
 
-## 9. ESLint futuro
+## 10. ESLint futuro
 
 Após o piloto:
 - consumidores normais podem importar somente \`Toaster\` do módulo visual;
@@ -171,7 +195,7 @@ Após o piloto:
 
 A forma normativa está registrada em \`decision-register.md\`.
 
-## 10. Documentação desta auditoria
+## 11. Documentação desta auditoria
 
 \`\`\`text
 audits/feedback-notify/

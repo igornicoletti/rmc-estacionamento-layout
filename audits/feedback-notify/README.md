@@ -64,6 +64,7 @@ A feature informa o evento. O catálogo do domínio define a mensagem. \`notify(
 - \`type\` é \`success | info | warning | error\`.
 - HTML, JSX, \`ReactNode\`, erros crus e overrides no call site não fazem parte do contrato.
 - \`notify()\` não interpreta \`Error\`, HTTP, Supabase ou regra de negócio.
+- Valores dinâmicos de origem externa devem reutilizar normalizadores/formatadores de apresentação já existentes no domínio antes ou dentro da factory; \`notify()\` não possui sanitizer próprio.
 - TanStack Query permanece integração opt-in; não existe Toast global para toda mutation/query.
 - O manager Base UI continua encapsulado pelo adapter.
 - A v1 não expõe timeout, prioridade, actions, dedupe, loading lifecycle ou observabilidade.

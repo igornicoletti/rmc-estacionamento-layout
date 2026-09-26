@@ -61,19 +61,22 @@ Mockar somente o manager exportado pelo módulo visual e verificar:
 - retorno público é \`undefined\`;
 - ID retornado pelo mock não é exposto;
 - nenhuma propriedade extra é encaminhada;
-- erro lançado pelo mock não é silenciosamente engolido.
+- erro lançado pelo mock não é silenciosamente engolido;
+- nenhum sanitizer/formatter é executado pelo adapter.
 
 Não montar árvore React; o dispatcher não depende de render.
 
 ## 5. Factories
 
-Adicionar teste somente quando a factory possui lógica:
+Adicionar teste quando a factory possui lógica:
 - pluralização;
 - branch;
 - formatação;
-- seleção condicional.
+- reutilização de formatter/normalizer de apresentação.
 
-Factory que apenas interpola um valor tipado pode ser coberta pelo typecheck e pelo fluxo consumidor, sem snapshot de redação.
+Quando uma factory reutilizar, por exemplo, \`formatUnitName\`, o teste deve proteger o resultado observável da factory, não reimplementar os testes do formatter.
+
+Factory que apenas interpola um valor já apresentado pode ser coberta pelo typecheck e pelo fluxo consumidor, sem snapshot de redação.
 
 ## 6. Segurança
 
@@ -116,7 +119,8 @@ Não criar teste customizado se a própria execução do ESLint prova a regra de
 - implementação de \`toast.add\`;
 - timeout default da biblioteca;
 - texto estático literal sem lógica;
-- internals de React Query.
+- internals de React Query;
+- internals de \`sanitizeErpText\` em testes do catálogo.
 
 ## 10. Gate futuro
 

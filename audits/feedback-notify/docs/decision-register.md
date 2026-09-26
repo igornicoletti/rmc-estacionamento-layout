@@ -30,22 +30,23 @@ Não existem itens arquiteturais em aberto nesta revisão.
 | D-21 | \`notify()\` ignora ID do manager e não captura exceções | fechada |
 | D-22 | Erro técnico não é conteúdo público | fechada |
 | D-23 | Sem sanitizer HTML/redactor universal na v1 | fechada |
-| D-24 | Sem fallback automático dentro de \`notify()\` | fechada |
-| D-25 | Timeout/prioridade não são expostos na v1 | fechada |
-| D-26 | \`error\` não implica prioridade \`high\` | fechada |
-| D-27 | Loading/promise lifecycle fora da v1 | fechada |
-| D-28 | Dedupe/id/update/close fora da v1 | fechada |
-| D-29 | Actions fora da v1; callbacks nunca no catálogo | fechada |
-| D-30 | Observabilidade fora da v1 | fechada |
-| D-31 | TanStack Query é compatível, mas não dependência de \`notify()\` | fechada |
-| D-32 | Fase 1 usa callbacks de mutation tipados quando necessário | fechada |
-| D-33 | \`mutation.meta.feedback\` só após repetição comprovada | fechada |
-| D-34 | Nenhum Toast automático para toda mutation | fechada |
-| D-35 | Nenhum Toast global automático para query errors | fechada |
-| D-36 | Testes de infraestrutura ficam em \`tests/unit/app/feedback/\` | fechada |
-| D-37 | Testes de catálogo com lógica ficam em \`tests/unit/pages/<domain>/content/\` | fechada |
-| D-38 | Enforcement futuro usa \`no-restricted-imports\`, preservando \`Toaster\` | fechada |
-| D-39 | Documentação/auditoria permanece isolada em \`audits/feedback-notify/\` | executada |
+| D-24 | Valores externos reutilizam presentation formatter/normalizer do domínio; não existe sanitizer próprio de \`notify()\` | fechada |
+| D-25 | Sem fallback automático dentro de \`notify()\` | fechada |
+| D-26 | Timeout/prioridade não são expostos na v1 | fechada |
+| D-27 | \`error\` não implica prioridade \`high\` | fechada |
+| D-28 | Loading/promise lifecycle fora da v1 | fechada |
+| D-29 | Dedupe/id/update/close fora da v1 | fechada |
+| D-30 | Actions fora da v1; callbacks nunca no catálogo | fechada |
+| D-31 | Observabilidade fora da v1 | fechada |
+| D-32 | TanStack Query é compatível, mas não dependência de \`notify()\` | fechada |
+| D-33 | Fase 1 usa callbacks de mutation tipados quando necessário | fechada |
+| D-34 | \`mutation.meta.feedback\` só após repetição comprovada | fechada |
+| D-35 | Nenhum Toast automático para toda mutation | fechada |
+| D-36 | Nenhum Toast global automático para query errors | fechada |
+| D-37 | Testes de infraestrutura ficam em \`tests/unit/app/feedback/\` | fechada |
+| D-38 | Testes de catálogo com lógica ficam em \`tests/unit/pages/<domain>/content/\` | fechada |
+| D-39 | Enforcement futuro usa \`no-restricted-imports\`, preservando \`Toaster\` | fechada |
+| D-40 | Documentação/auditoria permanece isolada em \`audits/feedback-notify/\` | executada |
 
 ## Alternativas rejeitadas
 
@@ -59,7 +60,8 @@ Não existem itens arquiteturais em aberto nesta revisão.
 | catálogo global único | reduz ownership de domínio |
 | Provider/Context adicional | manager global Base UI já resolve despacho externo à árvore |
 | store/event bus | nenhuma necessidade funcional |
-| sanitizer HTML | HTML não entra no contrato |
+| sanitizer HTML | contrato não aceita HTML |
+| sanitizer/formatter genérico dentro de \`notify()\` | duplicaria regras de apresentação já existentes nos domínios |
 | parser universal de erros em \`notify()\` | mistura infraestrutura com integração/domínio |
 | Toast para toda mutation | produz feedback indevido |
 | Toast global para queries | background refetch/reconnect podem gerar ruído |
@@ -132,8 +134,9 @@ Antes do primeiro código:
 1. reaudar a HEAD atual da \`main\`;
 2. confirmar que Toast/Provider/QueryClient/configs não mudaram;
 3. identificar um fluxo mutável real para o piloto;
-4. confirmar que não surgiu consumidor direto de Toast;
-5. atualizar esta documentação se alguma premissa mudou;
-6. receber aprovação explícita para implementar.
+4. identificar os formatadores/normalizadores de apresentação aplicáveis aos valores dinâmicos desse fluxo;
+5. confirmar que não surgiu consumidor direto de Toast;
+6. atualizar esta documentação se alguma premissa mudou;
+7. receber aprovação explícita para implementar.
 
 Essas precondições não reabrem o contrato; apenas verificam se a realidade do repositório continua compatível com ele.

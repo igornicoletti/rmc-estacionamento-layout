@@ -29,7 +29,8 @@ Antes de qualquer alteração:
 - rever ESLint;
 - rever Vitest/TypeScript;
 - inventariar mutations reais do domínio piloto;
-- selecionar um evento real de feedback.
+- selecionar um evento real de feedback;
+- identificar os formatadores/normalizadores já utilizados pelo domínio para os valores que serão interpolados.
 
 Se uma premissa técnica mudou, interromper implementação e atualizar o dossiê.
 
@@ -81,6 +82,7 @@ Comportamento fechado:
 - uma chamada ao manager;
 - sem spread;
 - sem catch;
+- sem sanitizer;
 - sem timeout/priority/id/action.
 
 ## Fase 5 — validação da infraestrutura
@@ -105,11 +107,14 @@ src/pages/units/content/units-feedback.ts
 
 Somente para um fluxo mutável real identificado no preflight. Não inventar Toast para demonstrar infraestrutura.
 
-Se o fluxo necessitar dado dinâmico, aplicar factory desde o primeiro uso.
+Para valor dinâmico:
+- reutilizar \`unit-presentation\` quando aplicável;
+- não duplicar regras de sanitização/casing;
+- não mover regras do ERP para \`notify()\`.
 
 ## Fase 7 — teste do catálogo quando houver lógica
 
-Somente se existir pluralização, branch ou formatação própria:
+Somente se existir pluralização, branch, formatação ou reutilização de formatter que mereça proteção:
 
 \`\`\`text
 tests/unit/pages/units/content/units-feedback.test.ts
@@ -125,6 +130,7 @@ Verificar:
 - clareza das responsabilidades;
 - ausência de objeto inline;
 - ausência de mensagens técnicas;
+- consistência dos valores dinâmicos com apresentação existente;
 - nenhuma duplicação;
 - necessidade real de qualquer capacidade fora da v1.
 
@@ -132,7 +138,7 @@ Mudança de contrato exige voltar à documentação antes de expandir.
 
 ## Fase 9 — expansão por domínio
 
-Migrar/adotar um domínio por vez, sempre com eventos reais.
+Migrar/adotar um domínio por vez, sempre com eventos reais e reutilizando sua apresentação vigente.
 
 ## Fase 10 — enforcement ESLint
 
@@ -166,7 +172,8 @@ Somente mediante casos reais:
 4. Nenhum hardcode de feedback fora de catálogo.
 5. Nenhuma mensagem técnica exposta.
 6. Factories recebem somente dados mínimos.
-7. TypeScript preserva inferência.
-8. Testes cobrem comportamento próprio, não biblioteca.
-9. Lint, typecheck, testes e build passam.
-10. Nenhuma decisão arquitetural implícita é introduzida no código.
+7. Dados interpolados seguem os formatadores/normalizadores existentes do domínio.
+8. TypeScript preserva inferência.
+9. Testes cobrem comportamento próprio, não biblioteca.
+10. Lint, typecheck, testes e build passam.
+11. Nenhuma decisão arquitetural implícita é introduzida no código.

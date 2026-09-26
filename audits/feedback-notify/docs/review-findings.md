@@ -12,7 +12,8 @@
 - comportamento diante do ID/erro do manager não estava definido;
 - não estava explícito se o adapter usaria spread;
 - definição inline era proibida sem distinguir regra arquitetural de enforcement;
-- fallback automático permanecia implícito.
+- fallback automático permanecia implícito;
+- normalização de valores dinâmicos ainda poderia ser interpretada como responsabilidade de \`notify()\`.
 
 ### Refinamentos aplicados
 - \`description?: string\`;
@@ -25,7 +26,8 @@
 - sem catch no adapter;
 - mapeamento explícito de campos;
 - sem fallback automático;
-- strings vazias proibidas por regra, sem validator runtime.
+- strings vazias proibidas por regra, sem validator runtime;
+- normalização/formatting permanece no domínio e reutiliza presentation helpers existentes.
 
 ## 2. \`decision-register.md\`
 
@@ -37,20 +39,22 @@ Havia quatro itens "abertos", o que contrariava o objetivo de concluir o desenho
 - O-02 resolvida: tipos exatos do catálogo.
 - O-03 resolvida: estratégia exata de ESLint documentada.
 - O-04 reclassificada: seleção do primeiro evento real é precondição de execução, não decisão arquitetural.
-- retorno, spread, ID, catch, testes e diretórios receberam decisões explícitas.
+- retorno, spread, ID, catch, testes, diretórios e sanitização de valores dinâmicos receberam decisões explícitas.
 
 Resultado: nenhuma decisão arquitetural aberta.
 
 ## 3. \`directory-naming-plan.md\`
 
-### Problema anterior
-\`tests/unit/feedback/\` não espelhava o padrão já presente de testes de infraestrutura em \`tests/unit/app/\`.
+### Problemas anteriores
+- \`tests/unit/feedback/\` não espelhava o padrão já presente de testes de infraestrutura em \`tests/unit/app/\`;
+- relação entre catálogo e presentation helpers do domínio não estava explícita.
 
 ### Refinamentos
 - caminho futuro: \`tests/unit/app/feedback/\`;
 - catálogo com lógica: \`tests/unit/pages/<domain>/content/\`;
 - imports canônicos definidos;
 - sem barrel v1;
+- catálogo pode reutilizar formatter puro do mesmo domínio;
 - grafo de dependência normativo fechado.
 
 ## 4. \`tanstack-query-integration.md\`
@@ -70,36 +74,41 @@ Resultado: nenhuma decisão arquitetural aberta.
 
 ## 5. \`implementation-plan.md\`
 
-### Refinamentos
+Refinamentos:
 - contrato TypeScript vem antes do adapter;
 - testes espelham a estrutura final;
 - adapter possui comportamento exato;
+- preflight inclui presentation helpers do domínio;
 - piloto depende de evento real;
 - enforcement só entra depois de consumidores legítimos estarem definidos;
 - mudanças de contrato obrigam retorno à documentação.
 
 ## 6. \`test-plan.md\`
 
-### Problemas anteriores
+Problemas anteriores:
 - ainda pressupunha description obrigatória;
 - não verificava retorno \`void\`, ID oculto ou propagação de erro do manager;
-- caminho de testes não espelhava source.
+- caminho de testes não espelhava source;
+- não delimitava testes de formatter versus factory.
 
-### Refinamentos
-- testes atualizados para description opcional;
+Refinamentos:
+- description opcional;
 - contrato negativo/positivo explícito;
 - payload do adapter restrito;
 - retorno/ID/catch cobertos;
-- nenhum teste do Base UI.
+- factory testa apenas comportamento próprio;
+- nenhum teste do Base UI ou duplicação dos testes do formatter.
 
 ## 7. \`research/current-state.md\`
 
-Refinado para separar:
-- evidência do repositório;
-- risco arquitetural;
-- decisões que são consequência da evidência.
+Refinado para separar evidência, risco e consequência.
 
-Nenhuma correção funcional foi incorporada ao escopo.
+A revisão adicional confirmou infraestrutura de apresentação já existente:
+- \`sanitizeErpText\`;
+- \`unit-presentation\`;
+- \`client-presentation\`.
+
+Isso encerra a dúvida sobre sanitizer: feedback reutiliza apresentação do domínio; \`notify()\` não cria uma camada paralela.
 
 ## 8. \`official-references.md\`
 
@@ -118,6 +127,6 @@ Atualizado em 26/09/2026 e alinhado às APIs oficiais atuais:
 
 Não restam decisões arquiteturais ambíguas necessárias para iniciar a implementação.
 
-Ainda existem capacidades explicitamente **fora da v1** — dedupe, promise lifecycle, action, prioridade customizada, timeout customizado, observabilidade e mutation metadata. Elas não são pendências; são exclusões deliberadas.
+Capacidades explicitamente fora da v1 — dedupe, promise lifecycle, action, prioridade customizada, timeout customizado, observabilidade e mutation metadata — não são pendências; são exclusões deliberadas.
 
 O único gate restante é de governança: aprovação explícita do dossiê e reaudit da \`main\` antes do primeiro código.
