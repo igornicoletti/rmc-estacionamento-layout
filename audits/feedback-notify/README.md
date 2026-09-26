@@ -1,50 +1,31 @@
-# Auditoria e implementação — Feedback transitório `notify()`
+# Feedback transitório `notify()` — v1
 
-**Projeto:** `rmc-estacionamento-layout`  
-**Base original auditada:** `main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818`  
-**Última revisão:** 26/09/2026  
-**Status:** arquitetura v1 implementada no escopo atual; merge bloqueado até validação local final.
-
-## Objetivo
-
-Centralizar feedback transitório em uma API semântica e tipada:
-
-```ts
-notify(SCOPE_FEEDBACK.event)
-```
-
-ou, para conteúdo dinâmico:
-
-```ts
-notify(SCOPE_FEEDBACK.event({ namedData }))
-```
-
-O catálogo pertence ao menor domínio/escopo semanticamente proprietário. `notify()` somente adapta a definição ao manager existente. Operações técnicas reutilizáveis não incorporam política visual.
+**Status:** arquitetura implementada no escopo atual; merge condicionado à validação local final.
 
 ## Implementado
 
-- contrato TypeScript e adapter `notify()`;
-- `type` e `priority` controlados pela definição;
-- Session/logout migrado com prioridade acessível preservada;
-- enforcement ESLint contra acesso direto ao manager;
-- Clipboard desacoplada de feedback visual;
-- ação/catálogo reutilizáveis para cópia de registros da DataTable;
-- primeiro feedback dinâmico real em Clients;
-- testes das fronteiras próprias;
-- documentação arquitetural e de rollout.
+- contrato tipado e adapter `notify()`;
+- catálogos pelo menor domínio/escopo proprietário;
+- Session/logout com prioridade acessível preservada;
+- enforcement ESLint do manager de Toast;
+- Clipboard técnica desacoplada de feedback;
+- DataTable com ação/catálogo compartilhados;
+- Clients com primeiro feedback dinâmico real;
+- testes das fronteiras implementadas.
+
+## Princípios
+
+```ts
+notify(SCOPE_FEEDBACK.event)
+notify(SCOPE_FEEDBACK.event({ namedData }))
+```
+
+Operações técnicas não incorporam política visual. Erros técnicos não são conteúdo público. TanStack Query não possui política global de Toast.
 
 ## Fora da v1
 
-Permanecem deliberadamente fora: timeout customizado, actions, dedupe, lifecycle/promise, observabilidade e automação global de TanStack Query.
+Timeout customizado, actions, dedupe, lifecycle/promise, observabilidade e automação global de mutations.
 
-## Gate de merge
+## Gate
 
-O HEAD final deve passar localmente:
-1. `git diff --check`;
-2. testes focados;
-3. lint e typecheck;
-4. build;
-5. `check:full`;
-6. revisão do diff final.
-
-O GitHub Actions não é evidência confiável enquanto jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`).
+O HEAD final deve passar testes focados, lint, typecheck, build e `check:full` localmente antes do merge.
