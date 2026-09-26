@@ -5,8 +5,10 @@ import { copyToClipboard } from "@/lib/copy-to-clipboard"
 export async function copyDataTableRecord(value: string): Promise<void> {
   try {
     await copyToClipboard(value)
-    notify(DATA_TABLE_FEEDBACK.rowCopied)
   } catch {
     notify(DATA_TABLE_FEEDBACK.rowCopyFailed)
+    return
   }
+
+  notify(DATA_TABLE_FEEDBACK.rowCopied)
 }
