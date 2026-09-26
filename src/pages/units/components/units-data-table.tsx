@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { RecordDetails } from "@/components/record-details/record-details"
 import { AppSheet } from "@/components/common/app-sheet"
+import { copyDataTableRecord } from "@/components/data-table/actions/copy-data-table-record"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/components/data-table-export"
@@ -17,8 +17,7 @@ import {
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
-import { dataTableCopy } from "@/components/data-table/data-table.copy"
-import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { RecordDetails } from "@/components/record-details/record-details"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import {
@@ -118,12 +117,9 @@ export function UnitsDataTable() {
   })
 
   const handleCopyData = useCallback((unit: Unit) => {
-    void copyToClipboard({
-      errorDescription: dataTableCopy.rowActions.copyErrorDescription,
-      successDescription: dataTableCopy.rowActions.copySuccessDescription,
-      successTitle: dataTableCopy.rowActions.copySuccessTitle,
-      value: serializeRecordForClipboard(unit, unitRecordSections),
-    })
+    void copyDataTableRecord(
+      serializeRecordForClipboard(unit, unitRecordSections),
+    )
   }, [])
 
   const columns = useMemo(

@@ -1,10 +1,12 @@
 import { useEffect, useReducer } from "react"
 
+import { notify } from "@/app/feedback/notify"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AvatarImageUploadDialog } from "@/components/dialogs/image-upload"
 import { SessionExpiredDialog } from "@/components/dialogs/session-expired"
 import { SessionTimeoutWarningDialog } from "@/components/dialogs/session-timeout"
 import { Button } from "@/components/ui/button"
+import { RMC_FEEDBACK } from "@/pages/rmc/content/rmc-feedback"
 
 const PREVIEW_WARNING_SECONDS = 30
 
@@ -114,6 +116,44 @@ export function RmcPreviewPage() {
           variant="outline"
         >
           Visualizar upload de avatar
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          onClick={() => notify(RMC_FEEDBACK.operationCompleted)}
+          type="button"
+          variant="outline"
+        >
+          Visualizar feedback de sucesso
+        </Button>
+        <Button
+          onClick={() => notify(RMC_FEEDBACK.informationAvailable)}
+          type="button"
+          variant="outline"
+        >
+          Visualizar feedback informativo
+        </Button>
+        <Button
+          onClick={() => notify(RMC_FEEDBACK.attentionRequired)}
+          type="button"
+          variant="outline"
+        >
+          Visualizar feedback de atenção
+        </Button>
+        <Button
+          onClick={() => notify(RMC_FEEDBACK.operationFailed)}
+          type="button"
+          variant="outline"
+        >
+          Visualizar feedback de erro
+        </Button>
+        <Button
+          onClick={() => notify(RMC_FEEDBACK.urgentOperationFailed)}
+          type="button"
+          variant="outline"
+        >
+          Visualizar feedback de erro urgente
         </Button>
       </div>
 
