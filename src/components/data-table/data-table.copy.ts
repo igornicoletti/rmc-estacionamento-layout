@@ -35,9 +35,6 @@ export const dataTableCopy = {
     label: "Ações",
     details: "Detalhes",
     copyData: "Copiar dados",
-    copySuccessTitle: "Dados copiados",
-    copySuccessDescription: "Os dados do registro foram copiados.",
-    copyErrorDescription: "Não foi possível copiar os dados do registro.",
   },
   export: {
     trigger: "Exportar CSV",
