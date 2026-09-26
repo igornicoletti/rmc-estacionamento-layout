@@ -7,14 +7,14 @@
 Uso estático:
 
 ```ts
-notify(DOMAIN_FEEDBACK.event)
+notify(SCOPE_FEEDBACK.event)
 ```
 
 Uso dinâmico:
 
 ```ts
 notify(
-  DOMAIN_FEEDBACK.event({
+  SCOPE_FEEDBACK.event({
     namedData,
   }),
 )
@@ -111,15 +111,24 @@ toast.add({
 
 Não usar spread do objeto no adapter. Novas propriedades só podem chegar ao primitive após decisão arquitetural explícita.
 
-## 6. Catálogo do domínio
+## 6. Ownership dos catálogos
 
-Responsável por:
+O catálogo pertence ao menor escopo semanticamente proprietário do evento.
+
+Para eventos de produto/domínio:
+- Session possui `SESSION_FEEDBACK`;
+- Clients possui `CLIENTS_FEEDBACK`;
+- outros domínios seguem o mesmo princípio quando surgirem eventos reais.
+
+Para comportamento realmente reutilizável e independente de domínio, o componente/infraestrutura reutilizável pode possuir seu próprio catálogo. Exemplo: a cópia genérica de um registro de DataTable pertence ao escopo DataTable, evitando duplicar a mesma definição em Clients, Units e outros consumidores.
+
+Responsabilidades do catálogo:
 - linguagem pública;
 - `type`;
 - `priority`, quando necessária;
 - factories puras;
 - interpolação;
-- reutilização de formatadores/normalizadores puros já existentes no domínio.
+- reutilização de formatadores/normalizadores puros já existentes no escopo proprietário.
 
 Não pode:
 - executar I/O;
@@ -149,7 +158,7 @@ Parâmetros devem:
 - evitar `Error`, `Response`, QueryClient, DTO amplo ou infraestrutura;
 - ser nullable/optional apenas quando a própria mensagem prevê o estado.
 
-Valores externos devem usar a apresentação já definida no domínio. `notify()` nunca sanitiza nem corrige casing, Unicode, ortografia ou whitespace.
+Valores externos devem usar a apresentação já definida no domínio/escopo. `notify()` nunca sanitiza nem corrige casing, Unicode, ortografia ou whitespace.
 
 ## 8. Definição inline
 
@@ -173,10 +182,12 @@ Entradas descrevem evento/resultado, por exemplo:
 - `createFailed`;
 - `updateFailed`;
 - `deleteFailed`;
+- `rowCopied`;
+- `rowCopyFailed`;
 - `exported`;
 - `exportFailed`.
 
-Evitar nomes orientados ao componente ou à severidade, como `success`, `error`, `formError` ou `toastSuccess`, exceto em harness temporário fora do contrato permanente.
+Evitar nomes orientados ao componente visual ou apenas à severidade, como `success`, `error`, `formError` ou `toastSuccess`.
 
 ## 10. Segurança
 
@@ -203,7 +214,13 @@ Proibido propagar diretamente:
 
 A v1 não possui sanitizer HTML nem redactor universal. Conteúdo inseguro não deve chegar ao catálogo/dispatcher.
 
-## 11. Timeout, dedupe e lifecycle
+## 11. Operações técnicas reutilizáveis
+
+Operações como Clipboard não devem embutir política de feedback. A função técnica executa a operação e expõe sucesso/falha pelo contrato natural da API; o escopo consumidor/orquestrador seleciona a definição apropriada.
+
+O `catch` de uma operação técnica deve abranger somente a operação que está sendo classificada. Uma falha do próprio `notify()` não pode ser confundida com falha da Clipboard API ou de outra integração.
+
+## 12. Timeout, dedupe e lifecycle
 
 Fora da v1:
 - timeout customizado por definição;
@@ -215,22 +232,22 @@ Fora da v1:
 
 Essas capacidades do Base UI permanecem disponíveis para evolução futura, mas consumidores não devem acessar o manager para contornar o adapter.
 
-## 12. Fallbacks
+## 13. Fallbacks
 
 `notify()` não escolhe fallback automaticamente. Uma operação que precise comunicar erro inesperado deve selecionar uma definição pública controlada antes do dispatcher.
 
-## 13. Critério de sucesso
+## 14. Critério de sucesso
 
 No uso comum, o consumidor conhece apenas:
 
 ```ts
-notify(DOMAIN_FEEDBACK.event)
+notify(SCOPE_FEEDBACK.event)
 ```
 
 ou:
 
 ```ts
-notify(DOMAIN_FEEDBACK.event({ namedData }))
+notify(SCOPE_FEEDBACK.event({ namedData }))
 ```
 
 Se o call site precisar conhecer manager, ID, timeout, lifecycle ou decidir prioridade arbitrariamente, a abstração falhou.
