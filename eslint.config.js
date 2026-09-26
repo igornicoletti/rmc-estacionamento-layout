@@ -5,8 +5,35 @@ import reactRefresh from "eslint-plugin-react-refresh"
 import tanstackQuery from "@tanstack/eslint-plugin-query"
 import tseslint from "typescript-eslint"
 
+const productionTestImportRestriction = {
+  group: ["@tests/*"],
+  message: "Código de produção não deve importar infraestrutura de testes.",
+}
+
+const toastImportRestriction = {
+  name: "@/components/ui/toast",
+  allowImportNames: ["Toaster"],
+  message:
+    "Use notify() para feedback transitório; Toaster é reservado à composição da aplicação.",
+}
+
+const relativeToastImportRestriction = {
+  group: ["**/components/ui/toast"],
+  allowImportNames: ["Toaster"],
+  message:
+    "Use notify() para feedback transitório; Toaster é reservado à composição da aplicação.",
+}
+
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "playwright-report", "test-results", "src/components/ui"] },
+  {
+    ignores: [
+      "dist",
+      "coverage",
+      "playwright-report",
+      "test-results",
+      "src/components/ui",
+    ],
+  },
   ...tanstackQuery.configs["flat/recommended"],
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
@@ -42,12 +69,22 @@ export default tseslint.config(
       "no-restricted-imports": [
         "error",
         {
+          paths: [toastImportRestriction],
           patterns: [
-            {
-              group: ["@tests/*"],
-              message: "Código de produção não deve importar infraestrutura de testes.",
-            },
+            productionTestImportRestriction,
+            relativeToastImportRestriction,
           ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/app/feedback/notify.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [productionTestImportRestriction],
         },
       ],
     },
