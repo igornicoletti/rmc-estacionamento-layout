@@ -1,6 +1,6 @@
 # Contrato arquitetural de feedback transitório
 
-**Status:** contrato v1 aprovado e em implementação.
+**Status:** contrato v1 aprovado e implementado no escopo atual.
 
 ## 1. API pública
 
@@ -25,12 +25,7 @@ A feature informa qual evento ocorreu. Ela não monta Toast nem altera a defini�
 ## 2. Contrato v1
 
 ```ts
-export type FeedbackType =
-  | "success"
-  | "info"
-  | "warning"
-  | "error"
-
+export type FeedbackType = "success" | "info" | "warning" | "error"
 export type FeedbackPriority = "low" | "high"
 
 export interface FeedbackDefinition {
@@ -40,189 +35,89 @@ export interface FeedbackDefinition {
   readonly type: FeedbackType
 }
 
-export type FeedbackFactory =
-  (...args: never[]) => FeedbackDefinition
-
+export type FeedbackFactory = (...args: never[]) => FeedbackDefinition
 export type FeedbackCatalog =
   Readonly<Record<string, FeedbackDefinition | FeedbackFactory>>
 ```
 
-Catálogos usam:
-
-```ts
-as const satisfies FeedbackCatalog
-```
-
-para validar a estrutura sem degradar a inferência das factories.
+Catálogos usam `as const satisfies FeedbackCatalog` para validar estrutura sem degradar inferência.
 
 ## 3. Conteúdo
 
-- `title` é obrigatório e deve comunicar sozinho o resultado.
-- `description` é opcional e só deve existir quando acrescenta contexto, consequência ou próxima ação.
-- strings vazias são proibidas por convenção/review; não existe validator runtime para conteúdo interno compilado.
-- conteúdo é `string`; HTML, JSX e `ReactNode` ficam fora da v1.
+- `title` obrigatório;
+- `description` opcional quando acrescenta informação;
+- strings vazias proibidas por convenção/review;
+- conteúdo restrito a `string`; HTML, JSX e `ReactNode` ficam fora da v1.
 
 ## 4. Type e priority
 
-`FeedbackType` descreve o resultado visual/semântico:
-- `success`: ação concluída;
-- `info`: informação transitória neutra;
-- `warning`: condição que requer atenção;
-- `error`: ação não concluída.
-
-`FeedbackPriority` descreve a urgência do anúncio acessível:
-- `low`: anúncio não urgente; default do Base UI quando omitido;
-- `high`: anúncio urgente.
+`type` descreve o resultado visual/semântico. `priority` descreve urgência do anúncio acessível.
 
 Regras:
-- `priority` é opcional e pertence ao catálogo, não ao call site;
-- `type: "error"` não implica `priority: "high"`;
-- `high` só deve ser usado quando o caso realmente exige anúncio urgente ou quando uma migração precisa preservar comportamento acessível já existente;
-- `loading` continua fora do contrato comum porque representa lifecycle, não resultado final.
+- `priority` é opcional e pertence ao catálogo;
+- `error` não implica `high`;
+- ausência de `priority` preserva o default do Base UI;
+- `high` é raro e deliberado;
+- `loading` continua fora do contrato comum.
 
 ## 5. `notify()`
 
-Assinatura normativa:
-
 ```ts
-export function notify(
-  feedback: FeedbackDefinition,
-): void
+export function notify(feedback: FeedbackDefinition): void
 ```
 
-Comportamento:
-1. recebe uma definição já resolvida;
+O adapter:
+1. recebe definição resolvida;
 2. seleciona explicitamente `title`, `description`, `priority` e `type`;
-3. chama o manager global existente;
-4. ignora o ID retornado pelo manager;
+3. chama o manager global;
+4. ignora o ID retornado;
 5. retorna `void`;
 6. não captura nem transforma exceções do manager.
 
-Forma conceitual:
-
-```ts
-toast.add({
-  title: feedback.title,
-  description: feedback.description,
-  priority: feedback.priority,
-  type: feedback.type,
-})
-```
-
-Não usar spread do objeto no adapter. Novas propriedades só podem chegar ao primitive após decisão arquitetural explícita.
+Não usar spread. Novas propriedades só alcançam o primitive após decisão explícita.
 
 ## 6. Ownership dos catálogos
 
 O catálogo pertence ao menor escopo semanticamente proprietário do evento.
 
-Para eventos de produto/domínio:
-- Session possui `SESSION_FEEDBACK`;
-- Clients possui `CLIENTS_FEEDBACK`;
-- outros domínios seguem o mesmo princípio quando surgirem eventos reais.
+Eventos de produto ficam no domínio, como Session e Clients. Comportamento realmente reutilizável pode pertencer ao próprio componente/infraestrutura reutilizável, como cópia genérica de registros da DataTable.
 
-Para comportamento realmente reutilizável e independente de domínio, o componente/infraestrutura reutilizável pode possuir seu próprio catálogo. Exemplo: a cópia genérica de um registro de DataTable pertence ao escopo DataTable, evitando duplicar a mesma definição em Clients, Units e outros consumidores.
-
-Responsabilidades do catálogo:
+Responsabilidades:
 - linguagem pública;
 - `type`;
 - `priority`, quando necessária;
 - factories puras;
 - interpolação;
-- reutilização de formatadores/normalizadores puros já existentes no escopo proprietário.
+- reutilização de presentation helpers do escopo.
 
-Não pode:
-- executar I/O;
-- chamar `notify()` ou Toast;
-- navegar;
-- acessar QueryClient;
-- invalidar/refazer queries;
-- decidir autorização/regra de negócio;
-- receber DTO amplo quando valores mínimos bastam;
-- duplicar formatter/sanitizer já existente.
+Catálogo não executa I/O, não chama `notify()`, não conhece manager, QueryClient, router ou regra de negócio.
 
 ## 7. Conteúdo dinâmico
 
-Toda factory dinâmica da v1 recebe exatamente um objeto nomeado:
+Toda factory dinâmica recebe um único objeto nomeado com parâmetros mínimos e tipados.
 
-```ts
-event: ({ valueA, valueB }: Params) => ({
-  title: "...",
-  description: "...",
-  type: "success",
-})
-```
-
-Parâmetros devem:
-- ter tipos específicos;
-- conter somente dados necessários à mensagem;
-- evitar `Error`, `Response`, QueryClient, DTO amplo ou infraestrutura;
-- ser nullable/optional apenas quando a própria mensagem prevê o estado.
-
-Valores externos devem usar a apresentação já definida no domínio/escopo. `notify()` nunca sanitiza nem corrige casing, Unicode, ortografia ou whitespace.
+Evitar `Error`, `Response`, QueryClient, DTO amplo ou infraestrutura. Valores externos reutilizam apresentação já definida no domínio/escopo.
 
 ## 8. Definição inline
 
-É proibido:
+Objeto literal direto em `notify()` permanece proibido por contrato arquitetural. A v1 não adiciona branding/runtime helper apenas para impedir structural typing.
 
-```ts
-notify({
-  title: "...",
-  type: "success",
-})
-```
+## 9. Segurança
 
-A v1 não introduz branding/helper runtime apenas para impedir structural typing. A regra é arquitetural e deve ser reforçada por review; lint customizado só será criado se surgir necessidade real.
+Erro técnico deve ser classificado antes de chegar ao catálogo. Não expor `error.message`, stack, SQL, endpoints internos, tokens/credenciais ou mensagens cruas de serviços.
 
-## 9. Nomenclatura
+`notify()` não possui sanitizer HTML, redactor universal ou parser de erros.
 
-Entradas descrevem evento/resultado, por exemplo:
-- `created`;
-- `updated`;
-- `deleted`;
-- `createFailed`;
-- `updateFailed`;
-- `deleteFailed`;
-- `rowCopied`;
-- `rowCopyFailed`;
-- `exported`;
-- `exportFailed`.
+## 10. Operações técnicas reutilizáveis
 
-Evitar nomes orientados ao componente visual ou apenas à severidade, como `success`, `error`, `formError` ou `toastSuccess`.
+Operações como Clipboard não embutem política de feedback.
 
-## 10. Segurança
+A função técnica executa a operação e expõe sucesso/falha pelo contrato natural da API. O escopo consumidor/orquestrador seleciona a definição apropriada.
 
-Fluxo esperado:
+O `catch` deve abranger somente a operação que está sendo classificada. Falha do próprio `notify()` não pode ser confundida com falha da Clipboard API ou de outra integração.
 
-```text
-Error / Response
-      ↓
-classificação da operação/domínio
-      ↓
-FeedbackDefinition controlada
-      ↓
-notify()
-```
+## 11. Fora da v1
 
-Proibido propagar diretamente:
-- `error.message`;
-- stack;
-- SQL;
-- endpoints internos;
-- tokens/credenciais;
-- mensagens cruas de banco/serviço;
-- identificadores sensíveis sem necessidade explícita.
-
-A v1 não possui sanitizer HTML nem redactor universal. Conteúdo inseguro não deve chegar ao catálogo/dispatcher.
-
-## 11. Operações técnicas reutilizáveis
-
-Operações como Clipboard não devem embutir política de feedback. A função técnica executa a operação e expõe sucesso/falha pelo contrato natural da API; o escopo consumidor/orquestrador seleciona a definição apropriada.
-
-O `catch` de uma operação técnica deve abranger somente a operação que está sendo classificada. Uma falha do próprio `notify()` não pode ser confundida com falha da Clipboard API ou de outra integração.
-
-## 12. Timeout, dedupe e lifecycle
-
-Fora da v1:
 - timeout customizado por definição;
 - dedupe por ID;
 - `update`/`close` públicos;
@@ -230,24 +125,12 @@ Fora da v1:
 - actions;
 - observabilidade/telemetria.
 
-Essas capacidades do Base UI permanecem disponíveis para evolução futura, mas consumidores não devem acessar o manager para contornar o adapter.
+## 12. Fallbacks
 
-## 13. Fallbacks
+`notify()` não escolhe fallback automaticamente. A operação seleciona uma definição pública controlada antes do dispatcher.
 
-`notify()` não escolhe fallback automaticamente. Uma operação que precise comunicar erro inesperado deve selecionar uma definição pública controlada antes do dispatcher.
+## 13. Critério de sucesso
 
-## 14. Critério de sucesso
-
-No uso comum, o consumidor conhece apenas:
-
-```ts
-notify(SCOPE_FEEDBACK.event)
-```
-
-ou:
-
-```ts
-notify(SCOPE_FEEDBACK.event({ namedData }))
-```
+No uso comum, o consumidor conhece somente o catálogo proprietário e `notify()` ou uma ação reutilizável que encapsule a operação.
 
 Se o call site precisar conhecer manager, ID, timeout, lifecycle ou decidir prioridade arbitrariamente, a abstração falhou.
