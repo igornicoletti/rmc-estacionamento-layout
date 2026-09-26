@@ -3,7 +3,7 @@
 **Projeto:** \`rmc-estacionamento-layout\`  
 **Base auditada:** \`main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818\`  
 **Última revisão documental:** 26/09/2026  
-**Status:** contrato arquitetural fechado para aprovação; implementação bloqueada  
+**Status:** aprovado em 26/09/2026; implementação v1 iniciada na branch `feat/feedback-notify`  
 **Escopo desta branch:** pesquisa, auditoria, decisões arquiteturais, estratégia de testes e plano de implementação.
 
 ## Regra de isolamento
@@ -77,7 +77,7 @@ Esta iniciativa não define contratos gerais de copy, i18n, notificações persi
 
 ## Gate
 
-Nenhum código é autorizado por esta revisão. A implementação só poderá começar depois de:
+A implementação foi explicitamente autorizada em 26/09/2026. O primeiro bloco permanece condicionado a:
 1. aprovação explícita desta documentação;
 2. reaudit da \`main\` no momento da implementação;
 3. confirmação de que as premissas técnicas continuam válidas;

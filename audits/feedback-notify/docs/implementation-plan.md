@@ -1,8 +1,8 @@
-# Plano de implementação — bloqueado até aprovação
+# Plano de implementação — execução iniciada
 
 ## Princípio
 
-Implementação futura em blocos pequenos, auditáveis e reversíveis. A documentação atual fecha o desenho; ela não autoriza código.
+Implementação autorizada em 26/09/2026, em blocos pequenos, auditáveis e reversíveis. O contrato permanece normativo durante a execução.
 
 ## Fase 0 — aprovação documental
 
@@ -16,7 +16,7 @@ Entregáveis:
 - testes;
 - rollout.
 
-Gate: aprovação explícita do dossiê.
+Gate concluído em 26/09/2026: aprovação explícita concedida.
 
 ## Fase 1 — preflight da main
 
@@ -84,6 +84,13 @@ Comportamento fechado:
 - sem catch;
 - sem sanitizer;
 - sem timeout/priority/id/action.
+
+## Estado atual
+
+- Fases 0 e 1 concluídas.
+- Fases 2, 3 e 4 iniciadas na branch `feat/feedback-notify`.
+- Fase 5 bloqueada no GitHub Actions por indisponibilidade de runner (`runner_id: 0`, `steps: []`); validação local final permanece obrigatória antes de merge.
+- Fase 6 não iniciada: a `main` auditada não possui fluxo mutável real em Units e nenhum feedback será inventado.
 
 ## Fase 5 — validação da infraestrutura
 

@@ -1,6 +1,6 @@
 # Contrato arquitetural de feedback transitório
 
-**Status:** contrato fechado para aprovação. Nenhum código autorizado.
+**Status:** contrato aprovado para implementação v1 em 26/09/2026.
 
 ## 1. Decisão central
 

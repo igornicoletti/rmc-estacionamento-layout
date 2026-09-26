@@ -1,6 +1,6 @@
 # Registro de decisões
 
-**Status:** decisões arquiteturais fechadas para aprovação.  
+**Status:** decisões arquiteturais aprovadas para implementação v1 em 26/09/2026.  
 Não existem itens arquiteturais em aberto nesta revisão.
 
 ## Decisões v1
