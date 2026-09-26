@@ -1,6 +1,6 @@
 # Registro de decisões
 
-**Status:** decisões v1 implementadas no escopo atual.
+**Status:** decisões v1 implementadas e mergeadas; revisão pós-merge incorporada.
 
 ## Contrato
 
@@ -26,6 +26,15 @@
 - Clipboard permanece operação técnica neutra;
 - side effects reutilizáveis de DataTable ficam em `actions`, não em `core`.
 
+## Política visual
+
+- Toast segue o registry Base UI do shadcn e o preset `base-luma`;
+- `cn-toast` é o hook nativo de estilo do container;
+- não há variante de fundo/borda/texto por `type`;
+- somente os ícones recebem cores semânticas dos tokens existentes;
+- `loading` permanece neutro;
+- classes de cor não entram no contrato de `FeedbackDefinition`.
+
 ## Comportamento de erro
 
 O `catch` classifica somente a operação técnica correspondente. Falha de `notify()` não é reclassificada como falha de Clipboard ou outra integração.
@@ -43,4 +52,4 @@ ESLint restringe acesso direto ao manager de Toast, preservando `Toaster` e auto
 - observabilidade;
 - automação global via MutationCache.
 
-Novas expansões exigem caso real e revisão documental quando alterarem o contrato.
+Essas capacidades não são pendências obrigatórias. Elas entram apenas se um caso real satisfizer os critérios de `v2-roadmap.md`.

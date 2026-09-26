@@ -1,6 +1,6 @@
 # Contrato arquitetural de feedback transitório
 
-**Status:** contrato v1 aprovado e implementado no escopo atual.
+**Status:** contrato v1 aprovado, implementado e mergeado.
 
 ## 1. API pública
 
@@ -56,9 +56,9 @@ Catálogos usam `as const satisfies FeedbackCatalog` para validar estrutura sem 
 Regras:
 - `priority` é opcional e pertence ao catálogo;
 - `error` não implica `high`;
-- ausência de `priority` preserva o default do Base UI;
+- ausência de `priority` preserva o default `low` do Base UI;
 - `high` é raro e deliberado;
-- `loading` continua fora do contrato comum.
+- `loading` continua fora do contrato comum da aplicação.
 
 ## 5. `notify()`
 
@@ -76,60 +76,73 @@ O adapter:
 
 Não usar spread. Novas propriedades só alcançam o primitive após decisão explícita.
 
-## 6. Ownership dos catálogos
+## 6. Política visual do Toast
+
+`src/components/ui/toast.tsx` é primitive visual e deve acompanhar o registry oficial do shadcn/Base UI e o preset configurado `base-luma`.
+
+Regras v1:
+- manter estrutura, layout, animações, fundo, borda, tipografia e estados nativos;
+- usar o hook oficial `cn-toast` para que o preset Luma aplique seu raio nativo;
+- não hardcodar variantes visuais por `type` no container;
+- aplicar cor somente ao ícone semântico:
+  - `success` → `text-success`;
+  - `info` → `text-info`;
+  - `warning` → `text-warning`;
+  - `error` → `text-error`;
+- `loading` permanece neutro, apenas com animação;
+- não colorir título, descrição, borda ou background por tipo.
+
+As cores usam tokens já existentes no tema; não são criadas variáveis exclusivas do Toast.
+
+## 7. Ownership dos catálogos
 
 O catálogo pertence ao menor escopo semanticamente proprietário do evento.
 
 Eventos de produto ficam no domínio, como Session e Clients. Comportamento realmente reutilizável pode pertencer ao próprio componente/infraestrutura reutilizável, como cópia genérica de registros da DataTable.
 
-Responsabilidades:
-- linguagem pública;
-- `type`;
-- `priority`, quando necessária;
-- factories puras;
-- interpolação;
-- reutilização de presentation helpers do escopo.
-
 Catálogo não executa I/O, não chama `notify()`, não conhece manager, QueryClient, router ou regra de negócio.
 
-## 7. Conteúdo dinâmico
+## 8. Conteúdo dinâmico
 
 Toda factory dinâmica recebe um único objeto nomeado com parâmetros mínimos e tipados.
 
 Evitar `Error`, `Response`, QueryClient, DTO amplo ou infraestrutura. Valores externos reutilizam apresentação já definida no domínio/escopo.
 
-## 8. Definição inline
+## 9. Definição inline
 
 Objeto literal direto em `notify()` permanece proibido por contrato arquitetural. A v1 não adiciona branding/runtime helper apenas para impedir structural typing.
 
-## 9. Segurança
+## 10. Segurança
 
 Erro técnico deve ser classificado antes de chegar ao catálogo. Não expor `error.message`, stack, SQL, endpoints internos, tokens/credenciais ou mensagens cruas de serviços.
 
 `notify()` não possui sanitizer HTML, redactor universal ou parser de erros.
 
-## 10. Operações técnicas reutilizáveis
+## 11. Operações técnicas reutilizáveis
 
 Operações como Clipboard não embutem política de feedback.
 
 A função técnica executa a operação e expõe sucesso/falha pelo contrato natural da API. O escopo consumidor/orquestrador seleciona a definição apropriada.
 
-O `catch` deve abranger somente a operação que está sendo classificada. Falha do próprio `notify()` não pode ser confundida com falha da Clipboard API ou de outra integração.
+O `catch` deve abranger somente a operação que está sendo classificada. Falha do próprio `notify()` não pode ser confundida com falha da integração.
 
-## 11. Fora da v1
+## 12. Fora da v1
 
 - timeout customizado por definição;
 - dedupe por ID;
 - `update`/`close` públicos;
 - `toast.promise`/loading lifecycle;
 - actions;
-- observabilidade/telemetria.
+- observabilidade/telemetria;
+- automação global via MutationCache.
 
-## 12. Fallbacks
+Esses itens são explicados em `v2-roadmap.md` e não devem ser implementados apenas por disponibilidade da biblioteca.
+
+## 13. Fallbacks
 
 `notify()` não escolhe fallback automaticamente. A operação seleciona uma definição pública controlada antes do dispatcher.
 
-## 13. Critério de sucesso
+## 14. Critério de sucesso
 
 No uso comum, o consumidor conhece somente o catálogo proprietário e `notify()` ou uma ação reutilizável que encapsule a operação.
 

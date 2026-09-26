@@ -1,22 +1,28 @@
 # Pesquisa oficial e referências
 
-**Revisão:** 26/09/2026  
+**Revisão:** 26/09/2026
+
 Foram priorizadas fontes oficiais das tecnologias presentes no projeto.
 
 ## shadcn/ui — Toast Base UI
 
 - https://ui.shadcn.com/docs/components/base/toast
 - https://ui.shadcn.com/docs/changelog/2026-07-toast
+- https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx
+- https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/styles/style-luma.css
 
 Evidências:
-- Toast é mensagem sucinta e temporária;
+- Toast é uma mensagem temporária e sucinta;
 - uso documentado via `toast.add(...)`;
-- renderer reconhece `success`, `info`, `warning`, `error` e `loading`;
-- existem actions e `toast.promise`.
+- renderer atual reconhece `success`, `info`, `warning`, `error` e `loading`;
+- o registry Base UI usa `cn-toast` no root;
+- o preset Luma aplica `rounded-2xl` por meio de `.cn-toast`;
+- existem actions, promises, stacking e swipe dismissal.
 
 Consequência:
-- o projeto não recria renderer/lifecycle;
-- o contrato de aplicação pode ser menor que a API da biblioteca.
+- o projeto não deve hardcodar no root um estilo já pertencente ao preset;
+- `cn-toast` deve ser preservado para herdar o estilo configurado;
+- a customização local fica limitada à cor semântica dos ícones.
 
 ## Base UI — Toast
 
@@ -39,8 +45,7 @@ Consequência:
 - o projeto restringe `type`, conteúdo e priority;
 - `notify()` retorna `void` e esconde o ID do manager;
 - ausência de priority herda `low`;
-- `high` só é encaminhada quando o catálogo a define explicitamente;
-- timeout customizado, dedupe e lifecycle continuam fora da v1.
+- dedupe, update/close, timeout customizado e lifecycle permanecem capacidades disponíveis para uma futura v2, não requisitos da v1.
 
 ## React — Hooks
 
@@ -56,18 +61,19 @@ Consequência:
 
 ## TanStack Query — mutations
 
-- https://tanstack.com/query/latest/docs/framework/react/reference/interfaces/UseMutationOptions
+- https://tanstack.com/query/latest/docs/framework/react/reference/interfaces/MutationOptions
 - https://tanstack.com/query/latest/docs/framework/react/reference/interfaces/MutationCacheConfig
 - https://tanstack.com/query/latest/docs/framework/react/typescript
 
 Evidências:
 - mutations aceitam `meta`;
+- `meta` pode ser lido onde a mutation está disponível, inclusive callbacks globais;
 - callbacks globais do MutationCache executam para todas as mutations;
-- data/variables em callbacks globais são menos específicos que nos callbacks locais;
-- `mutationMeta` pode ser registrado globalmente.
+- data/variables em callbacks globais são `unknown`;
+- `mutationMeta` pode ser registrado globalmente e precisa permanecer objeto tipado.
 
 Consequência:
-- feedback dinâmico permanece em callbacks tipados locais na v1;
+- feedback dinâmico permanece em callbacks locais tipados na v1;
 - metadata global fica reservado a repetição estática comprovada;
 - nenhuma mutation/query recebe Toast automático por padrão.
 
@@ -81,7 +87,7 @@ Evidências:
 - `as const` preserva literais e readonly.
 
 Consequência:
-- catálogos usam `as const satisfies FeedbackCatalog` para validar contrato preservando parâmetros das factories.
+- catálogos usam `as const satisfies FeedbackCatalog` preservando parâmetros concretos das factories.
 
 ## ESLint — `no-restricted-imports`
 
@@ -102,8 +108,8 @@ Consequência:
 - https://www.w3.org/TR/wai-aria/
 - https://www.w3.org/WAI/WCAG21/Techniques/aria/ARIA22
 
-Evidências:
-- mensagens de status não urgentes e anúncios urgentes são comportamentos diferentes.
+Evidência:
+- mensagens não urgentes e anúncios urgentes são comportamentos diferentes.
 
 Consequência:
 - `type` visual e `priority` acessível não são equivalentes;
@@ -131,8 +137,12 @@ Consequência:
 
 Consequência:
 - testar contrato, adapter e comportamento próprio do fluxo;
-- não testar internals visuais da biblioteca.
+- não testar internals visuais, animações ou classes cromáticas do primitive.
+
+## Nota de risco do ecossistema
+
+Há issue recente no repositório oficial shadcn relatando Toast Base UI no mesmo nível de z-index de Dialog/Sheet. Como isso ainda não foi reproduzido no projeto, não se altera o z-index preventivamente; o risco deve ser monitorado e reproduzido antes de divergir do registry.
 
 ## Síntese
 
-As fontes oficiais sustentam o desenho atual: adapter mínimo + catálogos por domínio + factories puras + priority opcional e explícita. Nenhuma nova infraestrutura de Toast é necessária.
+As fontes oficiais sustentam o desenho atual: adapter mínimo + catálogos por domínio/escopo + factories puras + priority explícita + visual nativo do preset + cor semântica apenas nos ícones.
