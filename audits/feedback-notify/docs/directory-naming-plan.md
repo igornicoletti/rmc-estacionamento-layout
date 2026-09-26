@@ -11,43 +11,26 @@ src/app/feedback/
 ```
 
 Responsabilidades:
-- `feedback-contract.ts`: `FeedbackType`, `FeedbackPriority`, `FeedbackDefinition`, `FeedbackFactory` e `FeedbackCatalog`;
+- `feedback-contract.ts`: tipos do contrato;
 - `notify.ts`: único adapter autorizado ao manager de Toast.
 
-Não criar na v1:
-- Provider/Context;
-- Hook;
-- service class;
-- registry;
-- resolver global;
-- sanitizer;
-- pipeline fragmentado;
-- barrel público.
+Não criar na v1 Provider/Context, Hook, service class, registry, resolver global, sanitizer, pipeline fragmentado ou barrel público.
 
 ## 2. Ownership dos catálogos
 
 ### Domínio/produto
 
-Padrão:
-
 ```text
 src/<scope>/<domain>/content/<domain>-feedback.ts
 ```
 
-Exemplos implementados:
-- `src/app/session/content/session-feedback.ts`;
-- `src/pages/clients/content/clients-feedback.ts`.
-
-Nomenclatura:
-- constante: `<DOMAIN>_FEEDBACK`;
-- arquivo: `<domain>-feedback.ts`;
-- entradas nomeadas pelo evento/resultado.
+Exemplos: Session e Clients.
 
 ### Escopo reutilizável
 
-Quando o evento é realmente genérico e compartilhado por vários domínios, o catálogo permanece junto ao componente/infraestrutura que é semanticamente proprietário do comportamento.
+Quando o evento é realmente genérico e compartilhado, o catálogo permanece junto ao componente/infraestrutura semanticamente proprietário.
 
-Exemplo implementado:
+Exemplo:
 
 ```text
 src/components/data-table/
@@ -56,65 +39,26 @@ src/components/data-table/
 └─ data-table-feedback.ts
 ```
 
-Isso evita duplicar o mesmo feedback de cópia de registro em Clients, Units e outros consumidores.
+Isso evita duplicar o mesmo feedback em múltiplos domínios.
 
 ## 3. Presentation helpers
 
-Catálogos podem importar formatadores/normalizadores puros do mesmo domínio/escopo quando precisarem interpolar valores externos.
-
-Não mover sanitização existente para a infraestrutura de feedback nem duplicar algoritmos de casing, Unicode, whitespace ou formatação.
+Catálogos podem importar formatadores/normalizadores puros do mesmo escopo quando precisarem interpolar valores externos. Não mover sanitização para a infraestrutura de feedback nem duplicar regras de apresentação.
 
 ## 4. Operações técnicas
 
 Utilitários técnicos reutilizáveis não possuem feedback visual embutido.
 
-Exemplo:
-
-```text
-src/lib/copy-to-clipboard.ts
-```
-
-expõe somente a operação de Clipboard. A ação/orquestrador proprietário trata a Promise e seleciona o catálogo apropriado.
+`src/lib/copy-to-clipboard.ts` expõe somente a operação de Clipboard. A ação/orquestrador proprietário trata a Promise e seleciona o catálogo apropriado.
 
 Side effects reutilizáveis de DataTable ficam em `data-table/actions`, não em `data-table/core`.
 
-## 5. Imports canônicos
-
-Consumidor de domínio:
-
-```ts
-import { notify } from "@/app/feedback/notify"
-import { DOMAIN_FEEDBACK } from ".../content/domain-feedback"
-```
-
-Ação reutilizável:
-
-```ts
-import { notify } from "@/app/feedback/notify"
-import { SCOPE_FEEDBACK } from ".../scope-feedback"
-```
-
-Catálogo:
-
-```ts
-import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
-```
-
-Adapter:
-
-```ts
-import type { FeedbackDefinition } from "@/app/feedback/feedback-contract"
-import { toast } from "@/components/ui/toast"
-```
-
-Imports explícitos são preferidos na v1; não criar barrel sem necessidade comprovada.
-
-## 6. Grafo permitido
+## 5. Grafo permitido
 
 ```text
 feature/component
    ├─> owner feedback catalog
-   └─> app/feedback/notify ou action reutilizável
+   └─> app/feedback/notify ou reusable action
 
 owner feedback catalog
    └─> app/feedback/feedback-contract (type-only)
@@ -133,67 +77,24 @@ components/ui/toast
    X-> catálogos
 ```
 
-## 7. Dependências proibidas em catálogos
+## 6. Dependências proibidas em catálogos
 
-Não importar:
-- React;
-- TanStack Query;
-- router;
-- QueryClient;
-- componentes UI;
-- manager de Toast;
-- serviços HTTP;
-- DTO amplo sem necessidade.
+Não importar React, TanStack Query, router, QueryClient, componentes UI, manager de Toast, serviços HTTP ou DTO amplo sem necessidade. Factories permanecem puras.
 
-Factories permanecem puras.
-
-## 8. Testes
-
-Infraestrutura:
+## 7. Testes
 
 ```text
 tests/unit/app/feedback/
-├─ feedback-contract.test.ts
-└─ notify.test.ts
-```
-
-Ações reutilizáveis espelham seu diretório de produção:
-
-```text
 tests/unit/components/data-table/actions/
-└─ copy-data-table-record.test.ts
+tests/unit/lib/
 ```
 
-Operações técnicas recebem teste próprio quando seu contrato muda:
+Fluxos reais recebem teste no escopo correspondente quando o feedback fizer parte do comportamento relevante. Não criar testes apenas para congelar copy estática.
 
-```text
-tests/unit/lib/copy-to-clipboard.test.ts
-```
+## 8. ESLint
 
-Fluxos reais recebem teste no escopo correspondente quando o feedback faz parte do comportamento relevante.
+O enforcement está implementado com `no-restricted-imports`: consumidores normais só podem importar `Toaster` quando necessário; o manager fica restrito ao adapter; caminhos relativos equivalentes também são cobertos.
 
-Catálogo com lógica própria pode receber teste junto ao domínio; não criar testes apenas para congelar copy estática.
+## 9. Documentação
 
-## 9. ESLint
-
-O enforcement está implementado:
-- consumidores normais só podem importar `Toaster` do módulo visual quando necessário;
-- o manager fica restrito ao adapter;
-- caminhos relativos equivalentes também são cobertos;
-- a regra de imports de testes em produção permanece ativa.
-
-A configuração usa `no-restricted-imports` com mecanismos nativos do ESLint.
-
-## 10. Documentação
-
-A auditoria permanece em:
-
-```text
-audits/feedback-notify/
-├─ README.md
-├─ docs/
-├─ research/
-└─ tests/
-```
-
-Essa documentação não é dependência da aplicação e não deve ser misturada aos testes executáveis.
+A auditoria permanece em `audits/feedback-notify/` e não é dependência runtime.
