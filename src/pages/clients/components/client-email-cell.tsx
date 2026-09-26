@@ -1,5 +1,6 @@
 import { CopyIcon } from "lucide-react"
 
+import { notify } from "@/app/feedback/notify"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,6 +9,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { CLIENTS_FEEDBACK } from "@/pages/clients/content/clients-feedback"
 import {
   formatOptionalText,
   splitEmails,
@@ -15,6 +17,15 @@ import {
 
 interface ClientEmailCellProps {
   value: string
+}
+
+async function copyEmail(email: string): Promise<void> {
+  try {
+    await copyToClipboard(email)
+    notify(CLIENTS_FEEDBACK.emailCopied({ email }))
+  } catch {
+    notify(CLIENTS_FEEDBACK.emailCopyFailed)
+  }
 }
 
 export function ClientEmailCell({ value }: ClientEmailCellProps) {
@@ -61,15 +72,7 @@ export function ClientEmailCell({ value }: ClientEmailCellProps) {
                   </span>
                   <Button
                     aria-label={`Copiar ${email}`}
-                    onClick={() =>
-                      void copyToClipboard({
-                        errorDescription:
-                          "Não foi possível copiar o endereço de e-mail.",
-                        successDescription: email,
-                        successTitle: "E-mail copiado",
-                        value: email,
-                      })
-                    }
+                    onClick={() => void copyEmail(email)}
                     size="icon-xs"
                     type="button"
                     variant="ghost"
