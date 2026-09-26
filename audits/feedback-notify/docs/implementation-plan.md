@@ -8,7 +8,10 @@ Concluído:
 - piloto real de Session/logout;
 - teste de integração do logout;
 - enforcement ESLint para acesso direto ao Toast;
-- suporte opcional a `priority` preservando a prioridade alta do erro de logout.
+- suporte opcional a `priority` preservando a prioridade alta do erro de logout;
+- separação da operação de Clipboard do feedback visual;
+- feedback reutilizável para cópia de registros de DataTable;
+- primeiro caso real de conteúdo dinâmico com `CLIENTS_FEEDBACK.emailCopied({ email })`.
 
 A validação local completa deve ser repetida no HEAD atual antes do merge. O GitHub Actions não é evidência útil enquanto os jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`).
 
@@ -17,7 +20,7 @@ A validação local completa deve ser repetida no HEAD atual antes do merge. O G
 Antes do merge:
 1. sincronizar a branch local;
 2. executar `git diff --check`;
-3. executar testes focados de feedback e integração do shell;
+3. executar testes focados de feedback, clipboard, DataTable e integração do shell;
 4. executar lint, typecheck e build;
 5. executar `check:full`;
 6. revisar o diff final;
@@ -25,16 +28,18 @@ Antes do merge:
 
 ## Próximo domínio
 
-Não criar catálogo apenas para preencher arquitetura. O próximo domínio entra quando existir uma ação real que necessite feedback transitório.
+Não criar catálogo apenas para preencher arquitetura. Novos catálogos entram somente quando houver uma ação real que necessite feedback transitório.
 
 ## Conteúdo dinâmico
 
-O primeiro caso real deve validar:
+O caso de Clients validou:
 - factory com objeto nomeado;
-- parâmetros mínimos e tipados;
+- parâmetro mínimo e tipado;
 - ausência de DTO inteiro ou erro técnico;
-- reutilização de presentation helpers existentes;
-- nenhuma regra de negócio no catálogo.
+- conteúdo controlado pelo catálogo;
+- nenhuma regra de negócio dentro da definição.
+
+Próximos casos devem manter as mesmas fronteiras e reutilizar presentation helpers existentes quando os valores necessitarem normalização.
 
 ## TanStack Query
 
