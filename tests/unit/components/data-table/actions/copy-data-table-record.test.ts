@@ -41,4 +41,15 @@ describe("copyDataTableRecord", () => {
     expect(showFeedback).toHaveBeenCalledOnce()
     expect(showFeedback).toHaveBeenCalledWith(DATA_TABLE_FEEDBACK.rowCopyFailed)
   })
+
+  it("não reclassifica falha do manager como falha de clipboard", async () => {
+    const managerError = new Error("feedback manager unavailable")
+    copy.mockResolvedValueOnce()
+    showFeedback.mockImplementationOnce(() => {
+      throw managerError
+    })
+
+    await expect(copyDataTableRecord("registro")).rejects.toBe(managerError)
+    expect(showFeedback).toHaveBeenCalledOnce()
+  })
 })
