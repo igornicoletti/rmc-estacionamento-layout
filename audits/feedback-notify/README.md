@@ -3,67 +3,48 @@
 **Projeto:** `rmc-estacionamento-layout`  
 **Base original auditada:** `main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818`  
 **Última revisão:** 26/09/2026  
-**Status:** arquitetura aprovada; implementação v1 em andamento na branch `feat/feedback-notify`
-
-## Isolamento
-
-A auditoria e as decisões permanecem isoladas em `audits/feedback-notify/`. A implementação aprovada vive nos diretórios normais de produção e testes; os documentos não são usados como dependência runtime.
-
-## Estrutura documental
-
-- `research/current-state.md`: evidências da base auditada.
-- `research/official-references.md`: documentação oficial e consequências arquiteturais.
-- `docs/architecture-contract.md`: contrato normativo do `notify()`.
-- `docs/decision-register.md`: decisões fechadas e exclusões deliberadas.
-- `docs/directory-naming-plan.md`: diretórios, nomes, imports e fronteiras.
-- `docs/tanstack-query-integration.md`: estratégia progressiva para mutations.
-- `docs/implementation-plan.md`: estado real do rollout e próximos gates.
-- `docs/review-findings.md`: achados das revisões críticas.
-- `tests/test-plan.md`: estratégia de validação própria.
+**Status:** arquitetura v1 implementada no escopo atual; merge bloqueado até validação local final.
 
 ## Objetivo
 
-Substituir decisões locais de Toast por uma API semântica e tipada:
+Centralizar feedback transitório em uma API semântica e tipada:
 
 ```ts
 notify(SCOPE_FEEDBACK.event)
 ```
 
-ou, quando a mensagem depende de dados:
+ou, para conteúdo dinâmico:
 
 ```ts
-notify(
-  SCOPE_FEEDBACK.event({
-    namedData,
-  }),
-)
+notify(SCOPE_FEEDBACK.event({ namedData }))
 ```
 
-O catálogo pertence ao menor domínio/escopo semanticamente proprietário do evento. `notify()` somente adapta a definição ao manager existente. Operações técnicas reutilizáveis não incorporam política visual.
+O catálogo pertence ao menor domínio/escopo semanticamente proprietário. `notify()` somente adapta a definição ao manager existente. Operações técnicas reutilizáveis não incorporam política visual.
 
-## Estado de implementação
+## Implementado
 
-Concluído na branch:
 - contrato TypeScript e adapter `notify()`;
-- catálogos por escopo proprietário;
-- piloto Session/logout com prioridade acessível preservada;
-- enforcement ESLint do manager de Toast;
-- separação entre Clipboard e feedback visual;
-- ação compartilhada de cópia de registros da DataTable;
+- `type` e `priority` controlados pela definição;
+- Session/logout migrado com prioridade acessível preservada;
+- enforcement ESLint contra acesso direto ao manager;
+- Clipboard desacoplada de feedback visual;
+- ação/catálogo reutilizáveis para cópia de registros da DataTable;
 - primeiro feedback dinâmico real em Clients;
-- testes unitários e de integração das fronteiras próprias.
+- testes das fronteiras próprias;
+- documentação arquitetural e de rollout.
 
-O GitHub Actions permanece indisponível para validação enquanto os jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`). A validação local completa permanece o gate confiável.
+## Fora da v1
+
+Permanecem deliberadamente fora: timeout customizado, actions, dedupe, lifecycle/promise, observabilidade e automação global de TanStack Query.
 
 ## Gate de merge
 
-Antes do merge do PR:
-1. sincronizar a branch remota atual;
-2. executar os testes focados;
-3. executar lint e typecheck;
-4. executar build;
-5. executar `check:full`;
-6. revisar o diff final;
-7. confirmar ausência de alterações não relacionadas.
+O HEAD final deve passar localmente:
+1. `git diff --check`;
+2. testes focados;
+3. lint e typecheck;
+4. build;
+5. `check:full`;
+6. revisão do diff final.
 
-Qualquer mudança de contrato exige nova revisão documental antes da expansão para outros domínios.
+O GitHub Actions não é evidência confiável enquanto jobs forem encerrados sem runner (`runner_id: 0`, `steps: []`).
