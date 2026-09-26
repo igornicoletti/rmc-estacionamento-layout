@@ -1,140 +1,84 @@
 # Plano de diretórios, nomes e fronteiras
 
-**Status:** estrutura fechada para aprovação; nenhum caminho funcional foi criado.
+**Status:** estrutura v1 implementada e mantida como contrato.
 
-## 1. Produção futura
+## 1. Infraestrutura transversal
 
-\`\`\`text
-src/
-├─ app/
-│  └─ feedback/
-│     ├─ feedback-contract.ts
-│     └─ notify.ts
-│
-└─ pages/
-   └─ units/
-      ├─ components/
-      ├─ data/
-      ├─ model/
-      │  └─ unit-presentation.ts
-      └─ content/
-         └─ units-feedback.ts
-\`\`\`
+```text
+src/app/feedback/
+├─ feedback-contract.ts
+└─ notify.ts
+```
 
-Demais domínios seguem:
-
-\`\`\`text
-src/pages/clients/content/clients-feedback.ts
-src/pages/users/content/users-feedback.ts
-\`\`\`
-
-## 2. \`src/app/feedback\`
-
-Justificativa:
-- \`notify()\` é infraestrutura de aplicação;
-- não é primitive visual;
-- não é utilitário genérico independente do produto;
-- não pertence a um domínio específico;
-- não exige React Context.
-
-Arquivos v1:
-- \`feedback-contract.ts\`: tipos do contrato;
-- \`notify.ts\`: único adapter permitido ao manager de Toast.
+Responsabilidades:
+- `feedback-contract.ts`: `FeedbackType`, `FeedbackPriority`, `FeedbackDefinition`, `FeedbackFactory` e `FeedbackCatalog`;
+- `notify.ts`: único adapter autorizado ao manager de Toast.
 
 Não criar na v1:
-- provider;
-- context;
-- hook;
+- Provider/Context;
+- Hook;
 - service class;
 - registry;
 - resolver global;
 - sanitizer;
-- pipeline em arquivos separados;
-- barrel.
+- pipeline fragmentado;
+- barrel público.
 
-## 3. \`<domain>/content\`
+## 2. Catálogos de domínio
 
-Catálogos são conteúdo de domínio e ficam em:
+Padrão:
 
-\`\`\`text
-src/pages/<domain>/content/<domain>-feedback.ts
-\`\`\`
+```text
+src/<scope>/<domain>/content/<domain>-feedback.ts
+```
 
-Isso não implica migração de outros conteúdos existentes. O diretório passa a ser o ownership dos novos contratos de feedback daquele domínio.
+O primeiro piloto real utiliza o escopo de Session. Demais domínios seguem o mesmo princípio quando houver evento real.
 
-## 4. Relação com apresentação do domínio
+Nomenclatura:
+- constante: `<DOMAIN>_FEEDBACK`;
+- arquivo: `<domain>-feedback.ts`;
+- entradas nomeadas pelo evento/resultado, não pelo componente.
 
-Catálogos podem importar **formatadores/normalizadores puros de apresentação do mesmo domínio** quando precisarem interpolar dados externos de forma consistente.
+## 3. Presentation helpers
 
-Exemplo permitido:
+Catálogos podem importar formatadores/normalizadores puros do mesmo domínio quando precisarem interpolar valores externos.
 
-\`\`\`text
-pages/units/content/units-feedback
-   └─> pages/units/model/unit-presentation
-\`\`\`
+Não mover sanitização existente para a infraestrutura de feedback nem duplicar algoritmos de casing, Unicode, whitespace ou formatação.
 
-Não mover \`sanitizeErpText\` para a infraestrutura de feedback e não duplicar suas regras.
-
-Se o chamador já possui um valor oficialmente formatado para apresentação, a factory pode recebê-lo diretamente. O importante é existir uma única regra de apresentação para aquele dado.
-
-## 5. Nomenclatura
-
-Tipos:
-- \`FeedbackType\`
-- \`FeedbackDefinition\`
-- \`FeedbackFactory\`
-- \`FeedbackCatalog\`
-
-Dispatcher:
-- \`notify\`
-
-Catálogo:
-- constante: \`<DOMAIN>_FEEDBACK\`;
-- arquivo: \`<domain>-feedback.ts\`.
-
-Entradas:
-- nomeadas pelo evento/resultado, não por UI ou severidade.
-
-## 6. Imports canônicos
+## 4. Imports canônicos
 
 Consumidor:
 
-\`\`\`ts
+```ts
 import { notify } from "@/app/feedback/notify"
-import { UNITS_FEEDBACK } from "@/pages/units/content/units-feedback"
-\`\`\`
+import { DOMAIN_FEEDBACK } from ".../content/domain-feedback"
+```
 
 Catálogo:
 
-\`\`\`ts
+```ts
 import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
-\`\`\`
+```
 
-Quando necessário:
+Adapter:
 
-\`\`\`ts
-import { formatUnitName } from "@/pages/units/model/unit-presentation"
-\`\`\`
-
-\`notify.ts\`:
-
-\`\`\`ts
+```ts
 import type { FeedbackDefinition } from "@/app/feedback/feedback-contract"
 import { toast } from "@/components/ui/toast"
-\`\`\`
+```
 
-Não criar barrel na v1. Imports explícitos preservam ownership e evitam uma API pública maior do que o necessário.
+Imports explícitos são preferidos na v1; não criar barrel sem necessidade comprovada.
 
-## 7. Grafo permitido
+## 5. Grafo permitido
 
-\`\`\`text
-feature/page/component
-   ├─> pages/<domain>/content/*-feedback
+```text
+feature/component
+   ├─> domain/content/*-feedback
    └─> app/feedback/notify
 
-pages/<domain>/content/*-feedback
+domain/content/*-feedback
    ├─> app/feedback/feedback-contract (type-only)
-   └─> pages/<domain>/model/*-presentation (opcional, puro)
+   └─> domain/model/*-presentation (opcional, puro)
 
 app/feedback/notify
    ├─> app/feedback/feedback-contract (type-only)
@@ -143,9 +87,9 @@ app/feedback/notify
 components/ui/toast
    X-> app/feedback
    X-> domain catalog
-\`\`\`
+```
 
-## 8. Dependências proibidas em catálogos
+## 6. Dependências proibidas em catálogos
 
 Não importar:
 - React;
@@ -157,52 +101,42 @@ Não importar:
 - serviços HTTP;
 - DTO amplo sem necessidade.
 
-Factories são funções puras. Import de formatter puro do próprio domínio é permitido.
+Factories permanecem puras.
 
-## 9. Testes futuros
+## 7. Testes
 
-Infraestrutura espelha \`src/app/feedback\`:
+Infraestrutura:
 
-\`\`\`text
-tests/
-└─ unit/
-   └─ app/
-      └─ feedback/
-         ├─ feedback-contract.test.ts
-         └─ notify.test.ts
-\`\`\`
+```text
+tests/unit/app/feedback/
+├─ feedback-contract.test.ts
+└─ notify.test.ts
+```
 
-Catálogo com lógica própria:
+Fluxos reais recebem teste no escopo correspondente quando o feedback faz parte do comportamento relevante.
 
-\`\`\`text
-tests/
-└─ unit/
-   └─ pages/
-      └─ units/
-         └─ content/
-            └─ units-feedback.test.ts
-\`\`\`
+Catálogo com lógica própria pode receber teste junto ao domínio; não criar testes apenas para congelar copy estática.
 
-Isso cria subtrees novos e não mistura os arquivos com testes existentes.
+## 8. ESLint
 
-## 10. ESLint futuro
+O enforcement está implementado:
+- consumidores normais só podem importar `Toaster` do módulo visual quando necessário;
+- o manager fica restrito ao adapter;
+- caminhos relativos equivalentes também são cobertos;
+- a regra de imports de testes em produção permanece ativa.
 
-Após o piloto:
-- consumidores normais podem importar somente \`Toaster\` do módulo visual;
-- \`notify.ts\` é a exceção autorizada para importar o manager;
-- paths relativos equivalentes também entram na restrição;
-- a configuração existente de \`@tests/*\` deve continuar efetiva.
+A configuração usa `no-restricted-imports` com mecanismos nativos do ESLint.
 
-A forma normativa está registrada em \`decision-register.md\`.
+## 9. Documentação
 
-## 11. Documentação desta auditoria
+A auditoria permanece em:
 
-\`\`\`text
+```text
 audits/feedback-notify/
 ├─ README.md
 ├─ docs/
 ├─ research/
 └─ tests/
-\`\`\`
+```
 
-A documentação não deve ser movida para \`src/\` ou misturada aos testes executáveis.
+Essa documentação não é dependência da aplicação e não deve ser misturada aos testes executáveis.

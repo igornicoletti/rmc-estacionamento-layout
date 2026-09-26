@@ -1,84 +1,90 @@
-# Auditoria e planejamento — Feedback transitório \`notify()\`
+# Auditoria e implementação — Feedback transitório `notify()`
 
-**Projeto:** \`rmc-estacionamento-layout\`  
-**Base auditada:** \`main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818\`  
-**Última revisão documental:** 26/09/2026  
-**Status:** aprovado em 26/09/2026; implementação v1 iniciada na branch `feat/feedback-notify`  
-**Escopo desta branch:** pesquisa, auditoria, decisões arquiteturais, estratégia de testes e plano de implementação.
+**Projeto:** `rmc-estacionamento-layout`  
+**Base original auditada:** `main@32d6cae6a9fe31a744fc9f042c91fe0d1f4d6818`  
+**Última revisão:** 26/09/2026  
+**Status:** arquitetura aprovada; implementação v1 em andamento na branch `feat/feedback-notify`
 
-## Regra de isolamento
+## Isolamento
 
-Esta auditoria é independente da implementação atual. A branch não altera \`src/\`, \`tests/\`, configurações, dependências, \`README.md\` raiz nem conteúdos existentes. Todo o material permanece em \`audits/feedback-notify/\`.
+A auditoria e as decisões permanecem isoladas em `audits/feedback-notify/`. A implementação aprovada vive nos diretórios normais de produção e testes; os documentos não são usados como dependência runtime.
 
-A estrutura futura de produção e testes aparece somente como especificação. Nenhum arquivo funcional deve ser criado antes de aprovação explícita.
+## Estrutura documental
 
-## Estrutura
-
-- \`research/current-state.md\`: evidências do estado atual.
-- \`research/official-references.md\`: pesquisa em documentação oficial e consequências para o projeto.
-- \`docs/architecture-contract.md\`: contrato normativo do \`notify()\`.
-- \`docs/decision-register.md\`: decisões fechadas, rejeições e itens deliberadamente fora da v1.
-- \`docs/directory-naming-plan.md\`: diretórios, nomes, imports e fronteiras.
-- \`docs/tanstack-query-integration.md\`: estratégia de integração com mutations.
-- \`docs/implementation-plan.md\`: rollout por blocos e gates.
-- \`docs/review-findings.md\`: revisão crítica documento por documento.
-- \`tests/test-plan.md\`: plano independente de testes futuros.
+- `research/current-state.md`: evidências da base auditada.
+- `research/official-references.md`: documentação oficial e consequências arquiteturais.
+- `docs/architecture-contract.md`: contrato normativo do `notify()`.
+- `docs/decision-register.md`: decisões fechadas e exclusões deliberadas.
+- `docs/directory-naming-plan.md`: diretórios, nomes, imports e fronteiras.
+- `docs/tanstack-query-integration.md`: estratégia progressiva para mutations.
+- `docs/implementation-plan.md`: estado real do rollout e próximos gates.
+- `docs/review-findings.md`: achados das revisões críticas.
+- `tests/test-plan.md`: estratégia de validação própria.
 
 ## Objetivo
 
-Quando a implementação for autorizada, substituir decisões locais como:
+Substituir decisões locais de Toast por uma API semântica e tipada:
 
-\`\`\`ts
-toast.add({
-  title: "...",
-  description: "...",
-  type: "success",
-})
-\`\`\`
+```ts
+notify(DOMAIN_FEEDBACK.event)
+```
 
-por uma API semântica:
+ou, quando a mensagem depende de dados:
 
-\`\`\`ts
-notify(UNITS_FEEDBACK.updated)
-\`\`\`
-
-ou, para conteúdo dinâmico:
-
-\`\`\`ts
+```ts
 notify(
-  UNITS_FEEDBACK.updated({
-    unitName,
+  DOMAIN_FEEDBACK.event({
+    namedData,
   }),
 )
-\`\`\`
+```
 
-A feature informa o evento. O catálogo do domínio define a mensagem. \`notify()\` adapta a definição ao Toast. O primitive visual permanece sem regras de domínio.
+A feature escolhe o evento. O catálogo do domínio define conteúdo, `type` e, quando necessário, `priority`. `notify()` somente adapta a definição ao manager existente. O primitive visual continua sem regras de domínio.
 
-## Decisões centrais já fechadas
+## Decisões v1
 
-- \`notify()\` é função normal, não Hook.
-- A API recebe uma \`FeedbackDefinition\` resolvida e retorna \`void\`.
-- Catálogos são separados por domínio.
-- Conteúdo dinâmico existe desde a v1 por factory pura.
-- \`title\` é obrigatório; \`description\` é opcional quando não acrescenta informação.
-- \`type\` é \`success | info | warning | error\`.
-- HTML, JSX, \`ReactNode\`, erros crus e overrides no call site não fazem parte do contrato.
-- \`notify()\` não interpreta \`Error\`, HTTP, Supabase ou regra de negócio.
-- Valores dinâmicos de origem externa devem reutilizar normalizadores/formatadores de apresentação já existentes no domínio antes ou dentro da factory; \`notify()\` não possui sanitizer próprio.
-- TanStack Query permanece integração opt-in; não existe Toast global para toda mutation/query.
-- O manager Base UI continua encapsulado pelo adapter.
-- A v1 não expõe timeout, prioridade, actions, dedupe, loading lifecycle ou observabilidade.
+- `notify()` é função normal, não Hook.
+- `notify(FeedbackDefinition): void`.
+- Catálogos separados por domínio.
+- `title` obrigatório; `description` opcional.
+- `type`: `success | info | warning | error`.
+- `priority`: `low | high`, opcional e pertencente à definição.
+- ausência de `priority` preserva o default `low` do Base UI.
+- `type: "error"` não implica automaticamente `priority: "high"`.
+- Conteúdo dinâmico existe desde a v1 por factory pura com objeto nomeado.
+- HTML, JSX, `ReactNode`, erros crus e overrides livres no call site ficam fora do contrato.
+- `notify()` não interpreta `Error`, HTTP, Supabase, RBAC ou regra de negócio.
+- Valores externos reutilizam formatadores/normalizadores de apresentação existentes no domínio.
+- TanStack Query permanece integração opt-in; não existe Toast automático para toda mutation/query.
+- Timeout customizado, actions, dedupe, lifecycle/promise e observabilidade continuam fora da v1.
 
-Não existem decisões arquiteturais abertas nesta revisão. Permanecem somente precondições de execução, como reaudar a \`main\` antes do primeiro bloco.
+## Estado de implementação
 
-## Não objetivos
+Concluído na branch:
+- contrato TypeScript;
+- adapter `notify()`;
+- testes unitários do contrato/adapter;
+- catálogo real de Session para falha de logout;
+- migração do logout para `notify()`;
+- teste de integração do fluxo de logout;
+- enforcement de import direto do manager via ESLint;
+- preservação explícita da prioridade alta do feedback de logout.
 
-Esta iniciativa não define contratos gerais de copy, i18n, notificações persistentes, logging ou observabilidade. Conteúdos existentes fora deste escopo são ignorados e não possuem plano de migração aqui.
+O GitHub Actions permanece indisponível para validação porque os jobs são encerrados sem runner (`runner_id: 0`, `steps: []`). A validação local completa é o gate confiável enquanto essa condição persistir.
 
-## Gate
+## Regra para próximos domínios
 
-A implementação foi explicitamente autorizada em 26/09/2026. O primeiro bloco permanece condicionado a:
-1. aprovação explícita desta documentação;
-2. reaudit da \`main\` no momento da implementação;
-3. confirmação de que as premissas técnicas continuam válidas;
-4. seleção de um fluxo real para o piloto, sem inventar feedbacks.
+Não criar catálogo apenas para preencher arquitetura. O próximo domínio entra quando existir uma ação real que necessite feedback transitório. Conteúdo dinâmico deve ser validado no primeiro caso real que o exigir.
+
+## Gate de merge
+
+Antes do merge do PR:
+1. sincronizar a branch remota atual;
+2. executar os testes focados;
+3. executar lint e typecheck;
+4. executar build;
+5. executar `check:full`;
+6. revisar o diff final;
+7. confirmar ausência de alterações não relacionadas.
+
+Qualquer mudança de contrato exige nova revisão documental antes da expansão para outros domínios.

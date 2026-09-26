@@ -1,132 +1,85 @@
 # Revisão crítica documento por documento
 
 **Data:** 26/09/2026  
-**Resultado:** contrato sem decisões arquiteturais abertas; implementação continua bloqueada até aprovação.
+**Resultado:** contrato v1 implementável sem decisões abertas; revisão pós-piloto incorporada.
 
-## 1. \`architecture-contract.md\`
+## 1. Contrato arquitetural
 
-### Problemas encontrados na revisão anterior
-- \`description\` estava obrigatória sem necessidade comprovada;
-- forma exata de \`FeedbackCatalog\` estava adiada;
-- retorno de \`notify()\` não estava definido;
-- comportamento diante do ID/erro do manager não estava definido;
-- não estava explícito se o adapter usaria spread;
-- definição inline era proibida sem distinguir regra arquitetural de enforcement;
-- fallback automático permanecia implícito;
-- normalização de valores dinâmicos ainda poderia ser interpretada como responsabilidade de \`notify()\`.
+A revisão inicial fechou:
+- `description` opcional;
+- shape de `FeedbackCatalog`;
+- retorno `void` de `notify()`;
+- ID do manager oculto;
+- ausência de catch/fallback automático;
+- mapeamento explícito em vez de spread;
+- conteúdo dinâmico via factory pura;
+- apresentação/sanitização permanecendo no domínio.
 
-### Refinamentos aplicados
-- \`description?: string\`;
-- contrato TypeScript fechado;
-- \`as const satisfies FeedbackCatalog\`;
-- factory constraint definida;
-- regra de um objeto nomeado por factory;
-- \`notify(...): void\`;
-- ID do Base UI deliberadamente oculto;
-- sem catch no adapter;
-- mapeamento explícito de campos;
-- sem fallback automático;
-- strings vazias proibidas por regra, sem validator runtime;
-- normalização/formatting permanece no domínio e reutiliza presentation helpers existentes.
+A revisão do primeiro fluxo real revelou uma necessidade adicional: a falha de logout já utilizava prioridade alta. O contrato foi ampliado minimamente com `FeedbackPriority = "low" | "high"` e `priority?` em `FeedbackDefinition` para preservar comportamento acessível existente sem tornar `high` default de erros.
 
-## 2. \`decision-register.md\`
+## 2. Registro de decisões
 
-### Problema anterior
-Havia quatro itens "abertos", o que contrariava o objetivo de concluir o desenho antes do código.
+O registro foi reconciliado com o código real:
+- infraestrutura implementada;
+- piloto Session implementado;
+- enforcement ESLint implementado;
+- priority opcional incorporada à v1;
+- timeout, dedupe, lifecycle, actions e observabilidade continuam fora da v1.
 
-### Refinamentos
-- O-01 resolvida: description opcional.
-- O-02 resolvida: tipos exatos do catálogo.
-- O-03 resolvida: estratégia exata de ESLint documentada.
-- O-04 reclassificada: seleção do primeiro evento real é precondição de execução, não decisão arquitetural.
-- retorno, spread, ID, catch, testes, diretórios e sanitização de valores dinâmicos receberam decisões explícitas.
+## 3. Diretórios e dependências
 
-Resultado: nenhuma decisão arquitetural aberta.
+Confirmado:
+- `src/app/feedback` como infraestrutura transversal;
+- catálogos em diretórios `content` do respectivo escopo/domínio;
+- adapter como único acesso permitido ao manager;
+- presentation helpers permanecem no domínio;
+- testes de infraestrutura espelham `src/app/feedback`.
 
-## 3. \`directory-naming-plan.md\`
+## 4. TanStack Query
 
-### Problemas anteriores
-- \`tests/unit/feedback/\` não espelhava o padrão já presente de testes de infraestrutura em \`tests/unit/app/\`;
-- relação entre catálogo e presentation helpers do domínio não estava explícita.
+Mantido sem automação global:
+- callbacks locais tipados permanecem preferíveis para feedback que depende de data/variables/erro;
+- `mutation.meta.feedback` continua reservado a repetição estática comprovada;
+- queries não recebem Toast global automático.
 
-### Refinamentos
-- caminho futuro: \`tests/unit/app/feedback/\`;
-- catálogo com lógica: \`tests/unit/pages/<domain>/content/\`;
-- imports canônicos definidos;
-- sem barrel v1;
-- catálogo pode reutilizar formatter puro do mesmo domínio;
-- grafo de dependência normativo fechado.
+## 5. Plano de implementação
 
-## 4. \`tanstack-query-integration.md\`
+O plano anterior estava defasado após o piloto. Foi corrigido para refletir:
+- contrato/adapter/testes concluídos;
+- piloto real de Session/logout;
+- enforcement ESLint já aplicado;
+- necessidade de nova validação completa após as mudanças mais recentes;
+- próximo domínio condicionado a evento real, não ao plano histórico de Units.
 
-### Problemas anteriores
-- distinção entre callbacks de \`useMutation\` e callbacks passados a \`mutate\` não estava registrada;
-- critério para metadata era subjetivo demais;
-- erro classificado precisava de fronteira mais clara.
+## 6. Plano de testes
 
-### Refinamentos
-- feedback operacional prefere callback configurado na mutation;
-- callback passado a \`mutate\` fica para efeitos estritamente locais de UI;
-- metadata permanece opt-in e só para repetição estática real;
-- nenhuma quantidade arbitrária de ocorrências foi inventada;
-- query error global permanece rejeitado;
-- exemplo de module augmentation mantido como evolução, não v1.
+Refinado para cobrir:
+- `priority` válida/inválida;
+- forwarding de priority pelo adapter;
+- ausência de priority preservando default da biblioteca;
+- política urgente do fluxo de logout;
+- manutenção das restrições de import via lint.
 
-## 5. \`implementation-plan.md\`
+Continuam fora do escopo de testes próprios:
+- animações;
+- classes/cores;
+- internals do Base UI;
+- internals do React Query;
+- copy estática sem lógica.
 
-Refinamentos:
-- contrato TypeScript vem antes do adapter;
-- testes espelham a estrutura final;
-- adapter possui comportamento exato;
-- preflight inclui presentation helpers do domínio;
-- piloto depende de evento real;
-- enforcement só entra depois de consumidores legítimos estarem definidos;
-- mudanças de contrato obrigam retorno à documentação.
+## 7. Referências oficiais
 
-## 6. \`test-plan.md\`
+Revisão final confirmou:
+- Base UI diferencia priority `low` e `high` e usa `low` como default;
+- ESLint `no-restricted-imports` suporta `paths`, `patterns` e `allowImportNames` suficientes para o enforcement atual;
+- React não exige Hook para um manager global;
+- TanStack Query permite metadata, mas não justifica automação prematura;
+- OWASP continua sustentando mensagens públicas controladas em vez de erros crus.
 
-Problemas anteriores:
-- ainda pressupunha description obrigatória;
-- não verificava retorno \`void\`, ID oculto ou propagação de erro do manager;
-- caminho de testes não espelhava source;
-- não delimitava testes de formatter versus factory.
+## 8. Conclusão
 
-Refinamentos:
-- description opcional;
-- contrato negativo/positivo explícito;
-- payload do adapter restrito;
-- retorno/ID/catch cobertos;
-- factory testa apenas comportamento próprio;
-- nenhum teste do Base UI ou duplicação dos testes do formatter.
+Não restam decisões arquiteturais necessárias para fechar o PR atual.
 
-## 7. \`research/current-state.md\`
+Antes do merge ainda é obrigatório executar validação completa no HEAD final, porque a confirmação anterior de `PASS` não cobre automaticamente commits posteriores.
 
-Refinado para separar evidência, risco e consequência.
-
-A revisão adicional confirmou infraestrutura de apresentação já existente:
-- \`sanitizeErpText\`;
-- \`unit-presentation\`;
-- \`client-presentation\`.
-
-Isso encerra a dúvida sobre sanitizer: feedback reutiliza apresentação do domínio; \`notify()\` não cria uma camada paralela.
-
-## 8. \`official-references.md\`
-
-Atualizado em 26/09/2026 e alinhado às APIs oficiais atuais:
-- shadcn Base UI Toast;
-- Base UI manager;
-- React Hooks;
-- TanStack Query mutation/meta/cache;
-- TypeScript \`satisfies\`;
-- ESLint \`no-restricted-imports\`;
-- WAI-ARIA;
-- OWASP;
-- Vitest/Testing Library.
-
-## 9. Conclusão
-
-Não restam decisões arquiteturais ambíguas necessárias para iniciar a implementação.
-
-Capacidades explicitamente fora da v1 — dedupe, promise lifecycle, action, prioridade customizada, timeout customizado, observabilidade e mutation metadata — não são pendências; são exclusões deliberadas.
-
-O único gate restante é de governança: aprovação explícita do dossiê e reaudit da \`main\` antes do primeiro código.
+Extensões futuras continuam condicionadas a casos reais e nova revisão: dedupe, promise lifecycle, actions, timeout customizado, observabilidade e metadata global de mutations.

@@ -1,142 +1,122 @@
 # Registro de decisões
 
-**Status:** decisões arquiteturais aprovadas para implementação v1 em 26/09/2026.  
-Não existem itens arquiteturais em aberto nesta revisão.
+**Status:** decisões v1 aprovadas e parcialmente implementadas.  
+Não existem decisões arquiteturais abertas necessárias para concluir o PR atual.
 
 ## Decisões v1
 
 | ID | Decisão | Estado |
 |---|---|---|
-| D-01 | API pública chamada \`notify()\` | fechada |
-| D-02 | \`notify()\` é função normal, não Hook | fechada |
-| D-03 | Assinatura: \`notify(FeedbackDefinition): void\` | fechada |
-| D-04 | Catálogo separado por domínio | fechada |
-| D-05 | Nome do catálogo: \`<DOMAIN>_FEEDBACK\` | fechada |
-| D-06 | Arquivo do catálogo: \`<domain>-feedback.ts\` | fechada |
-| D-07 | Catálogo fica em \`<domain>/content/\` | fechada |
-| D-08 | Referência TypeScript real; sem token string | fechada |
-| D-09 | \`type\` pertence à definição, não ao chamador | fechada |
-| D-10 | Tipos v1: success/info/warning/error | fechada |
-| D-11 | \`title\` obrigatório | fechada |
-| D-12 | \`description\` opcional quando não acrescenta informação | fechada |
-| D-13 | Conteúdo restrito a string; sem HTML/JSX/ReactNode | fechada |
-| D-14 | Conteúdo dinâmico entra na v1 | fechada |
-| D-15 | Dinâmico via factory pura com um objeto nomeado | fechada |
-| D-16 | \`FeedbackCatalog = Readonly<Record<string, FeedbackDefinition \| FeedbackFactory>>\` | fechada |
-| D-17 | \`FeedbackFactory = (...args: never[]) => FeedbackDefinition\` como constraint | fechada |
-| D-18 | Catálogos usam \`as const satisfies FeedbackCatalog\` | fechada |
-| D-19 | Definição inline é proibida, mas sem branding/runtime helper na v1 | fechada |
-| D-20 | \`notify()\` seleciona campos explicitamente; não usa spread | fechada |
-| D-21 | \`notify()\` ignora ID do manager e não captura exceções | fechada |
-| D-22 | Erro técnico não é conteúdo público | fechada |
+| D-01 | API pública chamada `notify()` | implementada |
+| D-02 | `notify()` é função normal, não Hook | implementada |
+| D-03 | Assinatura: `notify(FeedbackDefinition): void` | implementada |
+| D-04 | Catálogo separado por domínio | implementada no piloto Session |
+| D-05 | Nome do catálogo: `<DOMAIN>_FEEDBACK` | implementada |
+| D-06 | Arquivo do catálogo: `<domain>-feedback.ts` | implementada |
+| D-07 | Catálogo fica em `<domain>/content/` | implementada |
+| D-08 | Referência TypeScript real; sem token string | implementada |
+| D-09 | `type` pertence à definição, não ao chamador | implementada |
+| D-10 | Tipos v1: success/info/warning/error | implementada |
+| D-11 | `title` obrigatório | implementada |
+| D-12 | `description` opcional | implementada |
+| D-13 | Conteúdo restrito a string; sem HTML/JSX/ReactNode | implementada |
+| D-14 | Conteúdo dinâmico suportado na v1 por factory pura | implementada no contrato; aguarda primeiro caso real |
+| D-15 | Factory dinâmica recebe um objeto nomeado | fechada |
+| D-16 | `FeedbackCatalog = Readonly<Record<string, FeedbackDefinition | FeedbackFactory>>` | implementada |
+| D-17 | `FeedbackFactory = (...args: never[]) => FeedbackDefinition` como constraint | implementada |
+| D-18 | Catálogos usam `as const satisfies FeedbackCatalog` | implementada |
+| D-19 | Definição inline é proibida, sem branding/runtime helper na v1 | fechada |
+| D-20 | `notify()` seleciona campos explicitamente; não usa spread | implementada |
+| D-21 | `notify()` ignora ID do manager e não captura exceções | implementada |
+| D-22 | Erro técnico não é conteúdo público | implementada no piloto Session |
 | D-23 | Sem sanitizer HTML/redactor universal na v1 | fechada |
-| D-24 | Valores externos reutilizam presentation formatter/normalizer do domínio; não existe sanitizer próprio de \`notify()\` | fechada |
-| D-25 | Sem fallback automático dentro de \`notify()\` | fechada |
-| D-26 | Timeout/prioridade não são expostos na v1 | fechada |
-| D-27 | \`error\` não implica prioridade \`high\` | fechada |
-| D-28 | Loading/promise lifecycle fora da v1 | fechada |
-| D-29 | Dedupe/id/update/close fora da v1 | fechada |
-| D-30 | Actions fora da v1; callbacks nunca no catálogo | fechada |
-| D-31 | Observabilidade fora da v1 | fechada |
-| D-32 | TanStack Query é compatível, mas não dependência de \`notify()\` | fechada |
-| D-33 | Fase 1 usa callbacks de mutation tipados quando necessário | fechada |
-| D-34 | \`mutation.meta.feedback\` só após repetição comprovada | fechada |
-| D-35 | Nenhum Toast automático para toda mutation | fechada |
-| D-36 | Nenhum Toast global automático para query errors | fechada |
-| D-37 | Testes de infraestrutura ficam em \`tests/unit/app/feedback/\` | fechada |
-| D-38 | Testes de catálogo com lógica ficam em \`tests/unit/pages/<domain>/content/\` | fechada |
-| D-39 | Enforcement futuro usa \`no-restricted-imports\`, preservando \`Toaster\` | fechada |
-| D-40 | Documentação/auditoria permanece isolada em \`audits/feedback-notify/\` | executada |
+| D-24 | Valores externos reutilizam presentation helpers do domínio | fechada |
+| D-25 | Sem fallback automático dentro de `notify()` | implementada |
+| D-26 | Timeout customizado não é exposto na v1 | fechada |
+| D-27 | `priority` é opcional e pertence à definição | implementada |
+| D-28 | `error` não implica automaticamente `priority: "high"` | implementada |
+| D-29 | Ausência de `priority` preserva o default `low` do Base UI | implementada |
+| D-30 | Loading/promise lifecycle fora da v1 | fechada |
+| D-31 | Dedupe/id/update/close fora da v1 | fechada |
+| D-32 | Actions fora da v1; callbacks nunca no catálogo | fechada |
+| D-33 | Observabilidade fora da v1 | fechada |
+| D-34 | TanStack Query é compatível, mas não dependência de `notify()` | fechada |
+| D-35 | Fase inicial usa callbacks de mutation tipados quando necessário | fechada |
+| D-36 | `mutation.meta.feedback` só após repetição comprovada | fechada |
+| D-37 | Nenhum Toast automático para toda mutation | fechada |
+| D-38 | Nenhum Toast global automático para query errors | fechada |
+| D-39 | Testes da infraestrutura ficam em `tests/unit/app/feedback/` | implementada |
+| D-40 | Enforcement de acesso direto ao Toast usa `no-restricted-imports` e preserva `Toaster` | implementada |
+| D-41 | Documentação/auditoria permanece isolada em `audits/feedback-notify/` | implementada |
+
+## Decisão de prioridade após o piloto real
+
+O primeiro fluxo real revelou uma regressão potencial: a falha de logout já utilizava `priority: "high"` antes da migração para `notify()`. Remover essa propriedade alteraria o comportamento de anúncio acessível.
+
+A decisão foi corrigir o contrato minimamente:
+
+```ts
+export type FeedbackPriority = "low" | "high"
+
+interface FeedbackDefinition {
+  readonly priority?: FeedbackPriority
+}
+```
+
+Regras:
+- prioridade continua opcional;
+- o catálogo decide quando ela é necessária;
+- o call site não escolhe prioridade;
+- `type` e `priority` são conceitos independentes;
+- `high` deve ser raro e deliberado.
 
 ## Alternativas rejeitadas
 
 | Alternativa | Razão |
 |---|---|
-| \`t()\` | conflita semanticamente com i18n |
-| \`useNotify()\` | não há Hook a reutilizar |
-| \`notify.success/error\` | cria segunda fonte de verdade da severidade |
-| \`notify("units.updated")\` | introduz resolver/registry runtime sem necessidade |
-| objeto inline em \`notify()\` | mantém hardcode e dispersão |
+| `t()` | conflita semanticamente com i18n |
+| `useNotify()` | não existe Hook a reutilizar |
+| `notify.success/error` | duplica a fonte de verdade de `type` |
+| `notify("units.updated")` | introduz resolver/registry runtime sem necessidade |
+| objeto inline em `notify()` | mantém hardcode e dispersão |
 | catálogo global único | reduz ownership de domínio |
 | Provider/Context adicional | manager global Base UI já resolve despacho externo à árvore |
 | store/event bus | nenhuma necessidade funcional |
 | sanitizer HTML | contrato não aceita HTML |
-| sanitizer/formatter genérico dentro de \`notify()\` | duplicaria regras de apresentação já existentes nos domínios |
-| parser universal de erros em \`notify()\` | mistura infraestrutura com integração/domínio |
+| sanitizer/formatter genérico dentro de `notify()` | duplicaria apresentação já existente nos domínios |
+| parser universal de erros em `notify()` | mistura infraestrutura com integração/domínio |
 | Toast para toda mutation | produz feedback indevido |
-| Toast global para queries | background refetch/reconnect podem gerar ruído |
+| Toast global para queries | retries/refetch/reconnect podem produzir ruído |
 | callbacks dentro do catálogo | mistura conteúdo e comportamento |
-| expor ID retornado por \`toast.add\` | acopla consumidores ao lifecycle do primitive |
-| exigir \`description\` sempre | força texto redundante em eventos autoexplicativos |
+| expor ID retornado por `toast.add` | acopla consumidores ao lifecycle do primitive |
+| exigir `description` sempre | força conteúdo redundante |
+| mapear todo `error` para `high` | confunde severidade visual com urgência acessível |
 
-## Fora da v1, mas compatíveis com o desenho
+## Fora da v1
 
-Não são decisões pendentes; estão explicitamente fora do escopo:
+Permanecem deliberadamente fora do escopo:
 - deduplicação por ID;
-- \`toast.promise\`;
-- update/close;
+- `toast.promise`;
+- update/close públicos;
 - actions;
-- timeout por definição;
-- priority por definição;
+- timeout customizado por definição;
 - identificador semântico para observabilidade;
 - telemetria;
-- \`mutation.meta.feedback\`;
-- barrel \`@/app/feedback\`;
-- lint customizado para proibir objeto literal em \`notify()\`.
+- `mutation.meta.feedback`;
+- barrel `@/app/feedback`;
+- lint customizado para proibir objeto literal em `notify()`.
 
-Qualquer inclusão exige novo caso de uso e nova decisão documentada.
+## Enforcement ESLint
 
-## Enforcement ESLint decidido
+Implementado com `no-restricted-imports`:
+- consumidores normais não podem importar diretamente o manager/primitives do módulo de Toast;
+- `Toaster` permanece permitido para composição da aplicação;
+- `src/app/feedback/notify.ts` é a exceção autorizada para acessar o manager;
+- a restrição existente contra `@tests/*` permanece ativa;
+- aliases e caminhos relativos equivalentes são cobertos.
 
-Após o piloto/migração, adicionar uma regra específica para produção que:
-- restrinja \`@/components/ui/toast\` e caminhos relativos equivalentes;
-- permita somente \`Toaster\` aos consumidores normais;
-- exclua \`src/app/feedback/notify.ts\` dessa restrição;
-- preserve a restrição já existente contra \`@tests/*\`.
+A escolha usa mecanismos oficiais da regra (`paths`, `patterns` e `allowImportNames`) em vez de plugin customizado.
 
-Forma esperada, a ser adaptada à sintaxe final da config existente:
+## Gate para novos domínios
 
-\`\`\`js
-{
-  files: ["src/**/*.{ts,tsx}"],
-  ignores: ["src/app/feedback/notify.ts"],
-  rules: {
-    "no-restricted-imports": [
-      "error",
-      {
-        patterns: [
-          {
-            group: ["@tests/*"],
-            message:
-              "Código de produção não deve importar infraestrutura de testes.",
-          },
-          {
-            group: [
-              "@/components/ui/toast",
-              "**/components/ui/toast",
-            ],
-            allowImportNames: ["Toaster"],
-            message:
-              "Use notify() para feedback transitório; Toaster é reservado à composição da aplicação.",
-          },
-        ],
-      },
-    ],
-  },
-}
-\`\`\`
-
-O \`src/components/ui\` atual já é ignorado globalmente pelo ESLint. \`notify.ts\` permanece sujeito ao bloco existente de \`@tests/*\`.
-
-## Precondições de execução — não são decisões arquiteturais
-
-Antes do primeiro código:
-1. reaudar a HEAD atual da \`main\`;
-2. confirmar que Toast/Provider/QueryClient/configs não mudaram;
-3. identificar um fluxo mutável real para o piloto;
-4. identificar os formatadores/normalizadores de apresentação aplicáveis aos valores dinâmicos desse fluxo;
-5. confirmar que não surgiu consumidor direto de Toast;
-6. atualizar esta documentação se alguma premissa mudou;
-7. receber aprovação explícita para implementar.
-
-Essas precondições não reabrem o contrato; apenas verificam se a realidade do repositório continua compatível com ele.
+Um novo catálogo só deve ser criado quando houver evento real de produto. O primeiro caso real de conteúdo dinâmico deve validar factories e presentation helpers sem antecipar DTOs ou regras inexistentes.
