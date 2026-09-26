@@ -24,7 +24,9 @@ Não criar na v1:
 - pipeline fragmentado;
 - barrel público.
 
-## 2. Catálogos de domínio
+## 2. Ownership dos catálogos
+
+### Domínio/produto
 
 Padrão:
 
@@ -32,26 +34,64 @@ Padrão:
 src/<scope>/<domain>/content/<domain>-feedback.ts
 ```
 
-O primeiro piloto real utiliza o escopo de Session. Demais domínios seguem o mesmo princípio quando houver evento real.
+Exemplos implementados:
+- `src/app/session/content/session-feedback.ts`;
+- `src/pages/clients/content/clients-feedback.ts`.
 
 Nomenclatura:
 - constante: `<DOMAIN>_FEEDBACK`;
 - arquivo: `<domain>-feedback.ts`;
-- entradas nomeadas pelo evento/resultado, não pelo componente.
+- entradas nomeadas pelo evento/resultado.
+
+### Escopo reutilizável
+
+Quando o evento é realmente genérico e compartilhado por vários domínios, o catálogo permanece junto ao componente/infraestrutura que é semanticamente proprietário do comportamento.
+
+Exemplo implementado:
+
+```text
+src/components/data-table/
+├─ actions/
+│  └─ copy-data-table-record.ts
+└─ data-table-feedback.ts
+```
+
+Isso evita duplicar o mesmo feedback de cópia de registro em Clients, Units e outros consumidores.
 
 ## 3. Presentation helpers
 
-Catálogos podem importar formatadores/normalizadores puros do mesmo domínio quando precisarem interpolar valores externos.
+Catálogos podem importar formatadores/normalizadores puros do mesmo domínio/escopo quando precisarem interpolar valores externos.
 
 Não mover sanitização existente para a infraestrutura de feedback nem duplicar algoritmos de casing, Unicode, whitespace ou formatação.
 
-## 4. Imports canônicos
+## 4. Operações técnicas
 
-Consumidor:
+Utilitários técnicos reutilizáveis não possuem feedback visual embutido.
+
+Exemplo:
+
+```text
+src/lib/copy-to-clipboard.ts
+```
+
+expõe somente a operação de Clipboard. A ação/orquestrador proprietário trata a Promise e seleciona o catálogo apropriado.
+
+Side effects reutilizáveis de DataTable ficam em `data-table/actions`, não em `data-table/core`.
+
+## 5. Imports canônicos
+
+Consumidor de domínio:
 
 ```ts
 import { notify } from "@/app/feedback/notify"
 import { DOMAIN_FEEDBACK } from ".../content/domain-feedback"
+```
+
+Ação reutilizável:
+
+```ts
+import { notify } from "@/app/feedback/notify"
+import { SCOPE_FEEDBACK } from ".../scope-feedback"
 ```
 
 Catálogo:
@@ -69,16 +109,20 @@ import { toast } from "@/components/ui/toast"
 
 Imports explícitos são preferidos na v1; não criar barrel sem necessidade comprovada.
 
-## 5. Grafo permitido
+## 6. Grafo permitido
 
 ```text
 feature/component
-   ├─> domain/content/*-feedback
-   └─> app/feedback/notify
+   ├─> owner feedback catalog
+   └─> app/feedback/notify ou action reutilizável
 
-domain/content/*-feedback
-   ├─> app/feedback/feedback-contract (type-only)
-   └─> domain/model/*-presentation (opcional, puro)
+owner feedback catalog
+   └─> app/feedback/feedback-contract (type-only)
+
+reusable action
+   ├─> owner feedback catalog
+   ├─> app/feedback/notify
+   └─> operação técnica reutilizável
 
 app/feedback/notify
    ├─> app/feedback/feedback-contract (type-only)
@@ -86,10 +130,10 @@ app/feedback/notify
 
 components/ui/toast
    X-> app/feedback
-   X-> domain catalog
+   X-> catálogos
 ```
 
-## 6. Dependências proibidas em catálogos
+## 7. Dependências proibidas em catálogos
 
 Não importar:
 - React;
@@ -103,7 +147,7 @@ Não importar:
 
 Factories permanecem puras.
 
-## 7. Testes
+## 8. Testes
 
 Infraestrutura:
 
@@ -113,11 +157,24 @@ tests/unit/app/feedback/
 └─ notify.test.ts
 ```
 
+Ações reutilizáveis espelham seu diretório de produção:
+
+```text
+tests/unit/components/data-table/actions/
+└─ copy-data-table-record.test.ts
+```
+
+Operações técnicas recebem teste próprio quando seu contrato muda:
+
+```text
+tests/unit/lib/copy-to-clipboard.test.ts
+```
+
 Fluxos reais recebem teste no escopo correspondente quando o feedback faz parte do comportamento relevante.
 
 Catálogo com lógica própria pode receber teste junto ao domínio; não criar testes apenas para congelar copy estática.
 
-## 8. ESLint
+## 9. ESLint
 
 O enforcement está implementado:
 - consumidores normais só podem importar `Toaster` do módulo visual quando necessário;
@@ -127,7 +184,7 @@ O enforcement está implementado:
 
 A configuração usa `no-restricted-imports` com mecanismos nativos do ESLint.
 
-## 9. Documentação
+## 10. Documentação
 
 A auditoria permanece em:
 
