@@ -26,26 +26,26 @@ A auditoria e as decisões permanecem isoladas em `audits/feedback-notify/`. A i
 Substituir decisões locais de Toast por uma API semântica e tipada:
 
 ```ts
-notify(DOMAIN_FEEDBACK.event)
+notify(SCOPE_FEEDBACK.event)
 ```
 
 ou, quando a mensagem depende de dados:
 
 ```ts
 notify(
-  DOMAIN_FEEDBACK.event({
+  SCOPE_FEEDBACK.event({
     namedData,
   }),
 )
 ```
 
-A feature escolhe o evento. O catálogo do domínio define conteúdo, `type` e, quando necessário, `priority`. `notify()` somente adapta a definição ao manager existente. O primitive visual continua sem regras de domínio.
+A feature informa o evento. O catálogo proprietário define conteúdo, `type` e, quando necessário, `priority`. `notify()` somente adapta a definição ao manager existente. O primitive visual continua sem regras de domínio.
 
 ## Decisões v1
 
 - `notify()` é função normal, não Hook.
 - `notify(FeedbackDefinition): void`.
-- Catálogos separados por domínio.
+- Catálogos pertencem ao menor domínio/escopo semanticamente proprietário do evento.
 - `title` obrigatório; `description` opcional.
 - `type`: `success | info | warning | error`.
 - `priority`: `low | high`, opcional e pertencente à definição.
@@ -54,6 +54,7 @@ A feature escolhe o evento. O catálogo do domínio define conteúdo, `type` e, 
 - Conteúdo dinâmico existe desde a v1 por factory pura com objeto nomeado.
 - HTML, JSX, `ReactNode`, erros crus e overrides livres no call site ficam fora do contrato.
 - `notify()` não interpreta `Error`, HTTP, Supabase, RBAC ou regra de negócio.
+- Operações técnicas reutilizáveis não embutem feedback visual.
 - Valores externos reutilizam formatadores/normalizadores de apresentação existentes no domínio.
 - TanStack Query permanece integração opt-in; não existe Toast automático para toda mutation/query.
 - Timeout customizado, actions, dedupe, lifecycle/promise e observabilidade continuam fora da v1.
@@ -68,13 +69,17 @@ Concluído na branch:
 - migração do logout para `notify()`;
 - teste de integração do fluxo de logout;
 - enforcement de import direto do manager via ESLint;
-- preservação explícita da prioridade alta do feedback de logout.
+- preservação explícita da prioridade alta do feedback de logout;
+- separação de Clipboard e feedback visual;
+- catálogo reutilizável para cópia de registros de DataTable;
+- factory dinâmica real em Clients para cópia de e-mail;
+- testes próprios das novas fronteiras.
 
 O GitHub Actions permanece indisponível para validação porque os jobs são encerrados sem runner (`runner_id: 0`, `steps: []`). A validação local completa é o gate confiável enquanto essa condição persistir.
 
 ## Regra para próximos domínios
 
-Não criar catálogo apenas para preencher arquitetura. O próximo domínio entra quando existir uma ação real que necessite feedback transitório. Conteúdo dinâmico deve ser validado no primeiro caso real que o exigir.
+Não criar catálogo apenas para preencher arquitetura. Novos domínios entram quando existir ação real que necessite feedback transitório.
 
 ## Gate de merge
 
