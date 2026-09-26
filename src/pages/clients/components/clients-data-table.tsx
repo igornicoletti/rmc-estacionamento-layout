@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { RecordDetails } from "@/components/record-details/record-details"
 import { AppSheet } from "@/components/common/app-sheet"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
@@ -16,9 +15,9 @@ import {
 } from "@/components/data-table/components/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
+import { copyDataTableRecord } from "@/components/data-table/core/copy-data-table-record"
 import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
-import { dataTableCopy } from "@/components/data-table/data-table.copy"
-import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { RecordDetails } from "@/components/record-details/record-details"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import { clientsCopy } from "@/pages/clients/clients.copy"
@@ -32,14 +31,14 @@ import {
 } from "@/pages/clients/data/client-preview-data"
 import type { Client } from "@/pages/clients/model/client"
 import {
-  clientRecordCsvColumns,
-  clientRecordSections,
-} from "@/pages/clients/model/client-record-presentation"
-import {
   formatCityName,
   formatErpName,
   formatPhone,
 } from "@/pages/clients/model/client-presentation"
+import {
+  clientRecordCsvColumns,
+  clientRecordSections,
+} from "@/pages/clients/model/client-record-presentation"
 
 const EMPTY_CLIENTS: Client[] = []
 
@@ -121,12 +120,9 @@ export function ClientsDataTable() {
   })
 
   const handleCopyData = useCallback((client: Client) => {
-    void copyToClipboard({
-      errorDescription: dataTableCopy.rowActions.copyErrorDescription,
-      successDescription: dataTableCopy.rowActions.copySuccessDescription,
-      successTitle: dataTableCopy.rowActions.copySuccessTitle,
-      value: serializeRecordForClipboard(client, clientRecordSections),
-    })
+    void copyDataTableRecord(
+      serializeRecordForClipboard(client, clientRecordSections),
+    )
   }, [])
 
   const columns = useMemo(
