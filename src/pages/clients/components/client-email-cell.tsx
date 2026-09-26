@@ -22,10 +22,12 @@ interface ClientEmailCellProps {
 async function copyEmail(email: string): Promise<void> {
   try {
     await copyToClipboard(email)
-    notify(CLIENTS_FEEDBACK.emailCopied({ email }))
   } catch {
     notify(CLIENTS_FEEDBACK.emailCopyFailed)
+    return
   }
+
+  notify(CLIENTS_FEEDBACK.emailCopied({ email }))
 }
 
 export function ClientEmailCell({ value }: ClientEmailCellProps) {
