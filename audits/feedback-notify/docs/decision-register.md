@@ -1,67 +1,46 @@
 # Registro de decisões
 
-**Status:** decisões v1 aprovadas e implementadas no escopo atual.
+**Status:** decisões v1 implementadas no escopo atual.
 
-## Decisões consolidadas
+## Contrato
 
-- API pública: `notify(FeedbackDefinition): void`.
-- `notify()` é função normal, não Hook.
-- Catálogo pertence ao menor domínio/escopo semanticamente proprietário.
-- Referência TypeScript real; sem token string.
-- `type` pertence à definição: `success | info | warning | error`.
-- `priority` é opcional: `low | high`; `error` não implica `high`.
-- `title` obrigatório; `description` opcional.
-- conteúdo restrito a string; sem HTML/JSX/ReactNode.
-- conteúdo dinâmico por factory pura com um objeto nomeado.
-- catálogos usam `as const satisfies FeedbackCatalog`.
-- definição inline em `notify()` permanece proibida por contrato.
-- adapter seleciona campos explicitamente, não usa spread, não expõe ID e não captura exceções do manager.
-- erro técnico não é conteúdo público.
-- sem sanitizer/redactor/parser universal na v1.
-- timeout customizado, lifecycle/promise, dedupe, actions e observabilidade permanecem fora da v1.
-- TanStack Query não é dependência do dispatcher e não existe política global de Toast.
-- acesso direto ao manager é restringido por ESLint, preservando `Toaster`.
+- `notify(FeedbackDefinition): void`;
+- função normal, não Hook;
+- catálogo pelo menor domínio/escopo proprietário;
+- referência TypeScript real, sem token string;
+- `type`: `success | info | warning | error`;
+- `priority`: `low | high`, opcional e independente de `type`;
+- `title` obrigatório; `description` opcional;
+- conteúdo restrito a string;
+- factories puras com um objeto nomeado;
+- `as const satisfies FeedbackCatalog`;
+- definição inline em `notify()` proibida por arquitetura;
+- adapter sem spread, sem ID público e sem catch do manager;
+- erro técnico não é conteúdo público;
+- sem sanitizer/parser universal.
 
-## Pilotos implementados
+## Ownership
 
-### Session
+- Session e Clients possuem catálogos de domínio;
+- DataTable possui catálogo compartilhado para evento realmente genérico;
+- Clipboard permanece operação técnica neutra;
+- side effects reutilizáveis de DataTable ficam em `actions`, não em `core`.
 
-Validou catálogo de domínio, erro público controlado e preservação de `priority: "high"` quando já existia necessidade acessível.
+## Comportamento de erro
 
-### Clients
+O `catch` classifica somente a operação técnica correspondente. Falha de `notify()` não é reclassificada como falha de Clipboard ou outra integração.
 
-Validou factory dinâmica real:
+## Enforcement
 
-```ts
-CLIENTS_FEEDBACK.emailCopied({ email })
-```
+ESLint restringe acesso direto ao manager de Toast, preservando `Toaster` e autorizando o manager somente no adapter.
 
-O parâmetro é mínimo/tipado e a definição permanece no domínio.
+## Fora da v1
 
-### DataTable / Clipboard
+- timeout customizado;
+- dedupe/id;
+- promise/loading lifecycle;
+- actions;
+- observabilidade;
+- automação global via MutationCache.
 
-A operação técnica de Clipboard foi desacoplada do feedback visual.
-
-A cópia genérica de registros é orquestrada pelo escopo DataTable, com catálogo compartilhado para evitar duplicação entre Clients, Units e outros consumidores.
-
-O `catch` classifica somente a Clipboard API; falha do próprio manager não é convertida em feedback de falha da cópia.
-
-## Alternativas rejeitadas
-
-- `t()` por ambiguidade com i18n;
-- `useNotify()` sem Hook real;
-- `notify.success/error` por duplicar `type`;
-- tokens string/registry runtime;
-- objetos inline em `notify()`;
-- catálogo global único;
-- Provider/Context/store/event bus sem necessidade;
-- sanitizer HTML;
-- parser universal de erros;
-- Toast automático para toda mutation/query;
-- callbacks dentro de catálogo;
-- feedback visual dentro de utilitário técnico como `copyToClipboard`;
-- mapear todo `error` para prioridade alta.
-
-## Gate para novas expansões
-
-Novos catálogos/capacidades só entram mediante evento real. Mudanças no contrato exigem nova revisão documental antes da implementação.
+Novas expansões exigem caso real e revisão documental quando alterarem o contrato.
