@@ -18,7 +18,7 @@ A arquitetura de notificações não altera o renderer, os ícones, as classes, 
 
 Único ponto de estilização adicional do Toast neste escopo.
 
-Base UI expõe `data-type` no `Toast.Root`. O componente shadcn expõe `data-slot="toast"` e `data-slot="toast-icon"`. Esses atributos permitem aplicar cor somente ao SVG do ícone sem modificar o arquivo nativo:
+A documentação do Base UI expõe `data-type` no `Toast.Root`. O source oficial instalado pelo shadcn marca a raiz e o ícone com `data-slot="toast"` e `data-slot="toast-icon"`. A aplicação combina esses atributos no CSS global para aplicar cor somente ao SVG:
 
 ```css
 [data-slot="toast"][data-type="success"] [data-slot="toast-icon"] > svg {
@@ -104,5 +104,6 @@ Quando um componente reutilizável possui o comportamento, o conteúdo genérico
 
 - shadcn Toast: https://ui.shadcn.com/docs/components/base/toast
 - shadcn CLI: https://ui.shadcn.com/docs/cli
+- source oficial do Toast: https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx
 - Base UI Toast: https://base-ui.com/react/components/toast
 - WAI-ARIA: https://www.w3.org/TR/wai-aria/
