@@ -81,7 +81,7 @@ importado de `@/components/ui/toast`. Não existe wrapper `AppToaster`.
 
 ## Fronteiras
 
-- O component nativo não conhece aplicação ou domínio.
+- O componente nativo não conhece aplicação ou domínio.
 - Features não importam `ui/toast` diretamente.
 - `toast-notify.ts` é a única camada de produção autorizada a importar `toast`.
 - `AppProviders` é a única camada de produção autorizada a importar `Toaster`.
