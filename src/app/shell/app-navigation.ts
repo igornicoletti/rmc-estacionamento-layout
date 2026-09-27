@@ -16,52 +16,60 @@ import {
 } from "lucide-react"
 
 import { appPages, type AppPageId } from "@/app/config/app-config"
+import type {
+  SidebarNavigationItem,
+  SidebarNavigationSection,
+} from "@/components/sidebar/sidebar-navigation"
 
-function item(routeId: AppPageId, icon: LucideIcon, end = true) {
-  const page = appPages[routeId]
+function navigationItem(
+  pageId: AppPageId,
+  icon: LucideIcon,
+  end = true,
+): SidebarNavigationItem {
+  const page = appPages[pageId]
 
   return {
     end,
     icon,
+    id: pageId,
     label: page.title,
-    routeId,
     to: page.path,
   }
 }
 
 export const primaryNavigation = [
-  item("dashboard", GaugeIcon),
-  item("virtual-yard", CircleParkingIcon),
-  item("reports", ChartNoAxesColumnIncreasingIcon),
-] as const
+  navigationItem("dashboard", GaugeIcon),
+  navigationItem("virtual-yard", CircleParkingIcon),
+  navigationItem("reports", ChartNoAxesColumnIncreasingIcon),
+] as const satisfies readonly SidebarNavigationItem[]
 
 export const navigationSections = [
   {
     id: "registrations",
     label: "CADASTROS",
     items: [
-      item("units", Building2Icon),
-      item("clients", TruckIcon, false),
-      item("prices", DollarSignIcon),
-      item("rules", ListChecksIcon),
+      navigationItem("units", Building2Icon),
+      navigationItem("clients", TruckIcon, false),
+      navigationItem("prices", DollarSignIcon),
+      navigationItem("rules", ListChecksIcon),
     ],
   },
   {
     id: "management",
     label: "GESTÃO",
     items: [
-      item("users", UsersIcon),
-      item("notifications", BellIcon),
+      navigationItem("users", UsersIcon),
+      navigationItem("notifications", BellIcon),
     ],
   },
   {
     id: "settings",
     label: "CONFIGURAÇÕES",
     items: [
-      item("profile", UserRoundIcon),
-      item("account-security", ShieldCheckIcon),
-      item("permissions", KeyRoundIcon),
-      item("audit", HistoryIcon),
+      navigationItem("profile", UserRoundIcon),
+      navigationItem("account-security", ShieldCheckIcon),
+      navigationItem("permissions", KeyRoundIcon),
+      navigationItem("audit", HistoryIcon),
     ],
   },
-] as const
+] as const satisfies readonly SidebarNavigationSection[]
