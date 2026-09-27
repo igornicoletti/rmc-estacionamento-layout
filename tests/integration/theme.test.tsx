@@ -74,7 +74,7 @@ describe("theme", () => {
       onchange: null,
       removeEventListener: vi.fn(),
       removeListener: vi.fn(),
-    } as MediaQueryList
+    }
 
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
