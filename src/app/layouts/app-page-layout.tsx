@@ -2,7 +2,7 @@ import { Clock3Icon } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { appCopy } from "@/app/config/app-copy"
-import { AppEmpty } from "@/components/common/app-empty"
+import { AppEmpty } from "@/components/app/app-empty"
 import { Separator } from "@/components/ui/separator"
 
 interface AppPageLayoutProps {
