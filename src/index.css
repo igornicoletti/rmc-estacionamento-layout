@@ -147,6 +147,24 @@
   }
 }
 
+@layer components {
+  [data-slot="toast"][data-type="success"] [data-slot="toast-icon"] > svg {
+    color: var(--success);
+  }
+
+  [data-slot="toast"][data-type="info"] [data-slot="toast-icon"] > svg {
+    color: var(--info);
+  }
+
+  [data-slot="toast"][data-type="warning"] [data-slot="toast-icon"] > svg {
+    color: var(--warning);
+  }
+
+  [data-slot="toast"][data-type="error"] [data-slot="toast-icon"] > svg {
+    color: var(--error);
+  }
+}
+
 @media (max-width: 47.999rem) {
   [data-slot="input"],
   [data-slot="textarea"],
