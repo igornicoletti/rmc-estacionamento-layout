@@ -15,12 +15,14 @@ Valida o fluxo público:
 ```text
 notify()
   ↓
-AppToaster
+Toaster nativo
   ↓
 mensagem visível
 ```
 
-O teste não importa o primitive `ui/toast` diretamente e não valida classes, cores, animações ou internals do Base UI.
+O teste pode montar `Toaster` diretamente porque está validando a própria infraestrutura Toast. Ele não testa classes, cores, animações ou internals do Base UI.
+
+A cor dos ícones é uma regra CSS estrutural baseada em atributos públicos (`data-type` e `data-slot`); não é necessário duplicar comportamento do Base UI em testes unitários.
 
 ## Cobertura da DataTable
 
