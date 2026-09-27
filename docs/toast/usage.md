@@ -44,7 +44,9 @@ nem:
 toast.add(...)
 ```
 
-fora da infraestrutura Toast.
+fora de `src/components/toast/toast-notify.ts`.
+
+A outra importação permitida de `@/components/ui/toast` em produção é `Toaster`, exclusivamente na composição global de `AppProviders`.
 
 ## DataTable
 
@@ -73,5 +75,6 @@ Prefira:
 `priority: "high"` é reservada a mensagens que precisam de anúncio urgente. Não aplicar automaticamente a todo `type: "error"`.
 
 Referências:
+- https://ui.shadcn.com/docs/components/base/toast
 - https://base-ui.com/react/components/toast
 - https://www.w3.org/TR/wai-aria/
