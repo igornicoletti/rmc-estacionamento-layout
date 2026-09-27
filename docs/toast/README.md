@@ -1,20 +1,24 @@
 # Toast
 
-Documentação ativa da infraestrutura de notificações transitórias da aplicação.
+Documentação ativa das notificações transitórias da aplicação.
 
 ## Estrutura
 
 ```text
 src/components/ui/toast.tsx
+src/components/common/app-toast.tsx
 src/components/toast/toast-contract.ts
 src/components/toast/toast-notify.ts
 <scope>/content/<scope>-notify.ts
 ```
 
-- `ui/toast.tsx`: primitive visual baseado em shadcn/Base UI.
+- `ui/toast.tsx`: primitive shadcn/Base UI protegido. Feature work não altera esse arquivo.
+- `app-toast.tsx`: wrapper da aplicação. Centraliza renderer customizado, idioma e tokens visuais.
 - `toast-contract.ts`: tipos aceitos pela aplicação.
-- `toast-notify.ts`: única API de despacho usada pelos consumidores.
+- `toast-notify.ts`: API de despacho usada pelos consumidores.
 - `<scope>-notify.ts`: conteúdo e semântica pertencentes ao escopo.
+
+O projeto está configurado com `style: "base-luma"` em `components.json`. O tema base é carregado por `shadcn/tailwind.css`; tokens adicionais da aplicação permanecem em `src/index.css`.
 
 ## Uso mínimo
 
@@ -33,8 +37,9 @@ notify(clientsNotify.emailCopied({ email }))
 
 ## Regras principais
 
-- consumidores não importam o manager de `ui/toast`;
-- `Toaster` é montado somente em `AppProviders`;
+- código de aplicação não importa `ui/toast` diretamente;
+- `AppToast` é a única fronteira autorizada sobre o primitive;
+- `AppProviders` monta `AppToaster`;
 - mensagens técnicas de `Error` não são exibidas diretamente;
 - `type: "error"` não implica `priority: "high"`;
 - conteúdo específico permanece no escopo que o possui;

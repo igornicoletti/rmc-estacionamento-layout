@@ -4,9 +4,21 @@
 
 ### `src/components/ui/toast.tsx`
 
-Primitive visual baseado em shadcn/Base UI. Responsável por renderer, viewport, animações, swipe, ícones e integração com o manager Base UI.
+Primitive shadcn/Base UI protegido. É tratado como código gerado/fornecido pela camada `ui` e não recebe customizações de feature ou de produto.
 
-A aplicação mantém o visual nativo do preset configurado. As únicas cores semânticas adicionais ficam nos ícones de `success`, `info`, `warning` e `error`, usando tokens existentes do tema.
+O projeto usa `style: "base-luma"` em `components.json`. A atualização desse primitive, quando necessária, deve ocorrer em um bloco próprio de atualização do shadcn, não misturada à arquitetura de notificações.
+
+### `src/components/common/app-toast.tsx`
+
+Wrapper da aplicação sobre o primitive. É a única fronteira autorizada a importar `ui/toast`.
+
+Responsável por:
+- montar o renderer usado pela aplicação;
+- aplicar o rótulo acessível em PT-BR;
+- aplicar cores semânticas somente aos ícones usando `success`, `info`, `warning` e `error` já definidos no tema;
+- expor o manager utilizado pelo dispatcher.
+
+Não altera cor de fundo, borda, título ou descrição do Toast.
 
 ### `src/components/toast/toast-contract.ts`
 
@@ -25,7 +37,7 @@ interface ToastDefinition {
 
 ### `src/components/toast/toast-notify.ts`
 
-Adapta `ToastDefinition` para o manager Base UI. Não interpreta erros, não navega, não faz retry, não persiste dados e não decide regras de domínio.
+Adapta `ToastDefinition` para o manager exposto por `AppToast`. Não interpreta erros, não navega, não faz retry, não persiste dados e não decide regras de domínio.
 
 ### `<scope>/content/<scope>-notify.ts`
 
@@ -40,6 +52,8 @@ ação/operação
     ↓
 notify(ToastDefinition)
     ↓
+AppToast
+    ↓
 ui/toast.tsx / Base UI
     ↓
 usuário
@@ -47,16 +61,23 @@ usuário
 
 ## Fronteiras
 
-- O primitive não importa conteúdo de domínio.
-- O domínio não importa o manager Base UI.
-- `toast-notify.ts` é o único adapter autorizado a acessar o manager.
-- `AppProviders` é o único consumidor autorizado de `Toaster`.
+- O primitive não conhece aplicação ou domínio.
+- Somente `AppToast` importa `ui/toast`.
+- O domínio não conhece o manager Base UI.
+- `AppProviders` monta `AppToaster`, não o primitive diretamente.
 - Erros técnicos são classificados antes de selecionar uma definição pública.
 - `priority` expressa urgência de anúncio; não é derivada automaticamente de `type`.
 
 ## Conteúdo reutilizável
 
 Quando um componente reutilizável possui o comportamento, o conteúdo genérico pertence a ele. Exemplo: a ação genérica de copiar da DataTable usa `data-table/content/data-table-notify.ts`; páginas consumidoras apenas fornecem a operação de cópia.
+
+## Tema
+
+- preset: `base-luma` em `components.json`;
+- base shadcn: `@import "shadcn/tailwind.css"` em `src/index.css`;
+- tokens semânticos da aplicação: `success`, `info`, `warning` e `error` em `src/index.css`;
+- os tokens semânticos são aplicados pelo wrapper apenas aos ícones do Toast.
 
 ## Referências oficiais
 

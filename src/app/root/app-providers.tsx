@@ -6,8 +6,8 @@ import { SessionBootstrapBoundary } from "@/app/session/session-boundary"
 import type { SessionCommands } from "@/app/session/session-commands"
 import { SessionProvider } from "@/app/session/session-provider"
 import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
+import { AppToaster } from "@/components/common/app-toast"
 import { ThemeProvider } from "@/components/theme/theme-provider"
-import { Toaster } from "@/components/ui/toast"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 export interface AppProvidersProps {
@@ -34,7 +34,7 @@ export function AppProviders({
         >
           <SessionBootstrapBoundary>
             <TooltipProvider>
-              <Toaster>{children}</Toaster>
+              <AppToaster>{children}</AppToaster>
             </TooltipProvider>
           </SessionBootstrapBoundary>
         </SessionProvider>

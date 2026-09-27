@@ -15,12 +15,12 @@ Valida o fluxo público:
 ```text
 notify()
   ↓
-Toaster
+AppToaster
   ↓
 mensagem visível
 ```
 
-Não testa `toast.add`, classes, cores, animações ou internals do Base UI.
+O teste não importa o primitive `ui/toast` diretamente e não valida classes, cores, animações ou internals do Base UI.
 
 ## Cobertura da DataTable
 

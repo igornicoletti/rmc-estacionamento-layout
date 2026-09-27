@@ -13,37 +13,39 @@ const productionTestImportRestriction = {
 const toastImportRestriction = {
   name: "@/components/ui/toast",
   message:
-    "Use @/components/toast/toast-notify para notificações; o primitive Toast é restrito à infraestrutura.",
+    "Use AppToaster ou toast-notify; o primitive Toast só pode ser importado pelo wrapper da aplicação.",
 }
 
 const relativeToastImportRestriction = {
   group: ["**/components/ui/toast"],
   message:
-    "Use @/components/toast/toast-notify para notificações; o primitive Toast é restrito à infraestrutura.",
+    "Use AppToaster ou toast-notify; o primitive Toast só pode ser importado pelo wrapper da aplicação.",
 }
 
-const toastOnlyImportRestriction = {
+const appToastImportNames = [
+  "Toast",
+  "ToastAction",
+  "ToastClose",
+  "ToastContent",
+  "ToastDescription",
+  "ToastPortal",
+  "ToastProvider",
+  "ToastTitle",
+  "ToastViewport",
+  "toast",
+  "useToastManager",
+]
+
+const appToastImportRestriction = {
   name: "@/components/ui/toast",
-  allowImportNames: ["toast"],
-  message: "toast-notify pode importar somente toast do primitive Toast.",
+  allowImportNames: appToastImportNames,
+  message: "AppToast é o único wrapper autorizado do primitive Toast.",
 }
 
-const relativeToastOnlyImportRestriction = {
+const relativeAppToastImportRestriction = {
   group: ["**/components/ui/toast"],
-  allowImportNames: ["toast"],
-  message: "toast-notify pode importar somente toast do primitive Toast.",
-}
-
-const toasterOnlyImportRestriction = {
-  name: "@/components/ui/toast",
-  allowImportNames: ["Toaster"],
-  message: "AppProviders pode importar somente Toaster do primitive Toast.",
-}
-
-const relativeToasterOnlyImportRestriction = {
-  group: ["**/components/ui/toast"],
-  allowImportNames: ["Toaster"],
-  message: "AppProviders pode importar somente Toaster do primitive Toast.",
+  allowImportNames: appToastImportNames,
+  message: "AppToast é o único wrapper autorizado do primitive Toast.",
 }
 
 export default tseslint.config(
@@ -101,30 +103,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/components/toast/toast-notify.ts"],
+    files: ["src/components/common/app-toast.tsx"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
-          paths: [toastOnlyImportRestriction],
+          paths: [appToastImportRestriction],
           patterns: [
             productionTestImportRestriction,
-            relativeToastOnlyImportRestriction,
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["src/app/root/app-providers.tsx"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: [toasterOnlyImportRestriction],
-          patterns: [
-            productionTestImportRestriction,
-            relativeToasterOnlyImportRestriction,
+            relativeAppToastImportRestriction,
           ],
         },
       ],
