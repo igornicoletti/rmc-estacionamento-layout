@@ -22,6 +22,18 @@ const relativeToastImportRestriction = {
     "Use @/components/toast/toast-notify para notificações; o primitive Toast é restrito à infraestrutura.",
 }
 
+const toastOnlyImportRestriction = {
+  name: "@/components/ui/toast",
+  allowImportNames: ["toast"],
+  message: "toast-notify pode importar somente toast do primitive Toast.",
+}
+
+const relativeToastOnlyImportRestriction = {
+  group: ["**/components/ui/toast"],
+  allowImportNames: ["toast"],
+  message: "toast-notify pode importar somente toast do primitive Toast.",
+}
+
 const toasterOnlyImportRestriction = {
   name: "@/components/ui/toast",
   allowImportNames: ["Toaster"],
@@ -94,7 +106,11 @@ export default tseslint.config(
       "no-restricted-imports": [
         "error",
         {
-          patterns: [productionTestImportRestriction],
+          paths: [toastOnlyImportRestriction],
+          patterns: [
+            productionTestImportRestriction,
+            relativeToastOnlyImportRestriction,
+          ],
         },
       ],
     },
