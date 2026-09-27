@@ -1,5 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+import { appCopy } from "../../src/app/config/app-copy"
+import { appPages } from "../../src/app/config/app-config"
 import { getClientDetailsPath } from "../../src/pages/clients/client-routes"
 import {
   clientErpFixture,
@@ -84,6 +86,32 @@ function dataRow(table: Locator, id: string) {
   )
 }
 
+async function getSidebarLinkByPath(page: Page, path: string) {
+  const navigation = page.getByRole("navigation")
+  const link = navigation.locator(`a[href="${path}"]`)
+
+  if (await link.isVisible()) {
+    return link
+  }
+
+  const groupTriggers = navigation.locator('button[aria-expanded]')
+  const triggerCount = await groupTriggers.count()
+
+  for (let index = 0; index < triggerCount; index += 1) {
+    const trigger = groupTriggers.nth(index)
+
+    if ((await trigger.getAttribute("aria-expanded")) === "false") {
+      await trigger.click()
+    }
+
+    if (await link.isVisible()) {
+      return link
+    }
+  }
+
+  throw new Error(`Link de navegação não encontrado para ${path}.`)
+}
+
 test("monta o shell da aplicação", async ({ page }) => {
   await page.goto("/")
 
@@ -98,6 +126,37 @@ test("resolve uma rota por deep link", async ({ page }) => {
   await expect(page).toHaveURL("/patio-virtual")
   await expect(page.locator("main")).toBeVisible()
   await expect(page.getByRole("navigation")).toBeVisible()
+})
+
+test("navega pelo menu lateral no desktop", async ({ page }) => {
+  await page.goto("/")
+
+  const usersLink = await getSidebarLinkByPath(page, appPages.users.path)
+
+  await usersLink.click()
+
+  await expect(page).toHaveURL(appPages.users.path)
+  await expect(
+    page.getByRole("navigation").getByRole("link", { current: "page" }),
+  ).toHaveAttribute("href", appPages.users.path)
+})
+
+test("fecha o menu lateral mobile após navegar", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto("/")
+
+  await page
+    .getByRole("button", { name: appCopy.toolbar.openSidebar })
+    .click()
+
+  const clientsLink = await getSidebarLinkByPath(page, appPages.clients.path)
+
+  await clientsLink.click()
+
+  await expect(page).toHaveURL(appPages.clients.path)
+  await expect(
+    page.getByRole("button", { name: appCopy.toolbar.openSidebar }),
+  ).toBeVisible()
 })
 
 test("mantém o fallback de rota fora do shell", async ({ page }) => {
