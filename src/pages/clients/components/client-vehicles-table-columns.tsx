@@ -14,7 +14,7 @@ import {
 } from "@/pages/clients/model/client-presentation"
 
 interface ClientVehiclesTableColumnActions {
-  onCopyData: (vehicle: ClientVehicle) => void
+  onCopyData: (vehicle: ClientVehicle) => Promise<void>
   onDetails: (vehicle: ClientVehicle) => void
 }
 
