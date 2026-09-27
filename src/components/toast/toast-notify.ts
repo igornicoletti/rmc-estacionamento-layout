@@ -1,8 +1,8 @@
-import { appToastManager } from "@/components/common/app-toast"
 import type { ToastDefinition } from "@/components/toast/toast-contract"
+import { toast } from "@/components/ui/toast"
 
 export function notify(definition: ToastDefinition): void {
-  appToastManager.add({
+  toast.add({
     title: definition.title,
     description: definition.description,
     priority: definition.priority,
