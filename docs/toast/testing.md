@@ -22,7 +22,7 @@ mensagem visível
 
 O teste pode montar `Toaster` diretamente porque está validando a própria infraestrutura Toast. Ele não testa classes, cores, animações ou internals do Base UI.
 
-A cor dos ícones é uma regra CSS estrutural baseada em atributos públicos (`data-type` e `data-slot`); não é necessário duplicar comportamento do Base UI em testes unitários.
+As cores dos ícones são uma regra CSS externa baseada no estado `data-type` documentado pelo Base UI e nos `data-slot` presentes no source oficial do shadcn. Não duplicar essa implementação em testes unitários de componentes.
 
 ## Cobertura da DataTable
 
