@@ -7,14 +7,14 @@ import {
 import { useEffect } from "react"
 import { useRouteError } from "react-router"
 
-import { appCopy } from "@/app/config/app-copy"
 import { APP_BROWSER_TITLE } from "@/app/config/app-config"
+import { appCopy } from "@/app/config/app-copy"
 import { AppRootLayout } from "@/app/layouts/app-root-layout"
 import {
   rootErrorKinds,
   type RootErrorKind,
 } from "@/app/routing/route-error"
-import { AppEmpty } from "@/components/common/app-empty"
+import { AppEmpty } from "@/components/app/app-empty"
 import { Button } from "@/components/ui/button"
 import { readHttpStatus } from "@/lib/http-status"
 
