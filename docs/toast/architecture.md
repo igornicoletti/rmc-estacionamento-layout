@@ -4,21 +4,19 @@
 
 ### `src/components/ui/toast.tsx`
 
-Componente nativo shadcn/Base UI instalado pelo CLI e mantido sem customizações da aplicação.
+Componente nativo shadcn/Base UI já instalado no projeto. É tratado como primitive protegido e não recebe customizações da aplicação.
 
-O projeto usa `style: "base-luma"` em `components.json`. Quando for necessário atualizar o componente, a atualização deve ocorrer pelo shadcn CLI em um bloco próprio, por exemplo:
+O projeto usa `style: "base-luma"` e `iconLibrary: "lucide"` em `components.json`. O Toast instalado mantém `rounded-2xl`, coerente com o estilo Luma. No registry atual do shadcn, a mesma decisão visual é aplicada por `.cn-toast { @apply rounded-2xl; }` em `style-luma.css`.
 
-```bash
-npx shadcn@latest add toast --overwrite
-```
+Mudanças estruturais do registry não são aplicadas automaticamente durante feature work. Atualizações de arquivos em `src/components/ui` são manutenção separada e explícita.
 
-A arquitetura de notificações não altera o renderer, os ícones, as classes, o texto acessível ou qualquer outra implementação interna desse arquivo.
+A arquitetura de notificações não altera renderer, ícones, classes, texto acessível ou outra implementação interna de `ui/toast.tsx`.
 
 ### `src/index.css`
 
 Único ponto de estilização adicional do Toast neste escopo.
 
-A documentação do Base UI expõe `data-type` no `Toast.Root`. O source oficial instalado pelo shadcn marca a raiz e o ícone com `data-slot="toast"` e `data-slot="toast-icon"`. A aplicação combina esses atributos no CSS global para aplicar cor somente ao SVG:
+A documentação do Base UI expõe `data-type` no `Toast.Root`. O componente shadcn instalado marca a raiz e o ícone com `data-slot="toast"` e `data-slot="toast-icon"`. A aplicação combina esses atributos no CSS global para aplicar cor somente ao SVG:
 
 ```css
 [data-slot="toast"][data-type="success"] [data-slot="toast-icon"] > svg {
@@ -28,7 +26,9 @@ A documentação do Base UI expõe `data-type` no `Toast.Root`. O source oficial
 
 O mesmo padrão é aplicado a `info`, `warning` e `error`.
 
-Não são alterados fundo, borda, raio, tipografia, espaçamento, animação, posição ou comportamento do Toast.
+Não são alterados fundo, borda, raio, tipografia, espaçamento, animação, posição ou comportamento do Toast. Os tokens `success`, `info`, `warning` e `error` pertencem ao tema/brand da aplicação e são independentes do preset Luma.
+
+O Toast atual baseado em Base UI não depende da antiga API visual do Sonner (`toastOptions` no `Toaster`). O tipo é parte do estado de cada Toast e é exposto pelo atributo `data-type`.
 
 ### `src/components/toast/toast-contract.ts`
 
@@ -81,7 +81,7 @@ importado de `@/components/ui/toast`. Não existe wrapper `AppToaster`.
 
 ## Fronteiras
 
-- O componente nativo não conhece aplicação ou domínio.
+- O component nativo não conhece aplicação ou domínio.
 - Features não importam `ui/toast` diretamente.
 - `toast-notify.ts` é a única camada de produção autorizada a importar `toast`.
 - `AppProviders` é a única camada de produção autorizada a importar `Toaster`.
@@ -95,15 +95,17 @@ Quando um componente reutilizável possui o comportamento, o conteúdo genérico
 
 ## Tema
 
-- preset: `base-luma` em `components.json`;
-- base shadcn: `@import "shadcn/tailwind.css"` em `src/index.css`;
-- tokens semânticos da aplicação: `success`, `info`, `warning` e `error` em `src/index.css`;
+- preset shadcn: `base-luma` em `components.json`;
+- primitive: Base UI;
+- ícones: Lucide;
+- fonte da aplicação: Inter Variable via `src/index.css`;
+- base shadcn: `@import "shadcn/tailwind.css"`;
+- tokens semânticos de brand: `success`, `info`, `warning` e `error` em `src/index.css`;
 - as cores são aplicadas externamente somente aos SVGs do slot de ícone via `data-type` + `data-slot`.
 
 ## Referências oficiais
 
 - shadcn Toast: https://ui.shadcn.com/docs/components/base/toast
-- shadcn CLI: https://ui.shadcn.com/docs/cli
-- source oficial do Toast: https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx
 - Base UI Toast: https://base-ui.com/react/components/toast
+- Luma style: https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/styles/style-luma.css
 - WAI-ARIA: https://www.w3.org/TR/wai-aria/
