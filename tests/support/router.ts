@@ -23,3 +23,25 @@ export function waitForRouterInitialization(router: TestRouter) {
     }
   })
 }
+
+export function waitForRouterLocation(router: TestRouter, pathname: string) {
+  if (router.state.location.pathname === pathname) {
+    return Promise.resolve()
+  }
+
+  return new Promise<void>((resolve) => {
+    const unsubscribe = router.subscribe((state) => {
+      if (state.location.pathname !== pathname) {
+        return
+      }
+
+      unsubscribe()
+      resolve()
+    })
+
+    if (router.state.location.pathname === pathname) {
+      unsubscribe()
+      resolve()
+    }
+  })
+}
