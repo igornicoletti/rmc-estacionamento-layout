@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react"
 import { Outlet } from "react-router"
 
 import { appPages } from "@/app/config/app-config"
-import { notify } from "@/app/feedback/notify"
 import { navigationSections, primaryNavigation } from "@/app/shell/app-navigation"
 import { shellPreviewData } from "@/app/shell/app-preview"
 import {
@@ -12,9 +11,10 @@ import {
 } from "@/app/shell/components/app-notifications"
 import { AppToolbar } from "@/app/shell/components/app-toolbar"
 import { AppUserMenu } from "@/app/shell/components/app-user-menu"
-import { SESSION_FEEDBACK } from "@/app/session/content/session-feedback"
+import { sessionNotify } from "@/app/session/content/session-notify"
 import { useSession } from "@/app/session/session-context"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
+import { notify } from "@/components/toast/toast-notify"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 interface AppShellUser {
@@ -99,7 +99,7 @@ export function AppShellRoute() {
 
   const handleLogout = () => {
     void signOut().catch(() => {
-      notify(SESSION_FEEDBACK.signOutFailed)
+      notify(sessionNotify.signOutFailed)
     })
   }
 
