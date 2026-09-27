@@ -31,7 +31,9 @@ describe("DataTableRowActions", () => {
   })
 
   it("notifica sucesso quando a ação de cópia conclui", async () => {
-    const onCopyData = vi.fn(async () => undefined)
+    const onCopyData = vi
+      .fn<() => Promise<void>>()
+      .mockResolvedValue(undefined)
 
     await clickCopy(onCopyData)
 
@@ -44,9 +46,9 @@ describe("DataTableRowActions", () => {
   })
 
   it("notifica erro quando a ação de cópia falha", async () => {
-    const onCopyData = vi.fn(async () => {
-      throw new Error("clipboard unavailable")
-    })
+    const onCopyData = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(new Error("clipboard unavailable"))
 
     await clickCopy(onCopyData)
 
