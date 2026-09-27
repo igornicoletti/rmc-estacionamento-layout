@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { AppSheet } from "@/components/common/app-sheet"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/components/data-table-export"
@@ -16,7 +15,6 @@ import {
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
-import { RecordDetails } from "@/components/record-details/record-details"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
@@ -97,7 +95,6 @@ export function UnitsDataTable() {
     staleTime: Number.POSITIVE_INFINITY,
   })
   const units = unitsQuery.data ?? EMPTY_UNITS
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
   const model = useLocalDataTableModel({
     getFacetGroup: getUnitCityGroup,
     getFacetLabel: getUnitCityLabel,
@@ -126,7 +123,6 @@ export function UnitsDataTable() {
     () =>
       createUnitsTableColumns({
         onCopyData: handleCopyData,
-        onDetails: setSelectedUnit,
       }),
     [handleCopyData],
   )
@@ -221,22 +217,6 @@ export function UnitsDataTable() {
           />
         ) : null}
       </DataTableRoot>
-
-      {selectedUnit ? (
-        <AppSheet
-          description={`Código ${selectedUnit.id} · ${selectedUnit.cnpj}`}
-          onOpenChange={(open) => {
-            if (!open) setSelectedUnit(null)
-          }}
-          open
-          title={formatUnitName(selectedUnit.tradeName)}
-        >
-          <RecordDetails
-            record={selectedUnit}
-            sections={unitRecordSections}
-          />
-        </AppSheet>
-      ) : null}
     </>
   )
 }

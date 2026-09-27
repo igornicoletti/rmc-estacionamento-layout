@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { AppSheet } from "@/components/common/app-sheet"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/components/data-table-export"
@@ -16,7 +15,6 @@ import {
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
-import { RecordDetails } from "@/components/record-details/record-details"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
@@ -97,7 +95,6 @@ export function ClientsDataTable() {
     staleTime: Number.POSITIVE_INFINITY,
   })
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const model = useLocalDataTableModel({
     getFacetGroup: getClientCityGroup,
     getFacetLabel: getClientCityLabel,
@@ -129,7 +126,6 @@ export function ClientsDataTable() {
     () =>
       createClientsTableColumns({
         onCopyData: handleCopyData,
-        onDetails: setSelectedClient,
       }),
     [handleCopyData],
   )
@@ -224,22 +220,6 @@ export function ClientsDataTable() {
           />
         ) : null}
       </DataTableRoot>
-
-      {selectedClient ? (
-        <AppSheet
-          description={`Código ${selectedClient.id} · ${selectedClient.taxId}`}
-          onOpenChange={(open) => {
-            if (!open) setSelectedClient(null)
-          }}
-          open
-          title={formatErpName(selectedClient.name)}
-        >
-          <RecordDetails
-            record={selectedClient}
-            sections={clientRecordSections}
-          />
-        </AppSheet>
-      ) : null}
     </>
   )
 }

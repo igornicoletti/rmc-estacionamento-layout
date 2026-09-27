@@ -233,7 +233,7 @@ test("filtra, pagina e abre clientes e veículos sem depender da copy", async ({
   ).toHaveCount(0)
 })
 
-test("filtra, ordena, pagina e abre detalhes de unidades sem depender da copy", async ({
+test("filtra, ordena e pagina unidades sem depender da copy", async ({
   page,
 }) => {
   await page.goto("/unidades")
@@ -292,14 +292,6 @@ test("filtra, ordena, pagina e abre detalhes de unidades sem depender da copy", 
     firstDescendingUnit.id,
   )
 
-  await firstSortedRow.getByTestId("data-table-row-actions-trigger").click()
-  await page.getByTestId("data-table-row-action-details").click()
-
-  const dialog = page.getByRole("dialog")
-
-  await expect(dialog).toBeVisible()
-  await expect(dialog).toContainText(firstDescendingUnit.cnpj)
-  await expect(dialog).toContainText(formatUnitName(firstDescendingUnit.tradeName))
 })
 
 test("mantém clientes responsivos e foco de teclado em 390 px", async ({

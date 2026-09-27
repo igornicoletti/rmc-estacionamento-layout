@@ -14,7 +14,6 @@ import {
 
 interface UnitsTableColumnActions {
   onCopyData: (unit: Unit) => Promise<void>
-  onDetails: (unit: Unit) => void
 }
 
 export const unitsTableApi =
@@ -23,7 +22,6 @@ const columnHelper = unitsTableApi.createAppColumnHelper<Unit>()
 
 export function createUnitsTableColumns({
   onCopyData,
-  onDetails,
 }: UnitsTableColumnActions) {
   return columnHelper.columns([
     columnHelper.accessor("id", {
@@ -136,7 +134,6 @@ export function createUnitsTableColumns({
         <DataTableRowActions
           accessibleLabel={`Ações da unidade ${formatUnitName(row.original.tradeName)}`}
           onCopyData={() => onCopyData(row.original)}
-          onDetails={() => onDetails(row.original)}
         />
       ),
       enableHiding: false,

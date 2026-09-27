@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
-import { UserRoundXIcon } from "lucide-react"
-import { useParams } from "react-router"
+import { ArrowLeftIcon, UserRoundXIcon } from "lucide-react"
+import { Link, useParams } from "react-router"
 
+import { appCopy } from "@/app/config/app-copy"
 import { appPages } from "@/app/config/app-config"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AppEmpty } from "@/components/common/app-empty"
-import { PageSyncHistoryActions } from "@/components/sync-history/page-sync-history-actions"
+import { buttonVariants } from "@/components/ui/button"
 import { clientsCopy } from "@/pages/clients/clients.copy"
 import { LazyClientVehiclesDataTable } from "@/pages/clients/components/lazy-client-vehicles-data-table"
 import {
@@ -16,6 +17,15 @@ import { formatErpName } from "@/pages/clients/model/client-presentation"
 
 const clientPageBase = {
   availability: "available" as const,
+}
+
+function BackToClients() {
+  return (
+    <Link className={buttonVariants({ variant: "outline" })} to={appPages.clients.path}>
+      <ArrowLeftIcon aria-hidden="true" data-icon="inline-start" />
+      {appCopy.pageActions.back}
+    </Link>
+  )
 }
 
 export function ClientDetailsPage() {
@@ -30,7 +40,7 @@ export function ClientDetailsPage() {
   if (clientsQuery.isPending) {
     return (
       <AppPageLayout
-        actions={<PageSyncHistoryActions backTo={appPages.clients.path} />}
+        actions={<BackToClients />}
         page={{
           ...clientPageBase,
           title: clientsCopy.details.fallbackTitle,
@@ -43,7 +53,7 @@ export function ClientDetailsPage() {
   if (clientsQuery.isError || !clientId || !client) {
     return (
       <AppPageLayout
-        actions={<PageSyncHistoryActions backTo={appPages.clients.path} />}
+        actions={<BackToClients />}
         page={{
           ...clientPageBase,
           title: clientsCopy.details.fallbackTitle,
@@ -62,7 +72,7 @@ export function ClientDetailsPage() {
 
   return (
     <AppPageLayout
-      actions={<PageSyncHistoryActions backTo={appPages.clients.path} />}
+      actions={<BackToClients />}
       page={{
         ...clientPageBase,
         title: formatErpName(client.name),

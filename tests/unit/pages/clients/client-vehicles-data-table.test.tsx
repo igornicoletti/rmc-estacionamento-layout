@@ -73,30 +73,6 @@ describe("ClientVehiclesDataTable", () => {
     expect(within(toolbar).getByRole("combobox")).toHaveAccessibleName()
   })
 
-  it("abre os detalhes do veículo selecionado", async () => {
-    const user = userEvent.setup()
-    const table = await renderClientVehiclesDataTable()
-    const firstRow = getFirstDataRow(table)
-    const trigger = within(firstRow).getByRole("button")
-
-    await user.click(trigger)
-
-    const menuItems = await screen.findAllByRole("menuitem")
-    const detailsAction = menuItems[0]
-
-    if (!detailsAction) {
-      throw new Error("Ação de detalhes não encontrada.")
-    }
-
-    await user.click(detailsAction)
-
-    const dialog = await screen.findByRole("dialog")
-
-    expect(dialog).toHaveAccessibleName()
-    expect(dialog).toHaveTextContent(firstVehicle.clientId)
-    expect(dialog).toHaveTextContent(formatLicensePlate(firstVehicle.plate))
-  })
-
   it("copia dados funcionais do veículo selecionado", async () => {
     const user = userEvent.setup()
     const table = await renderClientVehiclesDataTable()
@@ -105,7 +81,7 @@ describe("ClientVehiclesDataTable", () => {
     await user.click(within(firstRow).getByRole("button"))
 
     const menuItems = await screen.findAllByRole("menuitem")
-    const copyAction = menuItems[1]
+    const copyAction = menuItems[0]
 
     if (!copyAction) {
       throw new Error("Ação de cópia não encontrada.")

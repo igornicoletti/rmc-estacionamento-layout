@@ -1,6 +1,3 @@
-import { appPages } from "@/app/config/app-config"
-import { AppPageLayout } from "@/app/layouts/app-page-layout"
-
 export function AccountSecurityPage() {
-  return <AppPageLayout page={appPages["account-security"]} />
+  return null
 }

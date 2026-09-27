@@ -125,29 +125,6 @@ describe("ClientsDataTable", () => {
     )
   })
 
-  it("abre os detalhes do cliente selecionado", async () => {
-    const user = userEvent.setup()
-    const table = await renderClientsDataTable()
-    const firstRow = getFirstDataRow(table)
-
-    await user.click(getRowActionTrigger(firstRow))
-
-    const menuItems = await screen.findAllByRole("menuitem")
-    const detailsAction = menuItems[0]
-
-    if (!detailsAction) {
-      throw new Error("Ação de detalhes não encontrada.")
-    }
-
-    await user.click(detailsAction)
-
-    const dialog = await screen.findByRole("dialog")
-
-    expect(dialog).toHaveAccessibleName()
-    expect(dialog).toHaveTextContent(firstClient.taxId)
-    expect(dialog).toHaveTextContent(primaryEmail)
-  })
-
   it("copia os dados funcionais do cliente selecionado", async () => {
     const user = userEvent.setup()
     const table = await renderClientsDataTable()
@@ -156,7 +133,7 @@ describe("ClientsDataTable", () => {
     await user.click(getRowActionTrigger(firstRow))
 
     const menuItems = await screen.findAllByRole("menuitem")
-    const copyAction = menuItems[1]
+    const copyAction = menuItems[0]
 
     if (!copyAction) {
       throw new Error("Ação de cópia não encontrada.")
