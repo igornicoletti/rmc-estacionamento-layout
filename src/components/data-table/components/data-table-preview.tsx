@@ -1,6 +1,5 @@
 import { useMemo } from "react"
 
-import { copyDataTableRecord } from "@/components/data-table/actions/copy-data-table-record"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTablePagination } from "@/components/data-table/components/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/components/data-table-root"
@@ -14,6 +13,7 @@ import { DataTableToolbar } from "@/components/data-table/components/data-table-
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
 import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
+import { copyToClipboard } from "@/lib/copy-to-clipboard"
 
 interface PreviewRecord {
   id: string
@@ -33,7 +33,7 @@ const tableApi = createDataTableHook<Record<string, never>>()
 const columnHelper = tableApi.createAppColumnHelper<PreviewRecord>()
 
 function copyPreviewRecord(record: PreviewRecord) {
-  void copyDataTableRecord(`ID: ${record.id}`)
+  return copyToClipboard(`ID: ${record.id}`)
 }
 
 const columns = columnHelper.columns([
