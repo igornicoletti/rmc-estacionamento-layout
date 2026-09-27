@@ -6,11 +6,11 @@ export function isTheme(value: unknown): value is Theme {
   return value === "dark" || value === "light" || value === "system"
 }
 
-export interface ThemeProviderValue {
+export interface ThemeContextValue {
   theme: Theme
   setTheme: (theme: Theme) => void
 }
 
-export const ThemeProviderContext = createContext<
-  ThemeProviderValue | undefined
->(undefined)
+export const ThemeContext = createContext<ThemeContextValue | undefined>(
+  undefined,
+)

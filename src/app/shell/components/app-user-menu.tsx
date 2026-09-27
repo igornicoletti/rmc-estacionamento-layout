@@ -10,7 +10,6 @@ import { Link, type To } from "react-router"
 
 import { appCopy, getUserAvatarAlt } from "@/app/config/app-copy"
 import { isTheme } from "@/components/theme/theme-context"
-import { useTheme } from "@/components/theme/use-theme"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +26,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useTheme } from "@/hooks/use-theme"
 import { getUserInitials } from "@/lib/user-initials"
 
 export interface AppUserMenuProps {
