@@ -117,7 +117,7 @@ function ToastClose({
   return (
     <ToastPrimitive.Close
       data-slot="toast-close"
-      aria-label="Close toast"
+      aria-label="Fechar notificação"
       render={render}
       className={cn(
         "relative shrink-0 text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:text-foreground",
@@ -218,7 +218,6 @@ const createToastManager = ToastPrimitive.createToastManager
 const useToastManager = ToastPrimitive.useToastManager
 
 export {
-  Toaster,
   Toast,
   ToastAction,
   ToastClose,
@@ -228,6 +227,7 @@ export {
   ToastProvider,
   ToastTitle,
   ToastViewport,
+  Toaster,
   createToastManager,
   toast,
   useToastManager,
