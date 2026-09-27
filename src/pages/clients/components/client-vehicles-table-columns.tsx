@@ -1,9 +1,9 @@
-import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import {
   DataTableRowActions,
   DataTableRowActionsHeader,
-} from "@/components/data-table/components/data-table-row-actions"
-import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
+} from "@/components/data-table/data-table-row-actions"
+import { createDataTableColumnHelper } from "@/components/data-table/data-table-features"
 import type { ClientVehicle } from "@/pages/clients/model/client-vehicle"
 import {
   formatDateTime,
@@ -17,9 +17,7 @@ interface ClientVehiclesTableColumnActions {
   onCopyData: (vehicle: ClientVehicle) => Promise<void>
 }
 
-export const clientVehiclesTableApi =
-  createDataTableHook<Record<string, never>>()
-const columnHelper = clientVehiclesTableApi.createAppColumnHelper<ClientVehicle>()
+const columnHelper = createDataTableColumnHelper<ClientVehicle>()
 
 export function createClientVehiclesTableColumns(
   showDriver: boolean,
@@ -63,8 +61,9 @@ export function createClientVehiclesTableColumns(
       header: "CPF/CNPJ",
       meta: { visibilityLabel: "CPF/CNPJ" },
     }),
-    columnHelper.accessor("plate", {
-      cell: ({ getValue }) => formatLicensePlate(getValue()),
+    columnHelper.accessor((vehicle) => `${vehicle.plate} ${formatLicensePlate(vehicle.plate)}`, {
+      id: "plate",
+      cell: ({ row }) => formatLicensePlate(row.original.plate),
       enableHiding: false,
       enableSorting: true,
       header: ({ column }) => (
@@ -76,6 +75,7 @@ export function createClientVehiclesTableColumns(
       cell: ({ getValue }) => formatVehicleDescription(getValue()),
       enableHiding: true,
       enableSorting: true,
+      filterFn: "equals",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Veículo" />
       ),

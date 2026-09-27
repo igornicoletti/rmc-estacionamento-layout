@@ -169,4 +169,14 @@ describe("ClientsDataTable", () => {
 
     expect(await screen.findAllByRole("option")).toHaveLength(1)
   })
+
+  it("encontra o cliente pelo telefone formatado mesmo com a coluna oculta", async () => {
+    const user = userEvent.setup()
+    const table = await renderClientsDataTable()
+
+    await user.type(screen.getByRole("searchbox"), formatPhone(firstClient.phone))
+
+    expect(within(table).getAllByRole("row")).toHaveLength(2)
+    expect(getFirstDataRow(table)).toHaveTextContent(formatErpName(firstClient.name))
+  })
 })

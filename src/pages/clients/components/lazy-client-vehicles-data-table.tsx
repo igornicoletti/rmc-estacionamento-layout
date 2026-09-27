@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react"
 
-import { DataTableLazyFallback } from "@/components/data-table/components/data-table-state"
+import { DataTableLazyFallback } from "@/components/data-table/data-table-state"
 
 const ClientVehiclesDataTable = lazy(() =>
   import("@/pages/clients/components/client-vehicles-data-table").then(
