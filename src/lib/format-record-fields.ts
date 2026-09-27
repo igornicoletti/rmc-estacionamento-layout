@@ -25,21 +25,6 @@ function normalizeRecordValue(value: RecordValue) {
   return text === "" ? null : text
 }
 
-export function getRecordDetailSections<TRecord>(
-  record: TRecord,
-  sections: readonly RecordSectionDefinition<TRecord>[],
-) {
-  return sections.map((section) => ({
-    key: section.key,
-    title: section.title,
-    fields: section.fields.map((field) => ({
-      key: field.key,
-      label: field.label,
-      value: normalizeRecordValue(field.getValue(record)) ?? EMPTY_DISPLAY,
-    })),
-  }))
-}
-
 export function serializeRecordForClipboard<TRecord>(
   record: TRecord,
   sections: readonly RecordSectionDefinition<TRecord>[],
