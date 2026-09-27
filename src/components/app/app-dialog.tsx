@@ -25,8 +25,7 @@ interface AppDialogProps {
  * Dialog controlado e padronizado da aplicação.
  *
  * Mantém header e footer visíveis e deixa somente o corpo rolar quando o
- * conteúdo ultrapassa a viewport. O close permanece responsabilidade do
- * DialogContent padrão.
+ * conteúdo ultrapassa a viewport.
  */
 export function AppDialog({
   children,
@@ -45,7 +44,6 @@ export function AppDialog({
             ? "grid-rows-[auto_minmax(0,1fr)_auto]"
             : "grid-rows-[auto_minmax(0,1fr)]",
         )}
-        showCloseButton
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

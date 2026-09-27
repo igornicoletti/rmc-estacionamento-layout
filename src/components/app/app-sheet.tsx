@@ -25,8 +25,8 @@ interface AppSheetProps {
 /**
  * Sheet controlado e padronizado da aplicação.
  *
- * Usa o close nativo do SheetContent e reserva o espaço restante para um corpo
- * rolável, mantendo header e footer fora da região de scroll.
+ * Reserva o espaço restante para um corpo rolável, mantendo header e footer
+ * fora da região de scroll. O painel permanece lateral direito por contrato.
  */
 export function AppSheet({
   children,
@@ -45,7 +45,6 @@ export function AppSheet({
             ? "data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
             : undefined
         }
-        showCloseButton
       >
         <SheetHeader className="shrink-0">
           <SheetTitle>{title}</SheetTitle>

@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { appCopy } from "@/app/config/app-copy"
 import { AppRootLayout } from "@/app/layouts/app-root-layout"
 import { useSession } from "@/app/session/session-context"
-import { AppEmpty } from "@/components/common/app-empty"
+import { AppEmpty } from "@/components/app/app-empty"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 

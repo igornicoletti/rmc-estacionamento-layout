@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
 import { CircleAlertIcon, SearchXIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { AppEmpty } from "@/components/app/app-empty";
+import { dataTableCopy } from "@/components/data-table/data-table.copy";
 import {
   Alert,
   AlertAction,
@@ -8,26 +10,17 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { dataTableCopy } from "@/components/data-table/data-table.copy";
 
 export function DataTableLazyFallback() {
   return (
     <div
+      aria-live="polite"
       className="flex flex-col gap-4"
       data-slot="data-table-lazy-fallback"
       role="status"
-      aria-live="polite"
     >
       <span className="sr-only">{dataTableCopy.loading}</span>
       <Skeleton className="h-9 w-full max-w-80" />
@@ -74,28 +67,22 @@ export function DataTableEmpty({
   emptyDescription = dataTableCopy.empty.defaultDescription,
 }: DataTableEmptyProps) {
   return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <SearchXIcon aria-hidden="true" />
-        </EmptyMedia>
-        <EmptyTitle>
-          {hasFilters ? dataTableCopy.empty.filteredTitle : emptyTitle}
-        </EmptyTitle>
-        <EmptyDescription>
-          {hasFilters
-            ? dataTableCopy.empty.filteredDescription
-            : emptyDescription}
-        </EmptyDescription>
-      </EmptyHeader>
+    <AppEmpty
+      description={
+        hasFilters
+          ? dataTableCopy.empty.filteredDescription
+          : emptyDescription
+      }
+      headingLevel={3}
+      media={{ icon: SearchXIcon }}
+      title={hasFilters ? dataTableCopy.empty.filteredTitle : emptyTitle}
+    >
       {hasFilters ? (
-        <EmptyContent>
-          <Button variant="outline" size="sm" onClick={onClearFilters}>
-            {dataTableCopy.empty.clearFilters}
-          </Button>
-        </EmptyContent>
+        <Button onClick={onClearFilters} size="sm" variant="outline">
+          {dataTableCopy.empty.clearFilters}
+        </Button>
       ) : null}
-    </Empty>
+    </AppEmpty>
   );
 }
 
@@ -116,17 +103,14 @@ export function DataTableError({
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
       <AlertAction>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRetry}
-        >
+        <Button onClick={onRetry} size="sm" variant="outline">
           {dataTableCopy.error.retry}
         </Button>
       </AlertAction>
     </Alert>
   );
 }
+
 export function DataTableUpdating({ active }: { active: boolean }) {
   if (!active) return null;
 
@@ -146,9 +130,9 @@ function DataTableUpdatingContent() {
 
   return (
     <div
+      aria-live="polite"
       className="flex items-center gap-2 text-sm text-muted-foreground"
       role="status"
-      aria-live="polite"
     >
       <Spinner aria-hidden="true" />
       {dataTableCopy.updating}

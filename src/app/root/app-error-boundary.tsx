@@ -3,7 +3,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react"
 
 import { appCopy } from "@/app/config/app-copy"
 import { AppRootLayout } from "@/app/layouts/app-root-layout"
-import { AppEmpty } from "@/components/common/app-empty"
+import { AppEmpty } from "@/components/app/app-empty"
 import { Button } from "@/components/ui/button"
 
 interface AppErrorBoundaryProps {

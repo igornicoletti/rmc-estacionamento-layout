@@ -69,7 +69,7 @@ em Chromium.
 - `src/app/shell/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
 - `src/app/shell/components/`: apresentação específica do shell da aplicação.
 - `src/app/layouts/`: layouts estruturais específicos da aplicação.
-- `src/components/common/`: wrappers reutilizáveis sobre primitives de `ui/`, sem regra de negócio.
+- `src/components/app/`: decisões reutilizáveis da aplicação sobre primitives de `ui/`, sem regra de negócio.
 - `src/components/sidebar/`: composição e navegação exclusivas do sidebar.
 - `src/pages/<page>/<page>.layout.tsx`: único arquivo de entrada de cada página.
 

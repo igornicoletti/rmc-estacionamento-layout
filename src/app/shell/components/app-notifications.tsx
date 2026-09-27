@@ -11,7 +11,7 @@ import {
   appCopy,
   getNotificationsTriggerLabel,
 } from "@/app/config/app-copy"
-import { AppEmpty } from "@/components/common/app-empty"
+import { AppEmpty } from "@/components/app/app-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {

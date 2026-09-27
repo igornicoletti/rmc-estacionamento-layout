@@ -2,7 +2,7 @@ import { ClockAlertIcon } from "lucide-react"
 import { useRef } from "react"
 
 import { appCopy } from "@/app/config/app-copy"
-import { AppAlertDialog } from "@/components/common/app-alert-dialog"
+import { AppAlertDialog } from "@/components/app/app-alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 

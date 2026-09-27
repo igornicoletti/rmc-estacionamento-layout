@@ -8,8 +8,8 @@ import {
 import { cn } from "cn"
 
 import { appCopy, getUserAvatarAlt } from "@/app/config/app-copy"
-import { AppDialog } from "@/components/common/app-dialog"
-import { AppEmpty } from "@/components/common/app-empty"
+import { AppDialog } from "@/components/app/app-dialog"
+import { AppEmpty } from "@/components/app/app-empty"
 import {
   Avatar,
   AvatarFallback,
