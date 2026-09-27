@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Empty,
   EmptyContent,
@@ -10,8 +11,18 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 
+interface AppEmptyAvatar {
+  alt: string
+  className?: string
+  fallback: ReactNode
+  fallbackClassName?: string
+  imageClassName?: string
+  render?: (avatar: ReactNode) => ReactNode
+  src?: string
+}
+
 type AppEmptyMedia =
-  | { avatar: ReactNode; icon?: never }
+  | { avatar: AppEmptyAvatar; icon?: never }
   | { avatar?: never; icon: LucideIcon }
 
 interface AppEmptyProps {
@@ -22,13 +33,6 @@ interface AppEmptyProps {
   title: ReactNode
 }
 
-/**
- * Empty state padronizado da aplicação.
- *
- * Header e media são estruturais. Todo conteúdo complementar pertence a
- * children e é renderizado em EmptyContent, sem impor tipo ou quantidade de
- * ações ao consumidor.
- */
 export function AppEmpty({
   children,
   description,
@@ -37,13 +41,32 @@ export function AppEmpty({
   title,
 }: AppEmptyProps) {
   const Icon = media?.icon
+  const avatar = media?.avatar
+  const avatarContent = avatar ? (
+    <Avatar className={avatar.className}>
+      {avatar.src ? (
+        <AvatarImage
+          alt={avatar.alt}
+          className={avatar.imageClassName}
+          src={avatar.src}
+        />
+      ) : null}
+      <AvatarFallback className={avatar.fallbackClassName}>
+        {avatar.fallback}
+      </AvatarFallback>
+    </Avatar>
+  ) : null
 
   return (
     <Empty>
       <EmptyHeader>
         {media ? (
           <EmptyMedia variant={Icon ? "icon" : "default"}>
-            {Icon ? <Icon aria-hidden="true" /> : media.avatar}
+            {Icon
+              ? <Icon aria-hidden="true" />
+              : avatar?.render
+                ? avatar.render(avatarContent)
+                : avatarContent}
           </EmptyMedia>
         ) : null}
 

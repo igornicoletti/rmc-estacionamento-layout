@@ -1,66 +1,60 @@
-import type { ComponentProps, ReactNode } from "react"
+import type { ComponentProps, ReactNode } from "react";
 
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
-type AppSheetSize = "default" | "wide"
-type SheetRootProps = ComponentProps<typeof Sheet>
+type SheetRootProps = ComponentProps<typeof Sheet>;
 
 interface AppSheetProps {
-  children: ReactNode
-  description?: ReactNode
-  footer?: ReactNode
-  onOpenChange: NonNullable<SheetRootProps["onOpenChange"]>
-  open: boolean
-  size?: AppSheetSize
-  title: ReactNode
+  children: ReactNode;
+  closeLabel?: ReactNode | null;
+  description?: ReactNode;
+  footer?: ReactNode;
+  onOpenChange: NonNullable<SheetRootProps["onOpenChange"]>;
+  open: boolean;
+  title: ReactNode;
 }
 
-/**
- * Sheet controlado e padronizado da aplicação.
- *
- * Reserva o espaço restante para um corpo rolável, mantendo header e footer
- * fora da região de scroll. O painel permanece lateral direito por contrato.
- */
 export function AppSheet({
   children,
+  closeLabel = "Cancelar",
   description,
   footer,
   onOpenChange,
   open,
-  size = "default",
   title,
 }: AppSheetProps) {
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent
-        className={
-          size === "wide"
-            ? "data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
-            : undefined
-        }
-      >
-        <SheetHeader className="shrink-0">
+      <SheetContent>
+        <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
           {description ? (
             <SheetDescription>{description}</SheetDescription>
           ) : null}
         </SheetHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
-          {children}
-        </div>
+        <div className="no-scrollbar overflow-y-auto px-4 py-2">{children}</div>
 
-        {footer ? (
-          <SheetFooter className="shrink-0">{footer}</SheetFooter>
+        {footer || closeLabel !== null ? (
+          <SheetFooter>
+            {closeLabel !== null ? (
+              <SheetClose render={<Button variant="outline" />}>
+                {closeLabel}
+              </SheetClose>
+            ) : null}
+            {footer}
+          </SheetFooter>
         ) : null}
       </SheetContent>
     </Sheet>
-  )
+  );
 }

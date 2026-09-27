@@ -10,11 +10,6 @@ import { cn } from "cn"
 import { appCopy, getUserAvatarAlt } from "@/app/config/app-copy"
 import { AppDialog } from "@/components/app/app-dialog"
 import { AppEmpty } from "@/components/app/app-empty"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
@@ -248,8 +243,13 @@ export function AvatarImageUploadDialog({
         description={supportedFiles}
         headingLevel={3}
         media={{
-          avatar: (
-            <div className="relative">
+          avatar: {
+            alt: getUserAvatarAlt(displayName),
+            className: "size-24",
+            fallback: getInitials(displayName),
+            fallbackClassName: "text-xl font-medium",
+            render: (avatar) => (
+              <div className="relative">
               <button
                 aria-label={copy.inputLabel}
                 className={cn(
@@ -264,17 +264,7 @@ export function AvatarImageUploadDialog({
                 onDrop={handleDrop}
                 type="button"
               >
-                <Avatar className="size-24">
-                  {currentImageSrc ? (
-                    <AvatarImage
-                      alt={getUserAvatarAlt(displayName)}
-                      src={currentImageSrc}
-                    />
-                  ) : null}
-                  <AvatarFallback className="text-xl font-medium">
-                    {getInitials(displayName)}
-                  </AvatarFallback>
-                </Avatar>
+                {avatar}
 
                 <span
                   aria-hidden="true"
@@ -300,8 +290,10 @@ export function AvatarImageUploadDialog({
                   <Trash2Icon aria-hidden="true" />
                 </Button>
               ) : null}
-            </div>
-          ),
+              </div>
+            ),
+            src: currentImageSrc,
+          },
         }}
         title={isDragging ? copy.dropTitle : copy.uploadTitle}
       >

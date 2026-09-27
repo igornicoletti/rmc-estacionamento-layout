@@ -79,13 +79,6 @@ function groupItems<TValue extends string>(
   }))
 }
 
-/**
- * Combobox de seleção simples da aplicação.
- *
- * Centraliza input pesquisável, limpeza, estado vazio e agrupamento opcional.
- * Listas totalmente agrupadas seguem a composição oficial com separadores;
- * listas sem group permanecem planas.
- */
 export function AppCombobox<TValue extends string>({
   ariaLabel,
   children,

@@ -59,6 +59,24 @@ describe("AppCombobox", () => {
     expect(await screen.findAllByRole("option")).toHaveLength(1)
   })
 
+  it("mantém uma lista parcialmente agrupada sem cabeçalhos", async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <AppCombobox
+        ariaLabel="cidade"
+        items={[GROUPED_ITEMS[0], { label: "Outras", value: "other" }]}
+        onValueChange={vi.fn()}
+        placeholder="Selecione"
+      />,
+    )
+
+    await user.click(screen.getByRole("combobox", { name: "cidade" }))
+
+    expect(await screen.findAllByRole("option")).toHaveLength(2)
+    expect(screen.queryByText("PR")).not.toBeInTheDocument()
+  })
+
   it("encaminha seleção e limpeza nativa", async () => {
     const user = userEvent.setup()
     const onValueChange = vi.fn()
