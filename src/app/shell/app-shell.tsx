@@ -13,7 +13,7 @@ import { AppToolbar } from "@/app/shell/components/app-toolbar"
 import { AppUserMenu } from "@/app/shell/components/app-user-menu"
 import { sessionNotify } from "@/app/session/content/session-notify"
 import { useSession } from "@/app/session/session-context"
-import { AppSidebar } from "@/components/sidebar/app-sidebar"
+import { SidebarApp } from "@/components/sidebar/sidebar-app"
 import { notify } from "@/components/toast/toast-notify"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
@@ -51,7 +51,7 @@ function AppShell({
 }: AppShellProps) {
   return (
     <SidebarProvider>
-      <AppSidebar
+      <SidebarApp
         primaryItems={primaryNavigation}
         profile={currentUser.profile}
         sections={navigationSections}

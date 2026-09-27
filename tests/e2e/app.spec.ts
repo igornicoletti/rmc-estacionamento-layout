@@ -1,5 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+import { appCopy } from "../../src/app/config/app-copy"
+import { appPages } from "../../src/app/config/app-config"
 import { getClientDetailsPath } from "../../src/pages/clients/client-routes"
 import {
   clientErpFixture,
@@ -98,6 +100,41 @@ test("resolve uma rota por deep link", async ({ page }) => {
   await expect(page).toHaveURL("/patio-virtual")
   await expect(page.locator("main")).toBeVisible()
   await expect(page.getByRole("navigation")).toBeVisible()
+})
+
+test("navega pelo menu lateral no desktop", async ({ page }) => {
+  await page.goto(appPages.users.path)
+
+  const navigation = page.getByRole("navigation")
+  const notificationsLink = navigation.locator(
+    `a[href="${appPages.notifications.path}"]`,
+  )
+
+  await expect(notificationsLink).toBeVisible()
+  await notificationsLink.click()
+
+  await expect(page).toHaveURL(appPages.notifications.path)
+  await expect(notificationsLink).toHaveAttribute("aria-current", "page")
+})
+
+test("fecha o menu lateral mobile após navegar", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(appPages.clients.path)
+
+  await page
+    .getByRole("button", { name: appCopy.toolbar.openSidebar })
+    .click()
+
+  const navigation = page.getByRole("navigation")
+  const unitsLink = navigation.locator(`a[href="${appPages.units.path}"]`)
+
+  await expect(unitsLink).toBeVisible()
+  await unitsLink.click()
+
+  await expect(page).toHaveURL(appPages.units.path)
+  await expect(
+    page.getByRole("button", { name: appCopy.toolbar.openSidebar }),
+  ).toBeVisible()
 })
 
 test("mantém o fallback de rota fora do shell", async ({ page }) => {
