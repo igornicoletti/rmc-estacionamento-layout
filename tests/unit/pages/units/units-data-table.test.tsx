@@ -127,29 +127,6 @@ describe("UnitsDataTable", () => {
     expect(firstRow).not.toHaveTextContent(firstUnit.synchronizedAt)
   })
 
-  it("abre os detalhes da unidade selecionada", async () => {
-    const user = userEvent.setup()
-    const table = await renderUnitsDataTable()
-    const firstRow = getFirstDataRow(table)
-
-    await user.click(within(firstRow).getByRole("button"))
-
-    const menuItems = await screen.findAllByRole("menuitem")
-    const detailsAction = menuItems[0]
-
-    if (!detailsAction) {
-      throw new Error("Ação de detalhes não encontrada.")
-    }
-
-    await user.click(detailsAction)
-
-    const dialog = await screen.findByRole("dialog")
-
-    expect(dialog).toHaveAccessibleName()
-    expect(dialog).toHaveTextContent(firstUnit.cnpj)
-    expect(dialog).toHaveTextContent(formatUnitName(firstUnit.tradeName))
-  })
-
   it("copia dados funcionais da unidade selecionada", async () => {
     const user = userEvent.setup()
     const table = await renderUnitsDataTable()
@@ -158,7 +135,7 @@ describe("UnitsDataTable", () => {
     await user.click(within(firstRow).getByRole("button"))
 
     const menuItems = await screen.findAllByRole("menuitem")
-    const copyAction = menuItems[1]
+    const copyAction = menuItems[0]
 
     if (!copyAction) {
       throw new Error("Ação de cópia não encontrada.")

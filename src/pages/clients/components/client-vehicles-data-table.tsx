@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { AppSheet } from "@/components/common/app-sheet"
 import { DataTable } from "@/components/data-table/components/data-table"
 import { DataTableComboboxFilter } from "@/components/data-table/components/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/components/data-table-export"
@@ -16,7 +15,6 @@ import {
 import { DataTableToolbar } from "@/components/data-table/components/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/components/data-table-view-options"
 import { useLocalDataTableModel } from "@/components/data-table/hooks/use-local-data-table-model"
-import { RecordDetails } from "@/components/record-details/record-details"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { downloadCsv, serializeCsv } from "@/lib/export-to-csv"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
@@ -93,8 +91,6 @@ export function ClientVehiclesDataTable({
     staleTime: Number.POSITIVE_INFINITY,
   })
   const allVehicles = vehiclesQuery.data ?? EMPTY_CLIENT_VEHICLES
-  const [selectedVehicle, setSelectedVehicle] =
-    useState<ClientVehicle | null>(null)
   const clientVehicles = useMemo(
     () => allVehicles.filter((vehicle) => vehicle.clientId === clientId),
     [allVehicles, clientId],
@@ -128,7 +124,6 @@ export function ClientVehiclesDataTable({
     () =>
       createClientVehiclesTableColumns(showDriver, {
         onCopyData: handleCopyData,
-        onDetails: setSelectedVehicle,
       }),
     [handleCopyData, showDriver],
   )
@@ -234,26 +229,6 @@ export function ClientVehiclesDataTable({
           />
         ) : null}
       </DataTableRoot>
-
-      {selectedVehicle ? (
-        <AppSheet
-          description={
-            selectedVehicle.description
-              ? formatVehicleDescription(selectedVehicle.description)
-              : `Código ${selectedVehicle.id}`
-          }
-          onOpenChange={(open) => {
-            if (!open) setSelectedVehicle(null)
-          }}
-          open
-          title={formatLicensePlate(selectedVehicle.plate)}
-        >
-          <RecordDetails
-            record={selectedVehicle}
-            sections={clientVehicleRecordSections}
-          />
-        </AppSheet>
-      ) : null}
     </>
   )
 }

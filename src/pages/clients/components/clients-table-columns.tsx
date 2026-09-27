@@ -20,7 +20,6 @@ import {
 
 interface ClientsTableColumnActions {
   onCopyData: (client: Client) => Promise<void>
-  onDetails: (client: Client) => void
 }
 
 export const clientsTableApi =
@@ -29,7 +28,6 @@ const columnHelper = clientsTableApi.createAppColumnHelper<Client>()
 
 export function createClientsTableColumns({
   onCopyData,
-  onDetails,
 }: ClientsTableColumnActions) {
   return columnHelper.columns([
     columnHelper.accessor("id", {
@@ -178,7 +176,6 @@ export function createClientsTableColumns({
         <DataTableRowActions
           accessibleLabel={`Ações do cliente ${formatErpName(row.original.name)}`}
           onCopyData={() => onCopyData(row.original)}
-          onDetails={() => onDetails(row.original)}
         />
       ),
       enableHiding: false,

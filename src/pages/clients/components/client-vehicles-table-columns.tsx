@@ -15,7 +15,6 @@ import {
 
 interface ClientVehiclesTableColumnActions {
   onCopyData: (vehicle: ClientVehicle) => Promise<void>
-  onDetails: (vehicle: ClientVehicle) => void
 }
 
 export const clientVehiclesTableApi =
@@ -24,7 +23,7 @@ const columnHelper = clientVehiclesTableApi.createAppColumnHelper<ClientVehicle>
 
 export function createClientVehiclesTableColumns(
   showDriver: boolean,
-  { onCopyData, onDetails }: ClientVehiclesTableColumnActions,
+  { onCopyData }: ClientVehiclesTableColumnActions,
 ) {
   return columnHelper.columns([
     columnHelper.accessor("id", {
@@ -140,7 +139,6 @@ export function createClientVehiclesTableColumns(
         <DataTableRowActions
           accessibleLabel={`Ações do veículo ${formatLicensePlate(row.original.plate)}`}
           onCopyData={() => onCopyData(row.original)}
-          onDetails={() => onDetails(row.original)}
         />
       ),
       enableHiding: false,
