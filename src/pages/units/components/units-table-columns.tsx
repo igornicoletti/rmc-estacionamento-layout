@@ -1,9 +1,9 @@
-import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import {
   DataTableRowActions,
   DataTableRowActionsHeader,
-} from "@/components/data-table/components/data-table-row-actions"
-import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
+} from "@/components/data-table/data-table-row-actions"
+import { createDataTableColumnHelper } from "@/components/data-table/data-table-features"
 import type { Unit } from "@/pages/units/model/unit"
 import {
   formatUnitCity,
@@ -16,9 +16,7 @@ interface UnitsTableColumnActions {
   onCopyData: (unit: Unit) => Promise<void>
 }
 
-export const unitsTableApi =
-  createDataTableHook<Record<string, never>>()
-const columnHelper = unitsTableApi.createAppColumnHelper<Unit>()
+const columnHelper = createDataTableColumnHelper<Unit>()
 
 export function createUnitsTableColumns({
   onCopyData,
@@ -80,6 +78,14 @@ export function createUnitsTableColumns({
         <DataTableColumnHeader column={column} title="Cidade/UF" />
       ),
       meta: { visibilityLabel: "Cidade/UF" },
+    }),
+    columnHelper.accessor((unit) => `${unit.stateCode}:${unit.city}`, {
+      id: "cityFacet",
+      enableGlobalFilter: false,
+      enableHiding: true,
+      enableSorting: false,
+      filterFn: "equals",
+      header: "Cidade do filtro",
     }),
     columnHelper.accessor("state", {
       enableHiding: true,

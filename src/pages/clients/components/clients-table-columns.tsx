@@ -1,11 +1,11 @@
 import { Link } from "react-router"
 
-import { DataTableColumnHeader } from "@/components/data-table/components/data-table-column-header"
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import {
   DataTableRowActions,
   DataTableRowActionsHeader,
-} from "@/components/data-table/components/data-table-row-actions"
-import { createDataTableHook } from "@/components/data-table/hooks/create-data-table-hook"
+} from "@/components/data-table/data-table-row-actions"
+import { createDataTableColumnHelper } from "@/components/data-table/data-table-features"
 import { getClientDetailsPath } from "@/pages/clients/client-routes"
 import { ClientEmailCell } from "@/pages/clients/components/client-email-cell"
 import type { Client } from "@/pages/clients/model/client"
@@ -22,9 +22,7 @@ interface ClientsTableColumnActions {
   onCopyData: (client: Client) => Promise<void>
 }
 
-export const clientsTableApi =
-  createDataTableHook<Record<string, never>>()
-const columnHelper = clientsTableApi.createAppColumnHelper<Client>()
+const columnHelper = createDataTableColumnHelper<Client>()
 
 export function createClientsTableColumns({
   onCopyData,
@@ -80,8 +78,9 @@ export function createClientsTableColumns({
       header: "E-mail",
       meta: { visibilityLabel: "E-mail" },
     }),
-    columnHelper.accessor("phone", {
-      cell: ({ getValue }) => formatPhone(getValue()),
+    columnHelper.accessor((client) => `${client.phone} ${formatPhone(client.phone)}`, {
+      id: "phone",
+      cell: ({ row }) => formatPhone(row.original.phone),
       enableHiding: true,
       enableSorting: false,
       header: "Telefone",
@@ -95,6 +94,13 @@ export function createClientsTableColumns({
         <DataTableColumnHeader column={column} title="Cidade" />
       ),
       meta: { visibilityLabel: "Cidade" },
+    }),
+    columnHelper.accessor((client) => `${client.stateCode}:${client.city}`, {
+      id: "cityFacet",
+      enableGlobalFilter: false,
+      enableSorting: false,
+      filterFn: "equals",
+      header: "Cidade do filtro",
     }),
     columnHelper.accessor("stateCode", {
       enableHiding: true,

@@ -94,4 +94,14 @@ describe("ClientVehiclesDataTable", () => {
     expect(copied).toContain(firstVehicle.clientId)
     expect(copied).toContain(formatLicensePlate(firstVehicle.plate))
   })
+
+  it("encontra o veículo pela placa formatada", async () => {
+    const user = userEvent.setup()
+    const table = await renderClientVehiclesDataTable()
+
+    await user.type(screen.getByRole("searchbox"), formatLicensePlate(firstVehicle.plate))
+
+    expect(within(table).getAllByRole("row")).toHaveLength(2)
+    expect(getFirstDataRow(table)).toHaveTextContent(formatLicensePlate(firstVehicle.plate))
+  })
 })

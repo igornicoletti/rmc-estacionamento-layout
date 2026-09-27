@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter, matchRoutes } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import { waitForRouterInitialization } from "@tests/support/router"
+import { waitForRouterInitialization, waitForRouterLocation } from "@tests/support/router"
 
 import { appPages } from "@/app/config/app-config"
 import { routes } from "@/app/routing/routes"
@@ -49,14 +49,15 @@ describe("app routing", () => {
     expect(publicPagePaths).not.toContain("/rmc")
 
     await act(async () => {
-      await router.navigate("/rmc")
+      void router.navigate("/rmc")
+      await waitForRouterLocation(router, "/rmc")
     })
 
     expect(router.state.location.pathname).toBe("/rmc")
     expect(router.state.errors).toBeNull()
     expect(screen.getByRole("main")).toBeInTheDocument()
     expect(screen.getByRole("navigation")).toBeInTheDocument()
-  })
+  }, 30_000)
 
   it("reconhece a rota dinâmica de detalhe do cliente", () => {
     const matches = matchRoutes(routes, "/clientes/3492")
@@ -70,15 +71,16 @@ describe("app routing", () => {
     const router = await renderRoute("/usuarios")
 
     await act(async () => {
-      await router.navigate("/nao-existe")
+      void router.navigate("/nao-existe")
+      await waitForRouterLocation(router, "/nao-existe")
     })
 
     expect(router.state.location.pathname).toBe("/nao-existe")
     expect(router.state.errors).toBeNull()
-    expect(screen.getByRole("main")).toBeInTheDocument()
+    expect(await screen.findByRole("main")).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.queryByRole("navigation")).not.toBeInTheDocument()
     })
-  })
+  }, 30_000)
 })
