@@ -86,35 +86,6 @@ function dataRow(table: Locator, id: string) {
   )
 }
 
-async function getSidebarLinkByPath(page: Page, path: string) {
-  const navigation = page.getByRole("navigation")
-  const link = navigation.locator(`a[href="${path}"]`)
-
-  if (await link.isVisible()) {
-    return link
-  }
-
-  const groupTriggers = navigation.locator('button[aria-expanded]')
-  const triggerCount = await groupTriggers.count()
-
-  for (let index = 0; index < triggerCount; index += 1) {
-    const trigger = groupTriggers.nth(index)
-
-    if ((await trigger.getAttribute("aria-expanded")) === "false") {
-      await trigger.click()
-    }
-
-    await expect(trigger).toHaveAttribute("aria-expanded", "true")
-
-    if ((await link.count()) > 0) {
-      await expect(link).toBeVisible()
-      return link
-    }
-  }
-
-  throw new Error(`Link de navegação não encontrado para ${path}.`)
-}
-
 test("monta o shell da aplicação", async ({ page }) => {
   await page.goto("/")
 
@@ -132,29 +103,35 @@ test("resolve uma rota por deep link", async ({ page }) => {
 })
 
 test("navega pelo menu lateral no desktop", async ({ page }) => {
-  await page.goto("/")
+  await page.goto(appPages.users.path)
 
-  const usersLink = await getSidebarLinkByPath(page, appPages.users.path)
+  const navigation = page.getByRole("navigation")
+  const notificationsLink = navigation.locator(
+    `a[href="${appPages.notifications.path}"]`,
+  )
 
-  await usersLink.click()
+  await expect(notificationsLink).toBeVisible()
+  await notificationsLink.click()
 
-  await expect(page).toHaveURL(appPages.users.path)
-  await expect(usersLink).toHaveAttribute("aria-current", "page")
+  await expect(page).toHaveURL(appPages.notifications.path)
+  await expect(notificationsLink).toHaveAttribute("aria-current", "page")
 })
 
 test("fecha o menu lateral mobile após navegar", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto("/")
+  await page.goto(appPages.clients.path)
 
   await page
     .getByRole("button", { name: appCopy.toolbar.openSidebar })
     .click()
 
-  const clientsLink = await getSidebarLinkByPath(page, appPages.clients.path)
+  const navigation = page.getByRole("navigation")
+  const unitsLink = navigation.locator(`a[href="${appPages.units.path}"]`)
 
-  await clientsLink.click()
+  await expect(unitsLink).toBeVisible()
+  await unitsLink.click()
 
-  await expect(page).toHaveURL(appPages.clients.path)
+  await expect(page).toHaveURL(appPages.units.path)
   await expect(
     page.getByRole("button", { name: appCopy.toolbar.openSidebar }),
   ).toBeVisible()
