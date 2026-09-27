@@ -6,7 +6,11 @@ import {
   type ReactNode,
 } from "react"
 
-import { isTheme, ThemeProviderContext, type Theme } from "@/components/theme/theme-context"
+import {
+  isTheme,
+  ThemeContext,
+  type Theme,
+} from "@/components/theme/theme-context"
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -49,6 +53,7 @@ function applyResolvedTheme(theme: Exclude<Theme, "system">): void {
 
   root.classList.remove("light", "dark")
   root.classList.add(theme)
+  root.style.colorScheme = theme
 }
 
 export function ThemeProvider({
@@ -101,9 +106,5 @@ export function ThemeProvider({
     [setTheme, theme],
   )
 
-  return (
-    <ThemeProviderContext.Provider value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  )
+  return <ThemeContext value={value}>{children}</ThemeContext>
 }
