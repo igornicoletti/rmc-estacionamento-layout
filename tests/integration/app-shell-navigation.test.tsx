@@ -8,7 +8,10 @@ import { appPages } from "@/app/config/app-config"
 import App from "@/app/root/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
-import { waitForRouterInitialization } from "@tests/support/router"
+import {
+  waitForRouterInitialization,
+  waitForRouterLocation,
+} from "@tests/support/router"
 
 const defaultMatchMedia = window.matchMedia.bind(window)
 
@@ -199,25 +202,30 @@ describe("app shell navigation", () => {
 
   it("não mantém uma seção contextual ao navegar para um item principal", async () => {
     const user = userEvent.setup()
-
-    await renderApp(appPages.users.path)
+    const router = await renderApp(appPages.users.path)
 
     const navigation = screen.getByRole("navigation")
     const dashboardLink = getNavigationLinkByPath(
       navigation,
       appPages.dashboard.path,
     )
+    const navigationComplete = waitForRouterLocation(
+      router,
+      appPages.dashboard.path,
+    )
 
     await user.click(dashboardLink)
 
-    await waitFor(() => {
-      const currentLink = within(navigation).getByRole("link", {
-        current: "page",
-      })
-
-      expect(currentLink).toHaveAttribute("href", appPages.dashboard.path)
-      expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(0)
+    await act(async () => {
+      await navigationComplete
     })
+
+    const currentLink = within(navigation).getByRole("link", {
+      current: "page",
+    })
+
+    expect(currentLink).toHaveAttribute("href", appPages.dashboard.path)
+    expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(0)
   })
 
   it("fecha o menu mobile após navegar", async () => {
