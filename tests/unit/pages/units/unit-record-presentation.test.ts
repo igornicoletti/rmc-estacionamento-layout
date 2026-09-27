@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  getRecordDetailSections,
-  serializeRecordForClipboard,
-} from "@/lib/format-record-fields"
+import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import { unitErpFixture } from "@/pages/units/data/unit-erp.fixture"
 import { mapErpUnits } from "@/pages/units/model/unit-mapper"
 import {
@@ -30,7 +27,7 @@ describe("unitRecordSections", () => {
     expect(sectionKeys.sort()).toEqual(Object.keys(unit).sort())
   })
 
-  it("preserva o valor canônico no modelo e formata detalhes, cópia e CSV", () => {
+  it("preserva o valor canônico no modelo e formata cópia e CSV", () => {
     const unit = mapErpUnits(unitErpFixture).at(0)
 
     if (!unit) {
@@ -40,14 +37,13 @@ describe("unitRecordSections", () => {
     expect(unit.legalName).toBe("UNIDADE DEMONSTRACAO 01 LTDA")
     expect(unit.tradeName).toBe("UNIDADE 01")
 
-    const details = getRecordDetailSections(unit, unitRecordSections)
-    const identification = details.find(
-      (section) => section.key === "identification",
-    )
+    const legalNameField = unitRecordSections
+      .find((section) => section.key === "identification")
+      ?.fields.find((field) => field.key === "legalName")
 
-    expect(
-      identification?.fields.find((field) => field.key === "legalName")?.value,
-    ).toBe("Unidade Demonstracao 01 Ltda")
+    expect(legalNameField?.getValue(unit)).toBe(
+      "Unidade Demonstracao 01 Ltda",
+    )
     expect(
       serializeRecordForClipboard(unit, unitRecordSections),
     ).toContain("Razão social: Unidade Demonstracao 01 Ltda")
@@ -70,12 +66,11 @@ describe("unitRecordSections", () => {
       throw new Error("Fixture não contém unidade de Goiás.")
     }
 
-    const details = getRecordDetailSections(goiasUnit, unitRecordSections)
-    const location = details.find((section) => section.key === "location")
+    const cityField = unitRecordSections
+      .find((section) => section.key === "location")
+      ?.fields.find((field) => field.key === "city")
 
     expect(goiasUnit.state).toBe("Goiás")
-    expect(
-      location?.fields.find((field) => field.key === "city")?.value,
-    ).toBe("Goiânia")
+    expect(cityField?.getValue(goiasUnit)).toBe("Goiânia")
   })
 })
