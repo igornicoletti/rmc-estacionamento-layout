@@ -104,7 +104,10 @@ async function getSidebarLinkByPath(page: Page, path: string) {
       await trigger.click()
     }
 
-    if (await link.isVisible()) {
+    await expect(trigger).toHaveAttribute("aria-expanded", "true")
+
+    if ((await link.count()) > 0) {
+      await expect(link).toBeVisible()
       return link
     }
   }
