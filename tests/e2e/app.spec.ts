@@ -136,9 +136,7 @@ test("navega pelo menu lateral no desktop", async ({ page }) => {
   await usersLink.click()
 
   await expect(page).toHaveURL(appPages.users.path)
-  await expect(
-    page.getByRole("navigation").getByRole("link", { current: "page" }),
-  ).toHaveAttribute("href", appPages.users.path)
+  await expect(usersLink).toHaveAttribute("aria-current", "page")
 })
 
 test("fecha o menu lateral mobile após navegar", async ({ page }) => {
