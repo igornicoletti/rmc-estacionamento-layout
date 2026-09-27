@@ -2,6 +2,8 @@ import type { ComponentProps, ReactNode } from "react"
 
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -13,10 +15,13 @@ import {
 type AlertDialogRootProps = ComponentProps<typeof AlertDialog>
 
 interface AppAlertDialogProps {
+  action: ReactNode
+  actionProps?: Omit<ComponentProps<typeof AlertDialogAction>, "children">
+  cancelLabel?: ReactNode | null
+  cancelProps?: Omit<ComponentProps<typeof AlertDialogCancel>, "children">
   children?: ReactNode
   description: ReactNode
   initialFocus?: ComponentProps<typeof AlertDialogContent>["initialFocus"]
-  footer: ReactNode
   media?: ReactNode
   onOpenChange: NonNullable<AlertDialogRootProps["onOpenChange"]>
   open: boolean
@@ -24,16 +29,13 @@ interface AppAlertDialogProps {
   title: ReactNode
 }
 
-/**
- * Estrutura controlada para decisões que exigem resposta explícita.
- *
- * Exige descrição e footer para preservar contexto acessível e uma resposta
- * explícita. Conteúdo adicional e media permanecem opcionais.
- */
 export function AppAlertDialog({
+  action,
+  actionProps,
+  cancelLabel = "Cancelar",
+  cancelProps,
   children,
   description,
-  footer,
   initialFocus,
   media,
   onOpenChange,
@@ -52,7 +54,14 @@ export function AppAlertDialog({
 
         {children}
 
-        <AlertDialogFooter>{footer}</AlertDialogFooter>
+        <AlertDialogFooter>
+          {cancelLabel !== null ? (
+            <AlertDialogCancel {...cancelProps}>
+              {cancelLabel}
+            </AlertDialogCancel>
+          ) : null}
+          <AlertDialogAction {...actionProps}>{action}</AlertDialogAction>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )

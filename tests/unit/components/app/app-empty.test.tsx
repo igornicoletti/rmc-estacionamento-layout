@@ -17,4 +17,28 @@ describe("AppEmpty", () => {
     expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument()
     expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
   })
+
+  it("compõe o avatar e seu fallback dentro de EmptyMedia", () => {
+    const { container } = render(
+      <AppEmpty
+        media={{
+          avatar: {
+            alt: "Avatar de Marina",
+            fallback: "MN",
+            src: "/marina.png",
+          },
+        }}
+        title="Marina"
+      />,
+    )
+
+    expect(container.querySelector('[data-slot="empty-icon"]')).toHaveAttribute(
+      "data-variant",
+      "default",
+    )
+    expect(container.querySelector('[data-slot="avatar"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-slot="avatar-fallback"]')).toHaveTextContent(
+      "MN",
+    )
+  })
 })

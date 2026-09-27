@@ -2,7 +2,6 @@ import { AlarmClockOffIcon } from "lucide-react"
 
 import { appCopy } from "@/app/config/app-copy"
 import { AppAlertDialog } from "@/components/app/app-alert-dialog"
-import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
 interface SessionExpiredDialogProps {
@@ -26,21 +25,23 @@ export function SessionExpiredDialog({
 
   return (
     <AppAlertDialog
-      description={copy.description}
-      footer={
-        <Button
-          aria-busy={isPending}
-          className="col-span-2 w-full"
-          disabled={isPending}
-          onClick={onSignIn}
-          type="button"
-        >
+      action={
+        <>
           {isPending ? (
             <Spinner aria-hidden="true" data-icon="inline-start" />
           ) : null}
           {isPending ? copy.pendingAction : copy.action}
-        </Button>
+        </>
       }
+      actionProps={{
+        "aria-busy": isPending,
+        className: "col-span-2 w-full",
+        disabled: isPending,
+        onClick: onSignIn,
+        type: "button",
+      }}
+      cancelLabel={null}
+      description={copy.description}
       media={<AlarmClockOffIcon aria-hidden="true" />}
       onOpenChange={(nextOpen, eventDetails) => {
         if (!nextOpen) {
