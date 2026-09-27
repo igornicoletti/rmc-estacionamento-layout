@@ -10,7 +10,7 @@ import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
 import { waitForRouterInitialization } from "@tests/support/router"
 
-const defaultMatchMedia = window.matchMedia
+const defaultMatchMedia = window.matchMedia.bind(window)
 
 async function renderApp(initialEntry = "/") {
   const router = createMemoryRouter(routes, {
