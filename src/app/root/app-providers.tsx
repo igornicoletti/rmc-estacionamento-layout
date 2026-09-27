@@ -34,7 +34,8 @@ export function AppProviders({
         >
           <SessionBootstrapBoundary>
             <TooltipProvider>
-              <Toaster>{children}</Toaster>
+              {children}
+              <Toaster />
             </TooltipProvider>
           </SessionBootstrapBoundary>
         </SessionProvider>

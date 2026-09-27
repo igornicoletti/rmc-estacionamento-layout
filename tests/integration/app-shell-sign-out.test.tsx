@@ -3,17 +3,18 @@ import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it, vi } from "vitest"
 
-import { notify } from "@/app/feedback/notify"
 import App from "@/app/root/app"
 import { routes } from "@/app/routing/routes"
 import type { SessionCommands } from "@/app/session/session-commands"
-import { SESSION_FEEDBACK } from "@/app/session/content/session-feedback"
 import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
+import { notify } from "@/components/toast/toast-notify"
 import { waitForRouterInitialization } from "@tests/support/router"
 
-vi.mock("@/app/feedback/notify", () => ({
+vi.mock("@/components/toast/toast-notify", () => ({
   notify: vi.fn(),
 }))
+
+const showToast = vi.mocked(notify)
 
 const authenticatedSession = {
   status: "authenticated",
@@ -27,8 +28,8 @@ const authenticatedSession = {
   },
 } satisfies ResolvedSessionSnapshot
 
-describe("app shell feedback", () => {
-  it("notifica uma falha de logout com feedback controlado e urgente", async () => {
+describe("app shell sign out", () => {
+  it("usa feedback público urgente quando o logout falha", async () => {
     const user = userEvent.setup()
     const sessionCommands: SessionCommands = {
       getSession: vi.fn(),
@@ -53,9 +54,16 @@ describe("app shell feedback", () => {
     await user.click(await screen.findByRole("menuitem", { name: "Sair" }))
 
     await waitFor(() => {
-      expect(notify).toHaveBeenCalledOnce()
+      expect(showToast).toHaveBeenCalledOnce()
     })
-    expect(SESSION_FEEDBACK.signOutFailed.priority).toBe("high")
-    expect(notify).toHaveBeenCalledWith(SESSION_FEEDBACK.signOutFailed)
+
+    const definition = showToast.mock.calls[0]?.[0]
+
+    expect(sessionCommands.signOut).toHaveBeenCalledOnce()
+    expect(definition).toMatchObject({
+      priority: "high",
+      type: "error",
+    })
+    expect(definition?.description).not.toBe("internal provider detail")
   })
 })

@@ -12,16 +12,38 @@ const productionTestImportRestriction = {
 
 const toastImportRestriction = {
   name: "@/components/ui/toast",
-  allowImportNames: ["Toaster"],
   message:
-    "Use notify() para feedback transitório; Toaster é reservado à composição da aplicação.",
+    "Use @/components/toast/toast-notify para notificações; o Toast nativo é restrito à infraestrutura.",
 }
 
 const relativeToastImportRestriction = {
   group: ["**/components/ui/toast"],
-  allowImportNames: ["Toaster"],
   message:
-    "Use notify() para feedback transitório; Toaster é reservado à composição da aplicação.",
+    "Use @/components/toast/toast-notify para notificações; o Toast nativo é restrito à infraestrutura.",
+}
+
+const toastOnlyImportRestriction = {
+  name: "@/components/ui/toast",
+  allowImportNames: ["toast"],
+  message: "toast-notify pode importar somente toast do componente nativo.",
+}
+
+const relativeToastOnlyImportRestriction = {
+  group: ["**/components/ui/toast"],
+  allowImportNames: ["toast"],
+  message: "toast-notify pode importar somente toast do componente nativo.",
+}
+
+const toasterOnlyImportRestriction = {
+  name: "@/components/ui/toast",
+  allowImportNames: ["Toaster"],
+  message: "AppProviders pode importar somente Toaster do componente nativo.",
+}
+
+const relativeToasterOnlyImportRestriction = {
+  group: ["**/components/ui/toast"],
+  allowImportNames: ["Toaster"],
+  message: "AppProviders pode importar somente Toaster do componente nativo.",
 }
 
 export default tseslint.config(
@@ -79,12 +101,31 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/app/feedback/notify.ts"],
+    files: ["src/components/toast/toast-notify.ts"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
-          patterns: [productionTestImportRestriction],
+          paths: [toastOnlyImportRestriction],
+          patterns: [
+            productionTestImportRestriction,
+            relativeToastOnlyImportRestriction,
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/app/root/app-providers.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [toasterOnlyImportRestriction],
+          patterns: [
+            productionTestImportRestriction,
+            relativeToasterOnlyImportRestriction,
+          ],
         },
       ],
     },

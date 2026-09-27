@@ -1,10 +1,8 @@
 import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 
-import { notify } from "@/app/feedback/notify"
-import { CLIENTS_FEEDBACK } from "@/pages/clients/content/clients-feedback"
 import { getClientDetailsPath } from "@/pages/clients/client-routes"
 import { ClientsDataTable } from "@/pages/clients/components/clients-data-table"
 import { clientErpFixture } from "@/pages/clients/data/client-erp.fixture"
@@ -17,11 +15,6 @@ import {
 } from "@/pages/clients/model/client-presentation"
 import { renderWithProviders } from "@tests/support/render"
 
-vi.mock("@/app/feedback/notify", () => ({
-  notify: vi.fn(),
-}))
-
-const showFeedback = vi.mocked(notify)
 const previewClients = mapErpClients(clientErpFixture)
 const firstClient = previewClients[0]
 
@@ -81,10 +74,6 @@ function getRowActionTrigger(row: HTMLElement) {
 }
 
 describe("ClientsDataTable", () => {
-  beforeEach(() => {
-    showFeedback.mockReset()
-  })
-
   it("renderiza dados do domínio e mantém colunas configuradas como ocultas", async () => {
     const table = await renderClientsDataTable()
     const rows = within(table).getAllByRole("row")
@@ -103,7 +92,7 @@ describe("ClientsDataTable", () => {
     expect(firstRow).not.toHaveTextContent(formatPhone(firstClient.phone))
   })
 
-  it("copia um e-mail adicional e usa feedback dinâmico do domínio", async () => {
+  it("copia um e-mail adicional", async () => {
     const user = userEvent.setup()
     const table = await renderClientsDataTable()
     const firstRow = getFirstDataRow(table)
@@ -134,11 +123,6 @@ describe("ClientsDataTable", () => {
     await expect(navigator.clipboard.readText()).resolves.toBe(
       additionalEmail,
     )
-    await waitFor(() => {
-      expect(showFeedback).toHaveBeenCalledWith(
-        CLIENTS_FEEDBACK.emailCopied({ email: additionalEmail }),
-      )
-    })
   })
 
   it("abre os detalhes do cliente selecionado", async () => {

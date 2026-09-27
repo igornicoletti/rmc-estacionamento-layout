@@ -1,6 +1,6 @@
-import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
+import type { ToastCatalog } from "@/components/toast/toast-contract"
 
-export const CLIENTS_FEEDBACK = {
+export const clientsNotify = {
   emailCopied: ({ email }: { email: string }) => ({
     title: "E-mail copiado",
     description: email,
@@ -11,4 +11,4 @@ export const CLIENTS_FEEDBACK = {
     description: "Não foi possível copiar o endereço de e-mail.",
     type: "error",
   },
-} as const satisfies FeedbackCatalog
+} as const satisfies ToastCatalog

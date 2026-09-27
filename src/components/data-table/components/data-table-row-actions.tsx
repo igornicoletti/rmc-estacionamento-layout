@@ -1,5 +1,6 @@
 import { CopyIcon, EyeIcon, MoreHorizontalIcon } from "lucide-react"
 
+import { notify } from "@/components/toast/toast-notify"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,10 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { dataTableNotify } from "@/components/data-table/content/data-table-notify"
 
 interface DataTableRowActionsProps {
   accessibleLabel: string
-  onCopyData: () => void
+  onCopyData: () => Promise<void>
   onDetails?: () => void
 }
 
@@ -22,6 +24,17 @@ export function DataTableRowActions({
   onCopyData,
   onDetails,
 }: DataTableRowActionsProps) {
+  const handleCopyData = async () => {
+    try {
+      await onCopyData()
+    } catch {
+      notify(dataTableNotify.rowCopyFailed)
+      return
+    }
+
+    notify(dataTableNotify.rowCopied)
+  }
+
   return (
     <div className="flex justify-end">
       <DropdownMenu>
@@ -46,7 +59,7 @@ export function DataTableRowActions({
             ) : null}
             <DropdownMenuItem
               data-testid="data-table-row-action-copy"
-              onClick={onCopyData}
+              onClick={() => void handleCopyData()}
             >
               <CopyIcon aria-hidden="true" />
               {dataTableCopy.rowActions.copyData}

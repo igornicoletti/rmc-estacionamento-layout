@@ -19,7 +19,7 @@ import {
 } from "@/pages/clients/model/client-presentation"
 
 interface ClientsTableColumnActions {
-  onCopyData: (client: Client) => void
+  onCopyData: (client: Client) => Promise<void>
   onDetails: (client: Client) => void
 }
 

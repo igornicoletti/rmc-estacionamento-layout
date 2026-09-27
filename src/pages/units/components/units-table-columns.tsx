@@ -13,7 +13,7 @@ import {
 } from "@/pages/units/model/unit-presentation"
 
 interface UnitsTableColumnActions {
-  onCopyData: (unit: Unit) => void
+  onCopyData: (unit: Unit) => Promise<void>
   onDetails: (unit: Unit) => void
 }
 

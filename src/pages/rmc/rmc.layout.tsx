@@ -1,12 +1,12 @@
 import { useEffect, useReducer } from "react"
 
-import { notify } from "@/app/feedback/notify"
 import { AppPageLayout } from "@/app/layouts/app-page-layout"
 import { AvatarImageUploadDialog } from "@/components/dialogs/image-upload"
 import { SessionExpiredDialog } from "@/components/dialogs/session-expired"
 import { SessionTimeoutWarningDialog } from "@/components/dialogs/session-timeout"
+import { notify } from "@/components/toast/toast-notify"
 import { Button } from "@/components/ui/button"
-import { RMC_FEEDBACK } from "@/pages/rmc/content/rmc-feedback"
+import { rmcNotify } from "@/pages/rmc/content/rmc-notify"
 
 const PREVIEW_WARNING_SECONDS = 30
 
@@ -121,35 +121,35 @@ export function RmcPreviewPage() {
 
       <div className="flex flex-wrap gap-2">
         <Button
-          onClick={() => notify(RMC_FEEDBACK.operationCompleted)}
+          onClick={() => notify(rmcNotify.operationCompleted)}
           type="button"
           variant="outline"
         >
           Visualizar feedback de sucesso
         </Button>
         <Button
-          onClick={() => notify(RMC_FEEDBACK.informationAvailable)}
+          onClick={() => notify(rmcNotify.informationAvailable)}
           type="button"
           variant="outline"
         >
           Visualizar feedback informativo
         </Button>
         <Button
-          onClick={() => notify(RMC_FEEDBACK.attentionRequired)}
+          onClick={() => notify(rmcNotify.attentionRequired)}
           type="button"
           variant="outline"
         >
           Visualizar feedback de atenção
         </Button>
         <Button
-          onClick={() => notify(RMC_FEEDBACK.operationFailed)}
+          onClick={() => notify(rmcNotify.operationFailed)}
           type="button"
           variant="outline"
         >
           Visualizar feedback de erro
         </Button>
         <Button
-          onClick={() => notify(RMC_FEEDBACK.urgentOperationFailed)}
+          onClick={() => notify(rmcNotify.urgentOperationFailed)}
           type="button"
           variant="outline"
         >

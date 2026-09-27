@@ -1,6 +1,6 @@
-import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
+import type { ToastCatalog } from "@/components/toast/toast-contract"
 
-export const DATA_TABLE_FEEDBACK = {
+export const dataTableNotify = {
   rowCopied: {
     title: "Dados copiados",
     description: "Os dados do registro foram copiados.",
@@ -11,4 +11,4 @@ export const DATA_TABLE_FEEDBACK = {
     description: "Não foi possível copiar os dados do registro.",
     type: "error",
   },
-} as const satisfies FeedbackCatalog
+} as const satisfies ToastCatalog

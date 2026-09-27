@@ -1,6 +1,6 @@
-import type { FeedbackCatalog } from "@/app/feedback/feedback-contract"
+import type { ToastCatalog } from "@/components/toast/toast-contract"
 
-export const RMC_FEEDBACK = {
+export const rmcNotify = {
   operationCompleted: {
     title: "Operação concluída",
     description: "A ação foi concluída com sucesso.",
@@ -27,4 +27,4 @@ export const RMC_FEEDBACK = {
     priority: "high",
     type: "error",
   },
-} as const satisfies FeedbackCatalog
+} as const satisfies ToastCatalog
