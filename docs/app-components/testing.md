@@ -8,11 +8,12 @@ Testar o comportamento público acrescentado pela camada `App*`. Não duplicar t
 
 - `AppAlertDialog`: semântica acessível e fechamento solicitado pelo usuário;
 - `AppBadge`: ícone decorativo não entra na árvore acessível;
+- `AppCalendar`: timezone local por padrão e precedência de `timeZone` explícito;
 - `AppCombobox`: seleção, busca, grupos e limpeza;
 - `AppDialog` e `AppSheet`: mudança de abertura por interação;
-- `AppEmpty`: nível semântico do heading e conteúdo de ação.
+- `AppEmpty`: nível semântico do heading e media decorativa.
 
-`AppCalendar` não mantém teste próprio enquanto sua única política for encaminhar o timezone local ao Calendar oficial. Regras de data acrescentadas por consumidores devem ser testadas no respectivo escopo.
+Regras de data, conteúdo ou domínio acrescentadas por consumidores devem ser testadas no respectivo escopo, não duplicadas no wrapper.
 
 ## Evitar
 
