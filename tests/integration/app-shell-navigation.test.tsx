@@ -1,14 +1,7 @@
-import {
-  act,
-  afterEach,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { appCopy } from "@/app/config/app-copy"
 import { appPages } from "@/app/config/app-config"
