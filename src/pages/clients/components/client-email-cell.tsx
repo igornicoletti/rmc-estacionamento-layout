@@ -1,6 +1,6 @@
 import { CopyIcon } from "lucide-react"
 
-import { notify } from "@/app/feedback/notify"
+import { notify } from "@/components/toast/toast-notify"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,7 +9,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
-import { CLIENTS_FEEDBACK } from "@/pages/clients/content/clients-feedback"
+import { clientsNotify } from "@/pages/clients/content/clients-notify"
 import {
   formatOptionalText,
   splitEmails,
@@ -23,11 +23,11 @@ async function copyEmail(email: string): Promise<void> {
   try {
     await copyToClipboard(email)
   } catch {
-    notify(CLIENTS_FEEDBACK.emailCopyFailed)
+    notify(clientsNotify.emailCopyFailed)
     return
   }
 
-  notify(CLIENTS_FEEDBACK.emailCopied({ email }))
+  notify(clientsNotify.emailCopied({ email }))
 }
 
 export function ClientEmailCell({ value }: ClientEmailCellProps) {
