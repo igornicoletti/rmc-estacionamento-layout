@@ -3,13 +3,13 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import {
-  SessionBootstrapFallback,
-  SessionUnavailableFallback,
-} from "@/app/session/session-boundary"
+  FallbackSessionLoading,
+  FallbackSessionUnavailable,
+} from "@/components/fallback/fallback-session"
 
 describe("session fallbacks", () => {
   it("anuncia o bootstrap como estado de carregamento", () => {
-    render(<SessionBootstrapFallback />)
+    render(<FallbackSessionLoading />)
 
     expect(screen.getByRole("status")).toHaveAttribute("aria-label")
   })
@@ -18,14 +18,14 @@ describe("session fallbacks", () => {
     const user = userEvent.setup()
     const onRetry = vi.fn()
     const view = render(
-      <SessionUnavailableFallback isRetrying={false} onRetry={onRetry} />,
+      <FallbackSessionUnavailable isRetrying={false} onRetry={onRetry} />,
     )
 
     await user.click(screen.getByRole("button"))
     expect(onRetry).toHaveBeenCalledOnce()
 
     view.rerender(
-      <SessionUnavailableFallback isRetrying={true} onRetry={onRetry} />,
+      <FallbackSessionUnavailable isRetrying={true} onRetry={onRetry} />,
     )
 
     const retry = screen.getByRole("button")

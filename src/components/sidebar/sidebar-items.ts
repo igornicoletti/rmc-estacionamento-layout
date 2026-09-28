@@ -15,24 +15,25 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-import { appPages, type AppPageId } from "@/app/config/app-config"
+import { appRoutes, type AppPageRouteId } from "@/app/app-routes"
+import { sidebarContent } from "@/components/sidebar/sidebar-content"
 import type {
   SidebarNavigationItem,
   SidebarNavigationSection,
 } from "@/components/sidebar/sidebar-navigation"
 
 function navigationItem(
-  pageId: AppPageId,
+  pageId: AppPageRouteId,
   icon: LucideIcon,
   end = true,
 ): SidebarNavigationItem {
-  const page = appPages[pageId]
+  const page = appRoutes[pageId]
 
   return {
     end,
     icon,
     id: pageId,
-    label: page.title,
+    label: sidebarContent.pages[pageId],
     to: page.path,
   }
 }

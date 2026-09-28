@@ -11,19 +11,19 @@ import {
 import {
   anonymousSessionCommands,
   type SessionCommands,
-} from "@/app/session/session-commands"
+} from "@/features/auth/auth-commands"
 import {
   SessionContext,
   type SessionContextValue,
-} from "@/app/session/session-context"
+} from "@/features/auth/auth-context"
 import {
   anonymousSession,
   bootstrappingSession,
   type ResolvedSessionSnapshot,
   type SessionSnapshot,
-} from "@/app/session/session-types"
+} from "@/features/auth/auth-types"
 
-interface SessionProviderProps {
+interface AuthProviderProps {
   children: ReactNode
   commands?: SessionCommands
   initialSnapshot?: ResolvedSessionSnapshot
@@ -62,18 +62,15 @@ function isSameAuthority(
     next.status === "authenticated" &&
     current.session.identity.id === next.session.identity.id &&
     current.session.assurance === next.session.assurance &&
-    hasSameCapabilities(
-      current.session.capabilities,
-      next.session.capabilities,
-    )
+    hasSameCapabilities(current.session.capabilities, next.session.capabilities)
   )
 }
 
-export function SessionProvider({
+export function AuthProvider({
   children,
   commands = anonymousSessionCommands,
   initialSnapshot,
-}: SessionProviderProps) {
+}: AuthProviderProps) {
   const queryClient = useQueryClient()
   const [snapshot, setSnapshotState] = useState<SessionSnapshot>(
     initialSnapshot ?? bootstrappingSession,
@@ -145,10 +142,7 @@ export function SessionProvider({
   )
 
   const commitSnapshot = useCallback(
-    async (
-      next: ResolvedSessionSnapshot,
-      operation: AuthorityOperation,
-    ) => {
+    async (next: ResolvedSessionSnapshot, operation: AuthorityOperation) => {
       if (!isCurrentOperation(operation)) {
         return
       }

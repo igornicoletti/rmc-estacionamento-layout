@@ -4,7 +4,7 @@ import {
   createAppQueryClient,
   getQueryRetryDelay,
   shouldRetryQuery,
-} from "@/app/root/query-client"
+} from "@/lib/query/query-client"
 
 describe("query policy", () => {
   it("tenta novamente apenas falhas recuperáveis e com limite", () => {

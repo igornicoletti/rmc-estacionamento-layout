@@ -1,0 +1,20 @@
+export const sidebarContent = {
+  collapse: "Recolher menu lateral",
+  expand: "Expandir menu lateral",
+  navigation: "Navegação principal",
+  pages: {
+    dashboard: "Dashboard",
+    "virtual-yard": "Pátio virtual",
+    reports: "Relatórios",
+    units: "Unidades",
+    clients: "Clientes",
+    prices: "Preços",
+    rules: "Regras",
+    users: "Usuários",
+    notifications: "Notificações",
+    profile: "Meu perfil",
+    "account-security": "Segurança da conta",
+    permissions: "Permissões",
+    audit: "Auditoria",
+  },
+} as const

@@ -1,4 +1,5 @@
 export const unitsCopy = {
+  page: { title: "Unidades", subtitle: "Consulta e gestão das unidades da operação." },
   list: {
     caption: "Lista de unidades",
     loadError: "Não foi possível carregar as unidades.",

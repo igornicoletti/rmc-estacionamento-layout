@@ -2,10 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import App from "@/app/root/app"
-import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
-import type { AppRouteHandle } from "@/app/routing/route-access"
-import { anonymousSession } from "@/app/session/session-types"
+import App from "@/app/app"
+import { AuthAccessBoundary } from "@/features/auth/auth-access-boundary"
+import type { AppRouteHandle } from "@/features/auth/auth-access-policy"
+import { anonymousSession } from "@/features/auth/auth-types"
 
 function EmptyRoute() {
   return null
@@ -29,7 +29,7 @@ describe("route access boundary", () => {
         },
         {
           Component: () => (
-            <RouteAccessBoundary authenticationPath="/login" />
+            <AuthAccessBoundary authenticationPath="/login" />
           ),
           children: [
             {
@@ -63,7 +63,7 @@ describe("route access boundary", () => {
     const router = createMemoryRouter(
       [
         {
-          Component: RouteAccessBoundary,
+          Component: AuthAccessBoundary,
           handle: validHandle,
           children: [
             {

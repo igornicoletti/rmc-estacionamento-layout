@@ -1,7 +1,5 @@
-import { appPages } from "@/app/config/app-config"
-
-export const CLIENT_DETAILS_ROUTE_PATH = `${appPages.clients.path}/:clientId`
+import { appRoutes } from "@/app/app-routes"
 
 export function getClientDetailsPath(clientId: string) {
-  return `${appPages.clients.path}/${encodeURIComponent(clientId)}`
+  return appRoutes.clientDetails.path(clientId)
 }

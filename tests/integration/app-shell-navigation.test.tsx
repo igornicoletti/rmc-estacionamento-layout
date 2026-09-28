@@ -3,11 +3,11 @@ import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { appCopy } from "@/app/config/app-copy"
-import { appPages } from "@/app/config/app-config"
-import App from "@/app/root/app"
-import { routes } from "@/app/routing/routes"
-import { anonymousSession } from "@/app/session/session-types"
+import { sidebarContent } from "@/components/sidebar/sidebar-content"
+import { appRoutes } from "@/app/app-routes"
+import App from "@/app/app"
+import { routes } from "@/app/app-route-tree"
+import { anonymousSession } from "@/features/auth/auth-types"
 import { headerContent } from "@/components/header/header-content"
 import {
   waitForRouterInitialization,
@@ -111,33 +111,33 @@ afterEach(() => {
 
 describe("app shell navigation", () => {
   it("deriva o item e a seção ativos da rota atual", async () => {
-    await renderApp(appPages.users.path)
+    await renderApp(appRoutes.users.path)
 
     const navigation = screen.getByRole("navigation")
     const currentLink = within(navigation).getByRole("link", {
       current: "page",
     })
 
-    expect(currentLink).toHaveAttribute("href", appPages.users.path)
+    expect(currentLink).toHaveAttribute("href", appRoutes.users.path)
     expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(1)
   })
 
   it("mantém o item pai ativo em uma rota descendente", async () => {
-    await renderApp(`${appPages.clients.path}/123`)
+    await renderApp(`${appRoutes.clients.path}/123`)
 
     const navigation = screen.getByRole("navigation")
     const currentLink = within(navigation).getByRole("link", {
       current: "page",
     })
 
-    expect(currentLink).toHaveAttribute("href", appPages.clients.path)
+    expect(currentLink).toHaveAttribute("href", appRoutes.clients.path)
     expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(1)
   })
 
   it("mantém somente uma seção aberta", async () => {
     const user = userEvent.setup()
 
-    await renderApp(appPages.users.path)
+    await renderApp(appRoutes.users.path)
 
     const navigation = screen.getByRole("navigation")
     const [activeTrigger] = getExpandedNavigationGroupTriggers(navigation)
@@ -159,7 +159,7 @@ describe("app shell navigation", () => {
   it("permite fechar manualmente a seção da rota ativa", async () => {
     const user = userEvent.setup()
 
-    await renderApp(appPages.users.path)
+    await renderApp(appRoutes.users.path)
 
     const navigation = screen.getByRole("navigation")
     const [activeTrigger] = getExpandedNavigationGroupTriggers(navigation)
@@ -175,7 +175,7 @@ describe("app shell navigation", () => {
 
   it("descarta o override manual ao navegar para outra seção", async () => {
     const user = userEvent.setup()
-    const router = await renderApp(appPages.users.path)
+    const router = await renderApp(appRoutes.users.path)
 
     const navigation = screen.getByRole("navigation")
     const [activeTrigger] = getExpandedNavigationGroupTriggers(navigation)
@@ -188,7 +188,7 @@ describe("app shell navigation", () => {
     expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(0)
 
     await act(async () => {
-      await router.navigate(appPages.clients.path)
+      await router.navigate(appRoutes.clients.path)
     })
 
     await waitFor(() => {
@@ -196,23 +196,23 @@ describe("app shell navigation", () => {
         current: "page",
       })
 
-      expect(currentLink).toHaveAttribute("href", appPages.clients.path)
+      expect(currentLink).toHaveAttribute("href", appRoutes.clients.path)
       expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(1)
     })
   })
 
   it("não mantém uma seção contextual ao navegar para um item principal", async () => {
     const user = userEvent.setup()
-    const router = await renderApp(appPages.users.path)
+    const router = await renderApp(appRoutes.users.path)
 
     const navigation = screen.getByRole("navigation")
     const dashboardLink = getNavigationLinkByPath(
       navigation,
-      appPages.dashboard.path,
+      appRoutes.dashboard.path,
     )
     const navigationComplete = waitForRouterLocation(
       router,
-      appPages.dashboard.path,
+      appRoutes.dashboard.path,
     )
 
     await user.click(dashboardLink)
@@ -225,7 +225,7 @@ describe("app shell navigation", () => {
       current: "page",
     })
 
-    expect(currentLink).toHaveAttribute("href", appPages.dashboard.path)
+    expect(currentLink).toHaveAttribute("href", appRoutes.dashboard.path)
     expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(0)
   })
 
@@ -242,7 +242,7 @@ describe("app shell navigation", () => {
     const navigation = screen.getByRole("navigation")
     const clientsLink = await openSectionContainingPath(
       navigation,
-      appPages.clients.path,
+      appRoutes.clients.path,
       user,
     )
 
@@ -261,13 +261,13 @@ describe("app shell navigation", () => {
     await renderApp()
 
     await user.click(
-      screen.getByRole("button", { name: appCopy.sidebar.collapse }),
+      screen.getByRole("button", { name: sidebarContent.collapse }),
     )
 
     const navigation = screen.getByRole("navigation")
     const clientsLink = getNavigationLinkByPath(
       navigation,
-      appPages.clients.path,
+      appRoutes.clients.path,
     )
 
     await user.click(clientsLink)
@@ -277,7 +277,7 @@ describe("app shell navigation", () => {
         current: "page",
       })
 
-      expect(currentLink).toHaveAttribute("href", appPages.clients.path)
+      expect(currentLink).toHaveAttribute("href", appRoutes.clients.path)
     })
   })
 })

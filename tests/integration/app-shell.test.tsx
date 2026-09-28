@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import App from "@/app/root/app"
-import { routes } from "@/app/routing/routes"
-import { anonymousSession } from "@/app/session/session-types"
+import App from "@/app/app"
+import { routes } from "@/app/app-route-tree"
+import { anonymousSession } from "@/features/auth/auth-types"
 import { headerContent } from "@/components/header/header-content"
 import { waitForRouterInitialization } from "@tests/support/router"
 

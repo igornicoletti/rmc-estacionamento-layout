@@ -4,18 +4,18 @@ import {
   evaluateRouteAccessPolicies,
   isAppRouteHandle,
   type RouteAccessPolicy,
-} from "@/app/routing/route-access"
-import { RootErrorContent } from "@/app/routing/route-error-boundary"
-import { SessionBootstrapFallback } from "@/app/session/session-boundary"
-import { useSession } from "@/app/session/session-context"
+} from "@/features/auth/auth-access-policy"
+import { FallbackRouteError } from "@/components/fallback/fallback-route-error"
+import { FallbackSessionLoading } from "@/components/fallback/fallback-session"
+import { useSession } from "@/features/auth/auth-context"
 
-interface RouteAccessBoundaryProps {
+interface AuthAccessBoundaryProps {
   authenticationPath?: string
 }
 
-export function RouteAccessBoundary({
+export function AuthAccessBoundary({
   authenticationPath,
-}: RouteAccessBoundaryProps) {
+}: AuthAccessBoundaryProps) {
   const location = useLocation()
   const matches = useMatches()
   const { snapshot } = useSession()
@@ -58,8 +58,8 @@ export function RouteAccessBoundary({
   }
 
   if (decision.kind === "pending") {
-    return <SessionBootstrapFallback />
+    return <FallbackSessionLoading />
   }
 
-  return <RootErrorContent kind="forbidden" />
+  return <FallbackRouteError kind="forbidden" />
 }

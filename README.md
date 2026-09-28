@@ -54,34 +54,41 @@ em Chromium.
 
 ## Organização do código
 
-- `src/main.tsx`: entry point do Vite; cria o Data Router uma única vez, fora da árvore React.
-- `src/app/root/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
-- `src/app/config/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
-- `src/app/config/app-copy.ts`: copy estática de feedback, acessibilidade e ações do shell.
-- `src/app/root/app-layout.tsx`: título da navegação e outlet raiz.
-- `src/app/root/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
-- `src/app/root/query-client.ts`: política de cache/retry e fábrica do QueryClient.
-- `src/app/root/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
-- `src/app/routing/`: rotas, política pura de acesso, bloqueio visual e erros de rota.
-- `src/app/session/`: contratos, comandos, contexto, provider e estados de bootstrap.
-- `src/app/shell/app-shell.tsx`: composição do sidebar, toolbar e conteúdo das rotas liberadas.
-- `src/app/shell/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
-- `src/app/shell/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
-- `src/app/shell/components/`: apresentação específica do shell da aplicação.
-- `src/app/layouts/`: layouts estruturais específicos da aplicação.
+- `src/main.tsx`: bootstrap do React; resolve o DOM root e monta App com StrictMode.
+- `src/app/app.tsx`: composition root da aplicação; recebe o router e dependências injetáveis.
+- `src/app/app-router.ts`: cria o Data Router uma única vez, fora da árvore React.
+- `src/app/app-routes.ts`: fonte única de IDs, paths, builders e títulos de documento; não contém conteúdo de tela nem availability.
+- `src/app/app-metadata.ts`: identidade mínima do produto e título-base do navegador.
+- `src/app/app-route-tree.ts`: composição do Data Router, entradas lazy e atualização do título pelo handle.
+- `src/app/app-route-error-boundary.tsx`: classificação de erros de rota; apresentação delegada a fallback.
+- `src/app/app-providers.tsx`: montagem estável de Query, tema, Auth provisório, tooltip e toast.
+- `src/app/app-error-boundary.tsx`: captura global de falhas de renderização; apresentação delegada a fallback.
+- `src/lib/query/query-client.ts`: política de cache/retry e fábrica do QueryClient.
+- `src/features/auth/`: scaffold de autoridade/lifecycle e guard de UX. A integração real e o redesenho dos contratos aguardam auditoria do projeto `igornicoletti/rmc-estacionamento`.
+- `src/components/layout/`: composição visual de página e shell; recebe conteúdo, callbacks e destinos por props.
+- `src/components/fallback/`: apresentação de falhas da aplicação, rota, carregamento e indisponibilidade de sessão. Cada boundary decide seu próprio estado.
+- `src/components/sidebar/`: conteúdo, itens de navegação e apresentação do sidebar; paths derivados do registro de rotas.
+- `src/components/header/`: Header, menu do usuário, notificações e conteúdo próprio.
 - `src/components/app/`: decisões reutilizáveis da aplicação sobre primitives de `ui/`, sem regra de negócio.
-- `src/components/sidebar/`: composição e navegação exclusivas do sidebar.
-- `src/pages/<page>/<page>.layout.tsx`: único arquivo de entrada de cada página.
+- `src/mocks/mock-shell-route.tsx`: integração do shell no runtime de demonstração atual; usuário e notificações simulados não representam autoridade autenticada.
+- `src/mocks/mock-shell-fixtures.ts`: dados desse shell de demonstração, consumidos exclusivamente pelo módulo mock.
+- `src/pages/<page>/<page>.layout.tsx`: entradas atuais de domínio, ainda aguardando a branch de migração para features.
 
-Cada página reserva `components/` para UI local, `contracts/` para contratos
-externos, `rules/` para regras puras, `types/` para tipos locais e `schemas/`
-para validação de dados em runtime. Pastas e arquivos usam inglês; URLs e
-conteúdo exibido usam português brasileiro. Imports internos usam `@/` e imports
-exclusivamente de tipos usam `import type`.
+`src/app` não possui subdiretórios: contém apenas composição e metadados técnicos.
+Auth real continua adiado. O router atual monta explicitamente o shell mock;
+a integração real deverá substituí-lo, remover seus dados simulados e auditar o
+scaffold de acesso. Não há seleção automática por ambiente nem integração Supabase.
 
-A nomenclatura `*.layout.tsx` é uma convenção deste projeto. No Data Mode,
-o React Router associa explicitamente os componentes às rotas e não depende
-dessa extensão para descobrir arquivos.
+A migração `pages → features` acontecerá em branch própria, começando por Clientes
+e Unidades. Nela serão auditados prefixos, `*-content.ts`, `*-page.tsx`, fixtures e
+subdomínios reais, sem copiar automaticamente pastas técnicas genéricas. Imports
+internos usam `@/`; arquivos/diretórios usam inglês e conteúdo/URLs usam pt-BR.
+
+A [auditoria de auth/routing](docs/architecture/auth-routing-audit.md) registra
+os contratos confirmados, riscos e ordem da reconstrução. O primeiro bloco de
+`refactor/app-architecture` organiza o composition root; a remoção de config,
+layouts e do arquivo de metadados ainda em root continua nos blocos seguintes.
+Pages → Features será uma etapa posterior.
 
 ## Decisões atuais
 

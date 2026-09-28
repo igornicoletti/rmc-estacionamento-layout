@@ -3,10 +3,10 @@ import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
 
-import type { SessionCommands } from "@/app/session/session-commands"
-import { useSession } from "@/app/session/session-context"
-import { SessionProvider } from "@/app/session/session-provider"
-import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
+import type { SessionCommands } from "@/features/auth/auth-commands"
+import { useSession } from "@/features/auth/auth-context"
+import { AuthProvider } from "@/features/auth/auth-provider"
+import type { ResolvedSessionSnapshot } from "@/features/auth/auth-types"
 
 interface SessionHarnessOptions {
   commands: SessionCommands
@@ -21,9 +21,9 @@ function renderSessionHook({
 }: SessionHarnessOptions) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider commands={commands} initialSnapshot={initialSnapshot}>
+      <AuthProvider commands={commands} initialSnapshot={initialSnapshot}>
         {children}
-      </SessionProvider>
+      </AuthProvider>
     </QueryClientProvider>
   )
 
@@ -46,7 +46,7 @@ function createAuthenticatedSession(
   }
 }
 
-describe("SessionProvider", () => {
+describe("AuthProvider", () => {
   it("descarta refresh cancelado antes de alterar sessão ou limpar cache", async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(["private"], "current-data")

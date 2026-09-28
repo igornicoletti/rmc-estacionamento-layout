@@ -5,7 +5,8 @@ import { NavLink, useLocation } from "react-router"
 import rmcLogoBlack from "@/assets/rmc-logo-black.webp"
 import rmcLogoWhite from "@/assets/rmc-logo-white.webp"
 import rmcSymbol from "@/assets/rmc-simbolo.svg"
-import { appCopy } from "@/app/config/app-copy"
+import { sidebarContent } from "@/components/sidebar/sidebar-content"
+import { appMetadata } from "@/app/app-metadata"
 import {
   findActiveSidebarSectionId,
   matchesSidebarNavigationItem,
@@ -152,33 +153,33 @@ export function SidebarApp({
   const { state } = useSidebar()
   const profileLabel = profile.toLocaleUpperCase("pt-BR")
   const triggerLabel =
-    state === "expanded" ? appCopy.sidebar.collapse : appCopy.sidebar.expand
+    state === "expanded" ? sidebarContent.collapse : sidebarContent.expand
 
   return (
     <Sidebar className="border-r-0!" collapsible="icon">
       <SidebarHeader className="h-16 items-center justify-center border-b bg-background">
         <div className="group-data-[collapsible=icon]:hidden">
           <img
-            alt={appCopy.brand.name}
+            alt={appMetadata.productName}
             className="h-11 w-auto dark:hidden"
             src={rmcLogoBlack}
           />
           <img
-            alt={appCopy.brand.name}
+            alt={appMetadata.productName}
             className="hidden h-11 w-auto dark:block"
             src={rmcLogoWhite}
           />
         </div>
 
         <img
-          alt={appCopy.brand.name}
+          alt={appMetadata.productName}
           className="hidden size-10 group-data-[collapsible=icon]:block"
           src={rmcSymbol}
         />
       </SidebarHeader>
 
       <SidebarContent className="gap-0">
-        <nav aria-label={appCopy.sidebar.navigation}>
+        <nav aria-label={sidebarContent.navigation}>
           <SidebarGroup className="pt-4 pb-2">
             <SidebarGroupContent className="flex flex-col gap-2">
               <div className="flex h-9 items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 text-sm text-primary group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!">

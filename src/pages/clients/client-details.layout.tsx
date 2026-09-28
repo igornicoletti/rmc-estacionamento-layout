@@ -2,9 +2,8 @@ import { useQuery } from "@tanstack/react-query"
 import { ArrowLeftIcon, UserRoundXIcon } from "lucide-react"
 import { Link, useParams } from "react-router"
 
-import { appCopy } from "@/app/config/app-copy"
-import { appPages } from "@/app/config/app-config"
-import { AppPageLayout } from "@/app/layouts/app-page-layout"
+import { appRoutes } from "@/app/app-routes"
+import { LayoutPage } from "@/components/layout/layout-page"
 import { AppEmpty } from "@/components/app/app-empty"
 import { buttonVariants } from "@/components/ui/button"
 import { clientsCopy } from "@/pages/clients/clients.copy"
@@ -15,15 +14,11 @@ import {
 } from "@/pages/clients/data/client-preview-data"
 import { formatErpName } from "@/pages/clients/model/client-presentation"
 
-const clientPageBase = {
-  availability: "available" as const,
-}
-
 function BackToClients() {
   return (
-    <Link className={buttonVariants({ variant: "outline" })} to={appPages.clients.path}>
+    <Link className={buttonVariants({ variant: "outline" })} to={appRoutes.clients.path}>
       <ArrowLeftIcon aria-hidden="true" data-icon="inline-start" />
-      {appCopy.pageActions.back}
+      {clientsCopy.details.back}
     </Link>
   )
 }
@@ -39,10 +34,9 @@ export function ClientDetailsPage() {
 
   if (clientsQuery.isPending) {
     return (
-      <AppPageLayout
+      <LayoutPage
         actions={<BackToClients />}
         page={{
-          ...clientPageBase,
           title: clientsCopy.details.fallbackTitle,
           subtitle: clientsCopy.details.loadingSubtitle,
         }}
@@ -52,10 +46,9 @@ export function ClientDetailsPage() {
 
   if (clientsQuery.isError || !clientId || !client) {
     return (
-      <AppPageLayout
+      <LayoutPage
         actions={<BackToClients />}
         page={{
-          ...clientPageBase,
           title: clientsCopy.details.fallbackTitle,
           subtitle: clientsCopy.details.unavailableSubtitle,
         }}
@@ -66,20 +59,19 @@ export function ClientDetailsPage() {
           media={{ icon: UserRoundXIcon }}
           title={clientsCopy.details.notFoundTitle}
         />
-      </AppPageLayout>
+      </LayoutPage>
     )
   }
 
   return (
-    <AppPageLayout
+    <LayoutPage
       actions={<BackToClients />}
       page={{
-        ...clientPageBase,
         title: formatErpName(client.name),
         subtitle: client.taxId,
       }}
     >
       <LazyClientVehiclesDataTable clientId={client.id} />
-    </AppPageLayout>
+    </LayoutPage>
   )
 }

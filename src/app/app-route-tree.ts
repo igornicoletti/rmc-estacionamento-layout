@@ -1,17 +1,20 @@
-import { createElement, type ComponentType } from "react"
-import type { RouteObject } from "react-router"
+import { createElement, useEffect, type ComponentType } from "react"
+import { Outlet, useMatches, type RouteObject } from "react-router"
 
-import { appPages, type AppPageId } from "@/app/config/app-config"
-import { RouteAccessBoundary } from "@/app/routing/route-access-boundary"
-import type { AppRouteHandle } from "@/app/routing/route-access"
-import { rootErrorKinds } from "@/app/routing/route-error"
 import {
-  RootErrorBoundary,
-  RootErrorContent,
-} from "@/app/routing/route-error-boundary"
-import { AppLayout } from "@/app/root/app-layout"
-import { AppShellRoute } from "@/app/shell/app-shell"
-import { CLIENT_DETAILS_ROUTE_PATH } from "@/pages/clients/client-routes"
+  appRoutes,
+  appPageRouteIds,
+  type AppPageRouteId,
+} from "@/app/app-routes"
+import { AuthAccessBoundary } from "@/features/auth/auth-access-boundary"
+import {
+  isAppRouteHandle,
+  type AppRouteHandle,
+} from "@/features/auth/auth-access-policy"
+import { RouteErrorBoundary } from "@/app/app-route-error-boundary"
+import { FallbackRouteError } from "@/components/fallback/fallback-route-error"
+import { appMetadata } from "@/app/app-metadata"
+import { MockShellRoute } from "@/mocks/mock-shell-route"
 
 interface PageRouteModule {
   Component: ComponentType
@@ -21,9 +24,8 @@ type PageRouteLoader = () => Promise<PageRouteModule>
 
 const pageLoaders = {
   "account-security": async () => {
-    const { AccountSecurityPage } = await import(
-      "@/pages/account-security/account-security.layout"
-    )
+    const { AccountSecurityPage } =
+      await import("@/pages/account-security/account-security.layout")
 
     return { Component: AccountSecurityPage }
   },
@@ -38,23 +40,19 @@ const pageLoaders = {
     return { Component: ClientsPage }
   },
   dashboard: async () => {
-    const { DashboardPage } = await import(
-      "@/pages/dashboard/dashboard.layout"
-    )
+    const { DashboardPage } = await import("@/pages/dashboard/dashboard.layout")
 
     return { Component: DashboardPage }
   },
   notifications: async () => {
-    const { NotificationsPage } = await import(
-      "@/pages/notifications/notifications.layout"
-    )
+    const { NotificationsPage } =
+      await import("@/pages/notifications/notifications.layout")
 
     return { Component: NotificationsPage }
   },
   permissions: async () => {
-    const { PermissionsPage } = await import(
-      "@/pages/permissions/permissions.layout"
-    )
+    const { PermissionsPage } =
+      await import("@/pages/permissions/permissions.layout")
 
     return { Component: PermissionsPage }
   },
@@ -89,20 +87,19 @@ const pageLoaders = {
     return { Component: UsersPage }
   },
   "virtual-yard": async () => {
-    const { VirtualYardPage } = await import(
-      "@/pages/virtual-yard/virtual-yard.layout"
-    )
+    const { VirtualYardPage } =
+      await import("@/pages/virtual-yard/virtual-yard.layout")
 
     return { Component: VirtualYardPage }
   },
-} satisfies Record<AppPageId, PageRouteLoader>
+} satisfies Record<AppPageRouteId, PageRouteLoader>
 
-function createPageRoute(id: AppPageId): RouteObject {
-  const page = appPages[id]
+function createPageRoute(id: AppPageRouteId): RouteObject {
+  const page = appRoutes[id]
   const handle = {
-    access: page.access,
-    routeId: id,
-    title: page.title,
+    access: { authentication: "either" },
+    routeId: page.id,
+    title: page.browserTitle,
   } satisfies AppRouteHandle
   const lazy = pageLoaders[id]
 
@@ -112,8 +109,8 @@ function createPageRoute(id: AppPageId): RouteObject {
 }
 
 const rmcPreviewRoute = {
-  id: "rmc-preview",
-  path: "/rmc",
+  id: appRoutes.preview.id,
+  path: appRoutes.preview.path,
   lazy: async () => {
     const { RmcPreviewPage } = await import("@/pages/rmc/rmc.layout")
 
@@ -121,49 +118,63 @@ const rmcPreviewRoute = {
   },
   handle: {
     access: { authentication: "either" },
-    routeId: "rmc-preview",
-    title: "RMC",
+    routeId: appRoutes.preview.id,
+    title: appRoutes.preview.browserTitle,
   } satisfies AppRouteHandle,
 } satisfies RouteObject
 
 const clientDetailsRoute = {
-  id: "client-details",
-  path: CLIENT_DETAILS_ROUTE_PATH,
+  id: appRoutes.clientDetails.id,
+  path: appRoutes.clientDetails.pattern,
   lazy: async () => {
-    const { ClientDetailsPage } = await import(
-      "@/pages/clients/client-details.layout"
-    )
+    const { ClientDetailsPage } =
+      await import("@/pages/clients/client-details.layout")
 
     return { Component: ClientDetailsPage }
   },
   handle: {
-    access: appPages.clients.access,
-    routeId: "client-details",
-    title: "Cliente",
+    access: { authentication: "either" },
+    routeId: appRoutes.clientDetails.id,
+    title: appRoutes.clientDetails.browserTitle,
   } satisfies AppRouteHandle,
 } satisfies RouteObject
 
 function NotFoundRoute() {
-  return createElement(RootErrorContent, {
-    kind: rootErrorKinds.notFound,
+  return createElement(FallbackRouteError, {
+    kind: "notFound",
   })
+}
+
+// All routes remain public until the real Auth contract is implemented.
+function RouteRoot() {
+  const matches = useMatches()
+  const routeTitle = matches
+    .map((match) => match.handle)
+    .filter(isAppRouteHandle)
+    .at(-1)?.title
+  useEffect(() => {
+    document.title = routeTitle
+      ? `${routeTitle} | ${appMetadata.browserTitle}`
+      : appMetadata.browserTitle
+  }, [routeTitle])
+  return createElement(Outlet)
 }
 
 export const routes = [
   {
     id: "app-root",
-    Component: AppLayout,
-    ErrorBoundary: RootErrorBoundary,
+    Component: RouteRoot,
+    ErrorBoundary: RouteErrorBoundary,
     children: [
       {
         id: "access-boundary",
-        Component: RouteAccessBoundary,
+        Component: AuthAccessBoundary,
         children: [
           {
             id: "app-shell",
-            Component: AppShellRoute,
+            Component: MockShellRoute,
             children: [
-              ...(Object.keys(appPages) as AppPageId[]).map(createPageRoute),
+              ...appPageRouteIds.map(createPageRoute),
               clientDetailsRoute,
               rmcPreviewRoute,
             ],

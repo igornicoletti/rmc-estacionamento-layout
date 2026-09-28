@@ -1,4 +1,5 @@
 export const clientsCopy = {
+  page: { title: "Clientes", subtitle: "Consulta e gestão dos clientes da operação." },
   list: {
     caption: "Lista de clientes",
     loadError: "Não foi possível carregar os clientes de demonstração.",
@@ -25,6 +26,7 @@ export const clientsCopy = {
     itemLabel: { singular: "veículo", plural: "veículos" },
   },
   details: {
+    back: "Voltar",
     fallbackTitle: "Cliente",
     loadingSubtitle: "Carregando dados do cliente.",
     unavailableSubtitle: "Cliente não disponível.",
