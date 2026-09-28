@@ -173,7 +173,7 @@ describe("ClientsDataTable query boundary", () => {
       .mockResolvedValueOnce(previewClients)
       .mockRejectedValueOnce(new Error("refetch indisponível"))
 
-    renderClientsDataTable()
+    const view = renderClientsDataTable()
 
     const table = await screen.findByRole("table")
     await waitFor(() => {
@@ -202,5 +202,7 @@ describe("ClientsDataTable query boundary", () => {
     await screen.findByRole("table")
 
     expect(notifyMock).toHaveBeenCalledTimes(1)
+
+    view.unmount()
   })
 })
