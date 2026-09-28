@@ -39,7 +39,8 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
     queryFn: loadDemoVehicles,
     staleTime: Number.POSITIVE_INFINITY,
   })
-  const notifiedRefetchErrorAt = useRef(0)
+  const isInitialPending = query.isPending
+  const notifiedRefetchErrorAt = useRef(query.errorUpdatedAt)
 
   useEffect(() => {
     if (
@@ -130,7 +131,7 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
           <DataTableActions
             csvColumns={clientVehicleRecordCsvColumns}
             filename={`veiculos-cliente-${clientId}.csv`}
-            isBusy={query.isLoading}
+            isBusy={isInitialPending}
             table={table}
           />
         }
@@ -139,7 +140,7 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
       >
         <DataTableSearch
           ariaLabel={vehiclesContent.searchAriaLabel}
-          disabled={query.isLoading}
+          disabled={isInitialPending}
           onChange={table.setGlobalFilter}
           onClear={() => table.setGlobalFilter("")}
           placeholder={
@@ -154,7 +155,7 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
             ariaLabel={vehiclesContent.filterAriaLabel}
             clearAriaLabel={vehiclesContent.filterClearAriaLabel}
             counts={descriptionCounts}
-            disabled={query.isLoading}
+            disabled={isInitialPending}
             items={descriptionItems}
             onValueChange={(value) => descriptionColumn?.setFilterValue(value)}
             placeholder={vehiclesContent.filterPlaceholder}
@@ -173,10 +174,10 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
             onClearFilters={clearFilters}
           />
         }
-        isLoading={query.isLoading}
+        isLoading={isInitialPending}
         table={table}
       />
-      {!query.isLoading ? (
+      {!isInitialPending ? (
         <DataTablePagination
           itemLabel={vehiclesContent.itemLabel}
           rowCount={rowCount}
