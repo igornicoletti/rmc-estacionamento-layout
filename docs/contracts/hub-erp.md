@@ -85,8 +85,8 @@ mas não fazem parte da interface comercial, dos mocks ou do CSV atual.
   erro com retry. Não gera código fictício nem descarta a linha silenciosamente.
 - Validadores de CPF/CNPJ, UF e datas continuam ativos quando o valor existe.
   Coordenadas continuam com normalização técnica já existente.
-- Nomes, telefones, documentos e registros dos mocks continuam sintéticos.
-  O arquivo documenta contratos e não fornece uma amostra real desses cadastros.
+- Clientes e Veículos continuam com valores sintéticos. Unidades usa agora a
+  projeção comercial do espelho histórico compartilhado pelo usuário, conforme abaixo.
   Não houve conexão de produção, criação de SQL, migração de banco ou integração Auth.
 - Tabelas usam fonte proporcional e números normais: sem `font-mono` ou `tabular-nums`.
 
@@ -94,6 +94,34 @@ Os testes verificam campos dos mocks contra o recorte, ausência de metadados
 inventados, nulabilidade, distinção dos identificadores, filtros, cópia e CSV.
 Chromium verifica a diferença dos códigos e a tipografia calculada na célula.
 
-Validação local: 171 testes Vitest em 47 arquivos e 18 jornadas Chromium aprovados;
+Validação da etapa inicial de contratos: 171 testes Vitest em 47 arquivos e 18 jornadas Chromium aprovados;
 lint, typecheck/build, Knip e `git diff --check` aprovados. Os primitives de `ui`
 não foram alterados.
+
+## Simulação com o espelho histórico de Unidades
+
+Fonte: anexo de Unidades, SHA-256
+`4C5CD179383C5A8ADF0F10D984DDC43270096336B9E26C3EE1D935DB87E3224A`.
+São 61 unidades, 35 cidades, cinco UFs e cinco bandeiras. A origem é um espelho
+possivelmente desatualizado, não uma consulta atual de produção.
+
+O mock preserva os 11 campos comerciais do contrato ERP. Remove `idx`, hashes
+e datas do espelho; também omite `ip_rede` e `nom_banco_dados`, que existem no
+ERP mas não pertencem à tabela comercial. Nenhuma coluna SQL foi acrescentada.
+
+Os valores de origem permanecem no fixture e no modelo. Interface, cópia e CSV
+aplicam a mesma apresentação: nomes com capitalização legível, preposições em
+minúsculas, siglas conhecidas preservadas e grafia das cidades conferida na
+[API de localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades).
+O recorte de grafias está em `units-city-names.ts`; não há consulta externa durante
+o uso da aplicação. Nomes próprios e marcas não recebem traduções presumidas.
+
+A pesquisa continua ignorando acentos e caixa. Os filtros de cidade e bandeira
+compõem a interseção, exibem contagens facetadas e compartilham o mesmo
+`DataTableComboboxFilter`/`AppCombobox`. A limpeza global aparece com dois filtros
+ativos. Colunas textuais de Unidades optam pela ordenação compartilhada `ptBR`,
+com comparação linguística e numérica; o estado original não é reescrito.
+
+Validação desta etapa: 40 testes focados em oito arquivos, com os 11 testes de
+apresentação/cópia revalidados após os últimos ajustes de grafia; 19 jornadas
+Chromium aprovadas. Lint, typecheck/build, Knip e `git diff --check` aprovados.

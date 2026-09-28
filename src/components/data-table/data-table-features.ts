@@ -3,6 +3,7 @@ import {
   columnFilteringFeature,
   columnVisibilityFeature,
   constructFilterFn,
+  constructSortFn,
   createFacetedRowModel,
   createFacetedUniqueValues,
   createFilteredRowModel,
@@ -25,9 +26,12 @@ export interface DataTableColumnMeta {
 }
 
 function normalizeSearchValue(value: unknown) {
-  const text = typeof value === "string" || typeof value === "number" || typeof value === "boolean"
-    ? String(value)
-    : ""
+  const text =
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+      ? String(value)
+      : ""
   return text
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
@@ -38,6 +42,16 @@ const accentInsensitive = constructFilterFn({
   ...filterFn_includesString,
   resolveDataValue: normalizeSearchValue,
   resolveFilterValue: normalizeSearchValue,
+})
+
+const portugueseCollator = new Intl.Collator("pt-BR", {
+  numeric: true,
+  sensitivity: "base",
+})
+const ptBR = constructSortFn({
+  resolveDataValue: normalizeSearchValue,
+  sort: (left: string, right: string) =>
+    portugueseCollator.compare(left, right),
 })
 
 export const dataTableFeatures = tableFeatures({
@@ -53,7 +67,11 @@ export const dataTableFeatures = tableFeatures({
   sortedRowModel: createSortedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   filterFns: { accentInsensitive, equals: filterFn_equals },
-  sortFns: { alphanumeric: sortFn_alphanumeric, datetime: sortFn_datetime },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    datetime: sortFn_datetime,
+    ptBR,
+  },
   columnMeta: metaHelper<DataTableColumnMeta>(),
 })
 

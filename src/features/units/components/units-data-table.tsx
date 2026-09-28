@@ -90,6 +90,16 @@ export function UnitsDataTable() {
   )
 
   const search = String(table.state.globalFilter ?? "")
+  const brandColumn = table.getColumn("brand")
+  const brandValue = brandColumn?.getFilterValue() as string | undefined
+  const brandCounts = new Map<string, number>(
+    brandColumn?.getFacetedUniqueValues() as Map<string, number> | undefined,
+  )
+  const brandItems = [
+    ...new Set(units.map((unit) => unit.brand).filter(Boolean)),
+  ]
+    .map((brand) => ({ label: formatUnitName(brand), value: brand }))
+    .sort((left, right) => left.label.localeCompare(right.label, "pt-BR"))
   const activeFilterCount =
     Number(Boolean(search.trim())) + table.state.columnFilters.length
   const clearFilters = () => {
@@ -126,6 +136,15 @@ export function UnitsDataTable() {
           onClear={() => table.setGlobalFilter("")}
           placeholder={unitsContent.list.searchPlaceholder}
           value={search}
+        />
+        <DataTableComboboxFilter
+          ariaLabel={unitsContent.list.brandFilterAriaLabel}
+          clearAriaLabel={unitsContent.list.brandFilterClearAriaLabel}
+          counts={brandCounts}
+          items={brandItems}
+          onValueChange={(value) => brandColumn?.setFilterValue(value)}
+          placeholder={unitsContent.list.brandFilterPlaceholder}
+          value={brandValue}
         />
         <DataTableComboboxFilter
           ariaLabel={unitsContent.list.cityFilterAriaLabel}

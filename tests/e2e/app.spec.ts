@@ -23,6 +23,39 @@ const units = mapErpUnits(unitErpFixture)
 const firstClient = clients[0]
 const firstUnit = units[0]
 
+test("busca cidade acentuada do espelho e combina filtros de unidades", async ({
+  page,
+}) => {
+  await page.goto("/unidades")
+  const { root, table } = await waitForDataTable(page)
+  const search = root.getByRole("searchbox")
+  await search.fill("Rubinéia")
+  await expect(table.getByTestId("data-table-row")).toHaveCount(
+    units.filter((unit) => unit.city === "RUBINEIA").length,
+  )
+  await search.fill("")
+  const brand = root.getByRole("combobox", {
+    name: "Filtrar unidades por bandeira",
+  })
+  await brand.fill("Shell")
+  await page.getByRole("option").first().click()
+  const city = root.getByRole("combobox", {
+    name: "Filtrar unidades por cidade",
+  })
+  await city.fill("São José do Rio Preto")
+  await page.getByRole("option").first().click()
+  const expected = units.filter(
+    (unit) => unit.brand === "SHELL" && unit.city === "SAO JOSE DO RIO PRETO",
+  )
+  await expect(table.getByTestId("data-table-row")).toHaveCount(
+    Math.min(expected.length, DEFAULT_PAGE_SIZE),
+  )
+  await root.getByTestId("data-table-clear-filters").click()
+  await expect(table.getByTestId("data-table-row")).toHaveCount(
+    DEFAULT_PAGE_SIZE,
+  )
+})
+
 if (!firstClient || !firstUnit) {
   throw new Error("Fixtures E2E obrigatórias estão vazias.")
 }
@@ -284,7 +317,9 @@ test("filtra, ordena e pagina unidades sem depender da copy", async ({
   await expect(dataRow(table, firstUnit.id)).toBeVisible()
 
   const toolbar = root.locator('[data-slot="data-table-toolbar"]')
-  const cityCombobox = toolbar.getByRole("combobox")
+  const cityCombobox = toolbar.getByRole("combobox", {
+    name: "Filtrar unidades por cidade",
+  })
   const cityLabel = formatUnitCity(facetUnit.city)
 
   await cityCombobox.fill(cityLabel)
