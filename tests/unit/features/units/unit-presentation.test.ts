@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   formatUnitCity,
   formatUnitName,
-} from "@/features/units/units-format"
+} from "@/features/units/presentation/units-format"
 
 describe("unit presentation", () => {
   it("formata valores ERP em caixa alta somente para apresentação", () => {

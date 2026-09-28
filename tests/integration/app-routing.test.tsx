@@ -11,7 +11,7 @@ import { appRoutes, appPageRouteIds } from "@/app/app-routes"
 import { appMetadata } from "@/app/app-metadata"
 import { routes } from "@/app/app-route-tree"
 import App from "@/app/app"
-import { anonymousSession } from "@/features/auth/auth-types"
+import { anonymousSession } from "@/features/auth/contracts/auth-types"
 
 async function renderRoute(initialEntry = "/") {
   const router = createMemoryRouter(routes, {

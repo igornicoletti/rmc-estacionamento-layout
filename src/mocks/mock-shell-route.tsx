@@ -7,8 +7,8 @@ import {
   primaryNavigation,
 } from "@/components/sidebar/sidebar-items"
 import { mockShellFixtures } from "@/mocks/mock-shell-fixtures"
-import { sessionNotify } from "@/features/auth/auth-notify"
-import { useSession } from "@/features/auth/auth-context"
+import { sessionNotify } from "@/features/auth/notifications/auth-notify"
+import { useSession } from "@/features/auth/session/auth-context"
 import type { HeaderNotificationItem } from "@/components/header/header-notifications"
 import { LayoutShell } from "@/components/layout/layout-shell"
 import { notify } from "@/components/toast/toast-notify"

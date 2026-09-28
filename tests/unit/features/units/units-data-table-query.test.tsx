@@ -5,17 +5,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { renderWithProviders } from "@tests/support/render"
 
 import { unitErpFixture } from "@/mocks/mock-units-fixtures"
-import type { Unit } from "@/features/units/units-types"
-import { mapErpUnits } from "@/features/units/units-mapper"
+import type { Unit } from "@/features/units/contracts/units-types"
+import { mapErpUnits } from "@/features/units/mapping/units-mapper"
 
 const { loadDemoUnitsMock } = vi.hoisted(() => ({
   loadDemoUnitsMock: vi.fn(),
 }))
 
-vi.mock("@/features/units/units-query", async (importOriginal) => {
+vi.mock("@/features/units/queries/units-query", async (importOriginal) => {
   const actual =
     await importOriginal<
-      typeof import("@/features/units/units-query")
+      typeof import("@/features/units/queries/units-query")
     >()
 
   return {
@@ -24,7 +24,7 @@ vi.mock("@/features/units/units-query", async (importOriginal) => {
   }
 })
 
-import { UnitsDataTable } from "@/features/units/units-data-table"
+import { UnitsDataTable } from "@/features/units/components/units-data-table"
 
 const previewUnits = mapErpUnits(unitErpFixture)
 

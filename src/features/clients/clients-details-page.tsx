@@ -6,18 +6,20 @@ import { appRoutes } from "@/app/app-routes"
 import { LayoutPage } from "@/components/layout/layout-page"
 import { AppEmpty } from "@/components/app/app-empty"
 import { buttonVariants } from "@/components/ui/button"
-import { clientsContent } from "@/features/clients/clients-content"
-import { VehiclesDataTable } from "@/features/clients/vehicles/vehicles-data-table"
+import { clientsContent } from "@/features/clients/content/clients-content"
+import { VehiclesDataTable } from "@/features/clients/vehicles/components/vehicles-data-table"
 import {
   clientsQueryKeys,
   loadDemoClients,
-} from "@/features/clients/clients-query"
-import { formatErpName } from "@/features/clients/clients-format"
-
+} from "@/features/clients/queries/clients-query"
+import { formatErpName } from "@/features/clients/presentation/clients-format"
 
 function BackToClients() {
   return (
-    <Link className={buttonVariants({ variant: "outline" })} to={appRoutes.clients.path}>
+    <Link
+      className={buttonVariants({ variant: "outline" })}
+      to={appRoutes.clients.path}
+    >
       <ArrowLeftIcon aria-hidden="true" data-icon="inline-start" />
       {clientsContent.details.back}
     </Link>

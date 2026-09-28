@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
-import { VehiclesDataTable } from "@/features/clients/vehicles/vehicles-data-table"
+import { VehiclesDataTable } from "@/features/clients/vehicles/components/vehicles-data-table"
 import { clientVehicleErpFixture } from "@/mocks/mock-vehicles-fixtures"
-import { mapErpClientVehicles } from "@/features/clients/vehicles/vehicles-mapper"
-import { formatLicensePlate } from "@/features/clients/vehicles/vehicles-format"
+import { mapErpClientVehicles } from "@/features/clients/vehicles/mapping/vehicles-mapper"
+import { formatLicensePlate } from "@/features/clients/vehicles/presentation/vehicles-format"
 
 const allVehicles = mapErpClientVehicles(clientVehicleErpFixture)
 const firstVehicle = allVehicles[0]
@@ -61,7 +61,9 @@ describe("VehiclesDataTable", () => {
     expect(firstRow).not.toHaveTextContent(firstVehicle.clientTaxId)
 
     const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
-    const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
+    const toolbar = root?.querySelector<HTMLElement>(
+      '[data-slot="data-table-toolbar"]',
+    )
 
     if (!toolbar) {
       throw new Error("Toolbar não encontrada.")
@@ -97,9 +99,14 @@ describe("VehiclesDataTable", () => {
     const user = userEvent.setup()
     const table = await renderVehiclesDataTable()
 
-    await user.type(screen.getByRole("searchbox"), formatLicensePlate(firstVehicle.plate))
+    await user.type(
+      screen.getByRole("searchbox"),
+      formatLicensePlate(firstVehicle.plate),
+    )
 
     expect(within(table).getAllByRole("row")).toHaveLength(2)
-    expect(getFirstDataRow(table)).toHaveTextContent(formatLicensePlate(firstVehicle.plate))
+    expect(getFirstDataRow(table)).toHaveTextContent(
+      formatLicensePlate(firstVehicle.plate),
+    )
   })
 })

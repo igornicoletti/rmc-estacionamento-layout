@@ -1,6 +1,6 @@
-import { unitsContent } from "@/features/units/units-content"
+import { unitsContent } from "@/features/units/content/units-content"
 import { LayoutPage } from "@/components/layout/layout-page"
-import { UnitsDataTable } from "@/features/units/units-data-table"
+import { UnitsDataTable } from "@/features/units/components/units-data-table"
 
 export function UnitsPage() {
   return (

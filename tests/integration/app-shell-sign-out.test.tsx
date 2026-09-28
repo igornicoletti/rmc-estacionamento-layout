@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from "vitest"
 
 import App from "@/app/app"
 import { routes } from "@/app/app-route-tree"
-import type { SessionCommands } from "@/features/auth/auth-commands"
-import type { ResolvedSessionSnapshot } from "@/features/auth/auth-types"
+import type { SessionCommands } from "@/features/auth/session/auth-commands"
+import type { ResolvedSessionSnapshot } from "@/features/auth/contracts/auth-types"
 import { notify } from "@/components/toast/toast-notify"
 import { waitForRouterInitialization } from "@tests/support/router"
 

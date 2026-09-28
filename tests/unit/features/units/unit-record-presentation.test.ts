@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
 import { unitErpFixture } from "@/mocks/mock-units-fixtures"
-import { mapErpUnits } from "@/features/units/units-mapper"
+import { mapErpUnits } from "@/features/units/mapping/units-mapper"
 import {
   unitRecordCsvColumns,
   unitRecordSections,
-} from "@/features/units/units-record"
+} from "@/features/units/presentation/units-record"
 
 describe("unitRecordSections", () => {
   it("mantém todos os campos da unidade no contrato de apresentação", () => {
@@ -41,20 +41,16 @@ describe("unitRecordSections", () => {
       .find((section) => section.key === "identification")
       ?.fields.find((field) => field.key === "legalName")
 
-    expect(legalNameField?.getValue(unit)).toBe(
-      "Unidade Demonstracao 01 Ltda",
+    expect(legalNameField?.getValue(unit)).toBe("Unidade Demonstracao 01 Ltda")
+    expect(serializeRecordForClipboard(unit, unitRecordSections)).toContain(
+      "Razão social: Unidade Demonstracao 01 Ltda",
     )
-    expect(
-      serializeRecordForClipboard(unit, unitRecordSections),
-    ).toContain("Razão social: Unidade Demonstracao 01 Ltda")
 
     const legalNameColumn = unitRecordCsvColumns.find(
       (column) => column.header === "Razão social",
     )
 
-    expect(legalNameColumn?.getValue(unit)).toBe(
-      "Unidade Demonstracao 01 Ltda",
-    )
+    expect(legalNameColumn?.getValue(unit)).toBe("Unidade Demonstracao 01 Ltda")
   })
 
   it("apresenta Goiás e Goiânia corretamente a partir do fixture", () => {

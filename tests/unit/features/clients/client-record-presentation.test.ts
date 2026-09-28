@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import { clientErpFixture } from "@/mocks/mock-clients-fixtures"
 
-import { mapErpClients } from "@/features/clients/clients-mapper"
-import { clientRecordSections } from "@/features/clients/clients-record"
+import { mapErpClients } from "@/features/clients/mapping/clients-mapper"
+import { clientRecordSections } from "@/features/clients/presentation/clients-record"
 
 describe("clientRecordSections", () => {
   it("mantém todos os campos do cliente no contrato de apresentação", () => {

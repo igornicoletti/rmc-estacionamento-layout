@@ -7,7 +7,7 @@ import { sidebarContent } from "@/components/sidebar/sidebar-content"
 import { appRoutes } from "@/app/app-routes"
 import App from "@/app/app"
 import { routes } from "@/app/app-route-tree"
-import { anonymousSession } from "@/features/auth/auth-types"
+import { anonymousSession } from "@/features/auth/contracts/auth-types"
 import { headerContent } from "@/components/header/header-content"
 import {
   waitForRouterInitialization,

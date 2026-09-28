@@ -4,11 +4,16 @@ import { MemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { appRoutes } from "@/app/app-routes"
-import { ClientsDataTable } from "@/features/clients/clients-data-table"
+import { ClientsDataTable } from "@/features/clients/components/clients-data-table"
 import { clientErpFixture } from "@/mocks/mock-clients-fixtures"
 
-import { mapErpClients } from "@/features/clients/clients-mapper"
-import { formatCityName, formatErpName, formatPhone, splitEmails } from "@/features/clients/clients-format"
+import { mapErpClients } from "@/features/clients/mapping/clients-mapper"
+import {
+  formatCityName,
+  formatErpName,
+  formatPhone,
+  splitEmails,
+} from "@/features/clients/presentation/clients-format"
 
 import { renderWithProviders } from "@tests/support/render"
 
@@ -102,7 +107,7 @@ describe("ClientsDataTable", () => {
 
     expect(emailTrigger).toHaveAccessibleName()
 
-    await user.hover(emailTrigger)
+    await user.click(emailTrigger)
 
     const emailText = await screen.findByText(additionalEmail)
     const emailContainer = emailText.parentElement
@@ -117,9 +122,7 @@ describe("ClientsDataTable", () => {
 
     await user.click(copyButton)
 
-    await expect(navigator.clipboard.readText()).resolves.toBe(
-      additionalEmail,
-    )
+    await expect(navigator.clipboard.readText()).resolves.toBe(additionalEmail)
   })
 
   it("copia os dados funcionais do cliente selecionado", async () => {
@@ -149,7 +152,9 @@ describe("ClientsDataTable", () => {
     const user = userEvent.setup()
     const table = await renderClientsDataTable()
     const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
-    const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
+    const toolbar = root?.querySelector<HTMLElement>(
+      '[data-slot="data-table-toolbar"]',
+    )
 
     if (!toolbar) {
       throw new Error("Toolbar não encontrada.")
@@ -171,9 +176,14 @@ describe("ClientsDataTable", () => {
     const user = userEvent.setup()
     const table = await renderClientsDataTable()
 
-    await user.type(screen.getByRole("searchbox"), formatPhone(firstClient.phone))
+    await user.type(
+      screen.getByRole("searchbox"),
+      formatPhone(firstClient.phone),
+    )
 
     expect(within(table).getAllByRole("row")).toHaveLength(2)
-    expect(getFirstDataRow(table)).toHaveTextContent(formatErpName(firstClient.name))
+    expect(getFirstDataRow(table)).toHaveTextContent(
+      formatErpName(firstClient.name),
+    )
   })
 })

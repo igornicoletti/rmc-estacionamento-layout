@@ -4,7 +4,7 @@
 
 ```ts
 import { notify } from "@/components/toast/toast-notify"
-import { sessionNotify } from "@/features/auth/auth-notify"
+import { sessionNotify } from "@/features/auth/notifications/auth-notify"
 
 notify(sessionNotify.signOutFailed)
 ```
@@ -13,7 +13,7 @@ notify(sessionNotify.signOutFailed)
 
 ```ts
 import { notify } from "@/components/toast/toast-notify"
-import { clientsNotify } from "@/features/clients/clients-notify"
+import { clientsNotify } from "@/features/clients/notifications/clients-notify"
 
 notify(clientsNotify.emailCopied({ email }))
 ```
@@ -64,6 +64,7 @@ A ação reutilizável da DataTable recebe uma operação assíncrona. A página
 Use Toast para resultado ou informação transitória após uma ação.
 
 Prefira:
+
 - erro de campo/formulário: feedback contextual do campo;
 - confirmação destrutiva: AlertDialog;
 - erro persistente de página/lista: estado de erro da página/componente;
@@ -75,6 +76,7 @@ Prefira:
 `priority: "high"` é reservada a mensagens que precisam de anúncio urgente. Não aplicar automaticamente a todo `type: "error"`.
 
 Referências:
+
 - https://ui.shadcn.com/docs/components/base/toast
 - https://base-ui.com/react/components/toast
 - https://www.w3.org/TR/wai-aria/

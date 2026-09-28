@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import App from "@/app/app"
 import { routes } from "@/app/app-route-tree"
-import { anonymousSession } from "@/features/auth/auth-types"
+import { anonymousSession } from "@/features/auth/contracts/auth-types"
 import { headerContent } from "@/components/header/header-content"
 import { waitForRouterInitialization } from "@tests/support/router"
 
@@ -24,12 +24,16 @@ describe("app shell", () => {
     await renderApp()
 
     const header = screen.getByRole("banner")
-    expect(within(header).getByRole("button", {
-      name: headerContent.userMenu.trigger,
-    })).toBeInTheDocument()
-    expect(within(header).getByRole("button", {
-      name: new RegExp(`^${headerContent.notifications.trigger}`),
-    })).toBeInTheDocument()
+    expect(
+      within(header).getByRole("button", {
+        name: headerContent.userMenu.trigger,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(header).getByRole("button", {
+        name: new RegExp(`^${headerContent.notifications.trigger}`),
+      }),
+    ).toBeInTheDocument()
   })
 
   it("não oferece ação no estado sem novas notificações", async () => {

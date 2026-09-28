@@ -4,7 +4,7 @@ import { formatCpfCnpj } from "@/lib/erp/tax-id"
 import {
   mapErpClient,
   mapErpClients,
-} from "@/features/clients/clients-mapper"
+} from "@/features/clients/mapping/clients-mapper"
 
 const validRecord = {
   cod_pessoa: "123456789012345",

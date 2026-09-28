@@ -3,8 +3,15 @@ import { CopyIcon, EyeIcon, MoreHorizontalIcon } from "lucide-react"
 import { dataTableContent } from "@/components/data-table/data-table-content"
 import { dataTableNotify } from "@/components/data-table/data-table-notify"
 import { notify } from "@/components/toast/toast-notify"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { AppIconButton } from "@/components/app/app-icon-button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface DataTableRowActionsProps {
   accessibleLabel: string
@@ -12,7 +19,11 @@ interface DataTableRowActionsProps {
   onDetails?: () => void
 }
 
-export function DataTableRowActions({ accessibleLabel, onCopyData, onDetails }: DataTableRowActionsProps) {
+export function DataTableRowActions({
+  accessibleLabel,
+  onCopyData,
+  onDetails,
+}: DataTableRowActionsProps) {
   async function copyData() {
     try {
       await onCopyData()
@@ -25,14 +36,36 @@ export function DataTableRowActions({ accessibleLabel, onCopyData, onDetails }: 
   return (
     <div className="flex justify-end">
       <DropdownMenu>
-        <DropdownMenuTrigger aria-label={accessibleLabel} data-testid="data-table-row-actions-trigger" render={<Button size="icon-sm" variant="ghost" />}>
-          <MoreHorizontalIcon aria-hidden="true" />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <AppIconButton
+              data-testid="data-table-row-actions-trigger"
+              icon={MoreHorizontalIcon}
+              label={accessibleLabel}
+              size="icon-sm"
+              tooltip={dataTableContent.rowActions.label}
+              variant="ghost"
+            />
+          }
+        />
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>{dataTableContent.rowActions.label}</DropdownMenuLabel>
-            {onDetails ? <DropdownMenuItem onClick={onDetails}><EyeIcon aria-hidden="true" />{dataTableContent.rowActions.details}</DropdownMenuItem> : null}
-            <DropdownMenuItem data-testid="data-table-row-action-copy" onClick={() => void copyData()}><CopyIcon aria-hidden="true" />{dataTableContent.rowActions.copyData}</DropdownMenuItem>
+            <DropdownMenuLabel>
+              {dataTableContent.rowActions.label}
+            </DropdownMenuLabel>
+            {onDetails ? (
+              <DropdownMenuItem onClick={onDetails}>
+                <EyeIcon aria-hidden="true" />
+                {dataTableContent.rowActions.details}
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem
+              data-testid="data-table-row-action-copy"
+              onClick={() => void copyData()}
+            >
+              <CopyIcon aria-hidden="true" />
+              {dataTableContent.rowActions.copyData}
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

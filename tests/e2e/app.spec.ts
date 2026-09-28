@@ -4,16 +4,16 @@ import { appRoutes } from "../../src/app/app-routes"
 import { headerContent } from "../../src/components/header/header-content"
 import { clientErpFixture } from "../../src/mocks/mock-clients-fixtures"
 import { clientVehicleErpFixture } from "../../src/mocks/mock-vehicles-fixtures"
-import { mapErpClients } from "../../src/features/clients/clients-mapper"
-import { mapErpClientVehicles } from "../../src/features/clients/vehicles/vehicles-mapper"
-import { formatCityName } from "../../src/features/clients/clients-format"
+import { mapErpClients } from "../../src/features/clients/mapping/clients-mapper"
+import { mapErpClientVehicles } from "../../src/features/clients/vehicles/mapping/vehicles-mapper"
+import { formatCityName } from "../../src/features/clients/presentation/clients-format"
 
 import { unitErpFixture } from "../../src/mocks/mock-units-fixtures"
-import { mapErpUnits } from "../../src/features/units/units-mapper"
+import { mapErpUnits } from "../../src/features/units/mapping/units-mapper"
 import {
   formatUnitCity,
   formatUnitName,
-} from "../../src/features/units/units-format"
+} from "../../src/features/units/presentation/units-format"
 
 const DEFAULT_PAGE_SIZE = 10
 const clients = mapErpClients(clientErpFixture)
@@ -79,9 +79,7 @@ async function waitForDataTable(page: Page) {
 }
 
 function dataRow(table: Locator, id: string) {
-  return table.locator(
-    `[data-testid="data-table-row"][data-row-id="${id}"]`,
-  )
+  return table.locator(`[data-testid="data-table-row"][data-row-id="${id}"]`)
 }
 
 test("monta o shell da aplicação", async ({ page }) => {
@@ -119,9 +117,7 @@ test("fecha o menu lateral mobile após navegar", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(appRoutes.clients.path)
 
-  await page
-    .getByRole("button", { name: headerContent.sidebar.open })
-    .click()
+  await page.getByRole("button", { name: headerContent.sidebar.open }).click()
 
   const navigation = page.getByRole("navigation")
   const unitsLink = navigation.locator(`a[href="${appRoutes.units.path}"]`)
@@ -289,7 +285,6 @@ test("filtra, ordena e pagina unidades sem depender da copy", async ({
     "data-row-id",
     firstDescendingUnit.id,
   )
-
 })
 
 test("mantém clientes responsivos e foco de teclado em 390 px", async ({
@@ -323,4 +318,61 @@ test("aplica e persiste o tema escuro", async ({ page }) => {
   await page.reload()
 
   await expect(page.locator("html")).toHaveClass(/dark/u)
+})
+
+for (const path of [
+  "/clientes",
+  "/unidades",
+  appRoutes.clientDetails.path(firstClient.id),
+]) {
+  test(`compartilha tooltips e menu de colunas em ${path}`, async ({
+    page,
+  }) => {
+    await page.goto(path)
+    await waitForDataTable(page)
+    const exportButton = page.getByRole("button", { name: "Exportar CSV" })
+    await exportButton.hover()
+    await expect(page.getByRole("tooltip")).toHaveText(
+      "Exportar dados filtrados em CSV",
+    )
+    const manage = page.getByRole("button", { name: "Gerenciar colunas" })
+    await manage.focus()
+    await expect(
+      page.getByRole("tooltip", { name: "Gerenciar colunas", exact: true }),
+    ).toHaveText("Gerenciar colunas")
+    await expect(manage).toHaveAccessibleDescription("Gerenciar colunas")
+    await manage.press("Enter")
+    await expect(page.getByRole("menu")).toBeVisible()
+    await page.keyboard.press("Escape")
+    await expect(manage).toBeFocused()
+    await page.getByRole("searchbox").fill("sem-resultado-estrutural-999")
+    await expect(exportButton).toBeDisabled()
+    await exportButton.focus()
+    await expect(
+      page.getByRole("tooltip", {
+        name: "Nenhum registro para exportar",
+        exact: true,
+      }),
+    ).toHaveText("Nenhum registro para exportar")
+  })
+}
+
+test("abre os e-mails adicionais por teclado e devolve foco ao fechar", async ({
+  page,
+}) => {
+  await page.goto("/clientes")
+  await waitForDataTable(page)
+  const trigger = page
+    .getByRole("button", { name: /e-mails adicionais/ })
+    .first()
+  await trigger.focus()
+  await trigger.press("Enter")
+  await expect(
+    page.getByRole("dialog", { name: "Outros e-mails" }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: /^Copiar .*@/ }).first(),
+  ).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(trigger).toBeFocused()
 })
