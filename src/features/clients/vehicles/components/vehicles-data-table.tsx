@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { DataTable } from "@/components/data-table/data-table"
-import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 import { DataTableActions } from "@/components/data-table/data-table-actions"
+import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 import { useDataTable } from "@/components/data-table/data-table-features"
+import { dataTableNotify } from "@/components/data-table/data-table-notify"
 import { DataTablePagination } from "@/components/data-table/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/data-table-root"
 import { DataTableSearch } from "@/components/data-table/data-table-search"
@@ -14,20 +15,21 @@ import {
   DataTableUpdating,
 } from "@/components/data-table/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
+import { notify } from "@/components/toast/toast-notify"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
-import { vehiclesContent } from "@/features/clients/vehicles/content/vehicles-content"
 import { createVehiclesTableColumns } from "@/features/clients/vehicles/components/vehicles-table-columns"
-import {
-  loadDemoVehicles,
-  vehiclesQueryKeys,
-} from "@/features/clients/vehicles/queries/vehicles-query"
+import { vehiclesContent } from "@/features/clients/vehicles/content/vehicles-content"
 import type { ClientVehicle } from "@/features/clients/vehicles/contracts/vehicles-types"
 import { formatVehicleDescription } from "@/features/clients/vehicles/presentation/vehicles-format"
 import {
   clientVehicleRecordCsvColumns,
   clientVehicleRecordSections,
 } from "@/features/clients/vehicles/presentation/vehicles-record"
+import {
+  loadDemoVehicles,
+  vehiclesQueryKeys,
+} from "@/features/clients/vehicles/queries/vehicles-query"
 
 const EMPTY_VEHICLES: ClientVehicle[] = []
 
@@ -37,6 +39,21 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
     queryFn: loadDemoVehicles,
     staleTime: Number.POSITIVE_INFINITY,
   })
+  const notifiedRefetchErrorAt = useRef(0)
+
+  useEffect(() => {
+    if (
+      !query.isRefetchError ||
+      query.errorUpdatedAt === 0 ||
+      query.errorUpdatedAt === notifiedRefetchErrorAt.current
+    ) {
+      return
+    }
+
+    notifiedRefetchErrorAt.current = query.errorUpdatedAt
+    notify(dataTableNotify.refreshFailed)
+  }, [query.errorUpdatedAt, query.isRefetchError])
+
   const allVehicles = query.data ?? EMPTY_VEHICLES
   const vehicles = useMemo(
     () => allVehicles.filter((vehicle) => vehicle.clientId === clientId),
@@ -75,10 +92,12 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
 
   const descriptionColumn = table.getColumn("description")
   const descriptionValue = descriptionColumn?.getFilterValue() as
-    string | undefined
+    | string
+    | undefined
   const descriptionCounts = new Map<string, number>(
     descriptionColumn?.getFacetedUniqueValues() as
-      Map<string, number> | undefined,
+      | Map<string, number>
+      | undefined,
   )
   const descriptionItems = Array.from(
     new Set(vehicles.map((vehicle) => vehicle.description).filter(Boolean)),
@@ -89,12 +108,13 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
   const search = String(table.state.globalFilter ?? "")
   const activeFilterCount =
     Number(Boolean(search.trim())) + table.state.columnFilters.length
+  const rowCount = table.getPrePaginatedRowModel().rows.length
   const clearFilters = () => {
     table.setGlobalFilter("")
     table.resetColumnFilters()
   }
 
-  if (query.isError) {
+  if (query.isLoadingError) {
     return (
       <DataTableError
         description={vehiclesContent.loadError}
@@ -104,13 +124,13 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
   }
 
   return (
-    <DataTableRoot isBusy={query.isPending || query.isFetching}>
+    <DataTableRoot isBusy={query.isFetching}>
       <DataTableToolbar
         actions={
           <DataTableActions
             csvColumns={clientVehicleRecordCsvColumns}
             filename={`veiculos-cliente-${clientId}.csv`}
-            isBusy={query.isPending || query.isFetching}
+            isBusy={query.isLoading}
             table={table}
           />
         }
@@ -119,6 +139,7 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
       >
         <DataTableSearch
           ariaLabel={vehiclesContent.searchAriaLabel}
+          disabled={query.isLoading}
           onChange={table.setGlobalFilter}
           onClear={() => table.setGlobalFilter("")}
           placeholder={
@@ -133,6 +154,7 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
             ariaLabel={vehiclesContent.filterAriaLabel}
             clearAriaLabel={vehiclesContent.filterClearAriaLabel}
             counts={descriptionCounts}
+            disabled={query.isLoading}
             items={descriptionItems}
             onValueChange={(value) => descriptionColumn?.setFilterValue(value)}
             placeholder={vehiclesContent.filterPlaceholder}
@@ -140,7 +162,7 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
           />
         ) : null}
       </DataTableToolbar>
-      <DataTableUpdating active={query.isFetching && !query.isPending} />
+      <DataTableUpdating active={query.isRefetching} />
       <DataTable
         caption={vehiclesContent.caption}
         emptyState={
@@ -151,13 +173,13 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
             onClearFilters={clearFilters}
           />
         }
-        isInitialLoading={query.isPending}
+        isLoading={query.isLoading}
         table={table}
       />
-      {!query.isPending ? (
+      {!query.isLoading ? (
         <DataTablePagination
           itemLabel={vehiclesContent.itemLabel}
-          rowCount={table.getPrePaginatedRowModel().rows.length}
+          rowCount={rowCount}
           table={table}
         />
       ) : null}
