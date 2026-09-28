@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   mapErpClientVehicle,
   mapErpClientVehicles,
-} from "@/features/clients/vehicles/vehicles-mapper"
+} from "@/features/clients/vehicles/mapping/vehicles-mapper"
 
 const validVehicle = {
   cod_veiculo: 44425,

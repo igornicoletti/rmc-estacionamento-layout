@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { loadDemoUnits } from "@/features/units/units-query"
+import { loadDemoUnits } from "@/features/units/queries/units-query"
 
 describe("unit preview data", () => {
   it("fornece uma coleção sintética determinística sem metadados internos", () => {

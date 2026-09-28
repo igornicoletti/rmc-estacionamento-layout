@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest"
 
-import { formatCityName, formatErpName, formatOptionalText, formatPhone, formatYesNo, splitEmails } from "@/features/clients/clients-format"
-import { formatLicensePlate, formatVehicleDescription } from "@/features/clients/vehicles/vehicles-format"
+import {
+  formatCityName,
+  formatErpName,
+  formatOptionalText,
+  formatPhone,
+  formatYesNo,
+  splitEmails,
+} from "@/features/clients/presentation/clients-format"
+import {
+  formatLicensePlate,
+  formatVehicleDescription,
+} from "@/features/clients/vehicles/presentation/vehicles-format"
 
 describe("client presentation", () => {
   it("normaliza nomes e cidades sem expandir abreviações do ERP", () => {

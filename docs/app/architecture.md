@@ -16,6 +16,8 @@ O diretório simples `app` identifica composições próprias da aplicação. Os
 
 ## Decisões que os tipos protegem
 
+- `AppIconButton` exige ícone e nome acessível, associa tooltip ao foco/hover e preserva a explicação de ações desabilitadas sem permitir sua execução. Pode compor triggers por `render`, preservando props e ref no único botão.
+
 - `AppDialog`, `AppAlertDialog` e `AppSheet` exigem `open`, `onOpenChange` e título. Os fechamentos de Dialog e Sheet usam os primitives nativos e aceitam outro texto ou `null` para omissão.
 - `AppAlertDialog` exige descrição e ação. O cancelamento nativo usa “Cancelar” por padrão e pode ser omitido com `cancelLabel={null}`.
 - `AppCombobox` aceita um valor string ou `undefined`, não seleção múltipla. Só agrupa quando **todos** os itens informam `group`.

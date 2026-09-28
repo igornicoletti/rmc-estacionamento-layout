@@ -1,16 +1,35 @@
 import { DownloadIcon } from "lucide-react"
 
+import { AppIconButton } from "@/components/app/app-icon-button"
 import { dataTableContent } from "@/components/data-table/data-table-content"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { dataTableNotify } from "@/components/data-table/data-table-notify"
+import { notify } from "@/components/toast/toast-notify"
 
-export function DataTableExport({ disabled = false, onExport }: { disabled?: boolean; onExport: () => void }) {
+interface DataTableExportProps {
+  disabled?: boolean
+  disabledReason?: string
+  onExport: () => void
+}
+
+export function DataTableExport({
+  disabled = false,
+  disabledReason = dataTableContent.export.empty,
+  onExport,
+}: DataTableExportProps) {
+  function exportData() {
+    try {
+      onExport()
+    } catch {
+      notify(dataTableNotify.exportFailed)
+    }
+  }
   return (
-    <Tooltip>
-      <TooltipTrigger render={disabled ? <span className="inline-flex" /> : <Button aria-label={dataTableContent.export.trigger} onClick={onExport} size="icon" variant="outline" />}>
-        {disabled ? <Button aria-label={dataTableContent.export.trigger} disabled size="icon" variant="outline"><DownloadIcon aria-hidden="true" /></Button> : <DownloadIcon aria-hidden="true" />}
-      </TooltipTrigger>
-      <TooltipContent role="tooltip">{dataTableContent.export.tooltip}</TooltipContent>
-    </Tooltip>
+    <AppIconButton
+      disabled={disabled}
+      icon={DownloadIcon}
+      label={dataTableContent.export.trigger}
+      onClick={exportData}
+      tooltip={disabled ? disabledReason : dataTableContent.export.tooltip}
+    />
   )
 }

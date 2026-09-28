@@ -7,17 +7,17 @@ import { renderWithProviders } from "@tests/support/render"
 
 import { clientErpFixture } from "@/mocks/mock-clients-fixtures"
 
-import type { Client } from "@/features/clients/clients-types"
-import { mapErpClients } from "@/features/clients/clients-mapper"
+import type { Client } from "@/features/clients/contracts/clients-types"
+import { mapErpClients } from "@/features/clients/mapping/clients-mapper"
 
 const { loadDemoClientsMock } = vi.hoisted(() => ({
   loadDemoClientsMock: vi.fn(),
 }))
 
-vi.mock("@/features/clients/clients-query", async (importOriginal) => {
+vi.mock("@/features/clients/queries/clients-query", async (importOriginal) => {
   const actual =
     await importOriginal<
-      typeof import("@/features/clients/clients-query")
+      typeof import("@/features/clients/queries/clients-query")
     >()
 
   return {
@@ -26,7 +26,7 @@ vi.mock("@/features/clients/clients-query", async (importOriginal) => {
   }
 })
 
-import { ClientsDataTable } from "@/features/clients/clients-data-table"
+import { ClientsDataTable } from "@/features/clients/components/clients-data-table"
 
 const previewClients = mapErpClients(clientErpFixture)
 

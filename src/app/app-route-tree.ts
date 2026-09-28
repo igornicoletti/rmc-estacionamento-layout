@@ -6,11 +6,11 @@ import {
   appPageRouteIds,
   type AppPageRouteId,
 } from "@/app/app-routes"
-import { AuthAccessBoundary } from "@/features/auth/auth-access-boundary"
+import { AuthAccessBoundary } from "@/features/auth/access/auth-access-boundary"
 import {
   isAppRouteHandle,
   type AppRouteHandle,
-} from "@/features/auth/auth-access-policy"
+} from "@/features/auth/access/auth-access-policy"
 import { RouteErrorBoundary } from "@/app/app-route-error-boundary"
 import { FallbackRouteError } from "@/components/fallback/fallback-route-error"
 import { appMetadata } from "@/app/app-metadata"
@@ -40,7 +40,8 @@ const pageLoaders = {
     return { Component: ClientsPage }
   },
   dashboard: async () => {
-    const { DashboardPage } = await import("@/features/dashboard/dashboard-page")
+    const { DashboardPage } =
+      await import("@/features/dashboard/dashboard-page")
 
     return { Component: DashboardPage }
   },

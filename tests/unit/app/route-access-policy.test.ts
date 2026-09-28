@@ -4,8 +4,8 @@ import {
   evaluateRouteAccess,
   evaluateRouteAccessPolicies,
   type RouteAccessPolicy,
-} from "@/features/auth/auth-access-policy"
-import type { SessionSnapshot } from "@/features/auth/auth-types"
+} from "@/features/auth/access/auth-access-policy"
+import type { SessionSnapshot } from "@/features/auth/contracts/auth-types"
 
 const authenticated = {
   status: "authenticated",
@@ -58,9 +58,9 @@ describe("evaluateRouteAccess", () => {
       assurance: "aal2",
     } as unknown as RouteAccessPolicy
 
-    expect(
-      evaluateRouteAccess(authenticated, malformedAuthentication),
-    ).toEqual({ kind: "deny" })
+    expect(evaluateRouteAccess(authenticated, malformedAuthentication)).toEqual(
+      { kind: "deny" },
+    )
     expect(
       evaluateRouteAccess(
         { status: "anonymous" },
@@ -85,10 +85,7 @@ describe("evaluateRouteAccess", () => {
     expect(
       evaluateRouteAccessPolicies(
         anonymous,
-        [
-          { authentication: "required" },
-          { authentication: "either" },
-        ],
+        [{ authentication: "required" }, { authentication: "either" }],
         { authenticationPath: "/login" },
       ),
     ).toEqual({ kind: "redirect", to: "/login" })

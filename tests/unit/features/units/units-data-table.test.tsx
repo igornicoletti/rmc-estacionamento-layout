@@ -4,13 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
-import { UnitsDataTable } from "@/features/units/units-data-table"
+import { UnitsDataTable } from "@/features/units/components/units-data-table"
 import { unitErpFixture } from "@/mocks/mock-units-fixtures"
-import { mapErpUnits } from "@/features/units/units-mapper"
+import { mapErpUnits } from "@/features/units/mapping/units-mapper"
 import {
   formatUnitCity,
   formatUnitName,
-} from "@/features/units/units-format"
+} from "@/features/units/presentation/units-format"
 
 const { downloadCsvMock } = vi.hoisted(() => ({
   downloadCsvMock: vi.fn(),
@@ -82,7 +82,9 @@ function getFirstDataRow(table: HTMLElement) {
 
 function getToolbar(table: HTMLElement) {
   const root = table.closest<HTMLElement>('[data-slot="data-table-root"]')
-  const toolbar = root?.querySelector<HTMLElement>('[data-slot="data-table-toolbar"]')
+  const toolbar = root?.querySelector<HTMLElement>(
+    '[data-slot="data-table-toolbar"]',
+  )
 
   if (!toolbar) {
     throw new Error("Toolbar não encontrada.")

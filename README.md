@@ -72,7 +72,7 @@ em Chromium.
 - `src/components/app/`: decisões reutilizáveis da aplicação sobre primitives de `ui/`, sem regra de negócio.
 - `src/mocks/mock-shell-route.tsx`: integração do shell no runtime de demonstração atual; usuário e notificações simulados não representam autoridade autenticada.
 - `src/mocks/mock-shell-fixtures.ts`: dados desse shell de demonstração, consumidos exclusivamente pelo módulo mock.
-- `src/features/clients/` e `src/features/units/`: domínios planos com entrada, tabela, colunas, tipos, mapper, formatadores, conteúdo e query de demonstração.
+- `src/features/clients/` e `src/features/units/`: somente `*-page.tsx` na raiz; implementação organizada em subdiretórios por responsabilidade.
 - `src/features/clients/vehicles/`: subdomínio de veículos com seus próprios contratos.
 - `src/pages/`: somente módulos vazios dependentes de Auth, adiados até a auditoria específica.
 
@@ -83,8 +83,9 @@ scaffold de acesso. Não há seleção automática por ambiente nem integração
 
 A migração `pages → features` foi iniciada em branch própria: Clientes, Unidades
 e os placeholders independentes de Auth já estão em features. As entradas usam
-`*-page.tsx`, o conteúdo usa `*-content.ts` e não há pastas técnicas genéricas
-nesses domínios. Fixtures demonstrativas ficam em `src/mocks`; o showcase de
+`*-page.tsx`, o conteúdo usa `*-content.ts` e os subdiretórios separam `components`,
+`contracts`, `mapping`, `presentation`, `content`, `notifications` e `queries`
+conforme a necessidade do domínio. Fixtures demonstrativas ficam em `src/mocks`; o showcase de
 componentes também pertence ao runtime mock. Query continua explícita como demo
 e não representa API de produção. Imports internos usam `@/`; arquivos e
 diretórios usam inglês e conteúdo/URLs usam pt-BR.
@@ -131,3 +132,6 @@ a barreira de acesso e o enforcement no serviço/RLS.
 - [Vitest](https://vitest.dev/)
 - [Playwright](https://playwright.dev/docs/intro)
 - [ESLint](https://eslint.org/docs/latest/)
+
+A organização vigente e a revisão dos componentes compartilhados estão em
+[Features e componentes compartilhados](docs/architecture/shared-components-review.md).

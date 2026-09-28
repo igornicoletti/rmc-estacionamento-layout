@@ -3,9 +3,9 @@ import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import App from "@/app/app"
-import { AuthAccessBoundary } from "@/features/auth/auth-access-boundary"
-import type { AppRouteHandle } from "@/features/auth/auth-access-policy"
-import { anonymousSession } from "@/features/auth/auth-types"
+import { AuthAccessBoundary } from "@/features/auth/access/auth-access-boundary"
+import type { AppRouteHandle } from "@/features/auth/access/auth-access-policy"
+import { anonymousSession } from "@/features/auth/contracts/auth-types"
 
 function EmptyRoute() {
   return null
@@ -28,9 +28,7 @@ describe("route access boundary", () => {
           Component: EmptyRoute,
         },
         {
-          Component: () => (
-            <AuthAccessBoundary authenticationPath="/login" />
-          ),
+          Component: () => <AuthAccessBoundary authenticationPath="/login" />,
           children: [
             {
               path: "/private",
