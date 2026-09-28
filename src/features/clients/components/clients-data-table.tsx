@@ -39,7 +39,8 @@ export function ClientsDataTable() {
     queryFn: loadDemoClients,
     staleTime: Number.POSITIVE_INFINITY,
   })
-  const notifiedRefetchErrorAt = useRef(0)
+  const isInitialPending = query.isPending
+  const notifiedRefetchErrorAt = useRef(query.errorUpdatedAt)
 
   useEffect(() => {
     if (
@@ -131,7 +132,7 @@ export function ClientsDataTable() {
           <DataTableActions
             csvColumns={clientRecordCsvColumns}
             filename="clientes.csv"
-            isBusy={query.isLoading}
+            isBusy={isInitialPending}
             table={table}
           />
         }
@@ -140,7 +141,7 @@ export function ClientsDataTable() {
       >
         <DataTableSearch
           ariaLabel={clientsContent.list.searchAriaLabel}
-          disabled={query.isLoading}
+          disabled={isInitialPending}
           onChange={table.setGlobalFilter}
           onClear={() => table.setGlobalFilter("")}
           placeholder={clientsContent.list.searchPlaceholder}
@@ -150,7 +151,7 @@ export function ClientsDataTable() {
           ariaLabel={clientsContent.list.cityFilterAriaLabel}
           clearAriaLabel={clientsContent.list.cityFilterClearAriaLabel}
           counts={cityCounts}
-          disabled={query.isLoading}
+          disabled={isInitialPending}
           items={cityItems}
           onValueChange={(value) => cityColumn?.setFilterValue(value)}
           placeholder={clientsContent.list.cityFilterPlaceholder}
@@ -168,10 +169,10 @@ export function ClientsDataTable() {
             onClearFilters={clearFilters}
           />
         }
-        isLoading={query.isLoading}
+        isLoading={isInitialPending}
         table={table}
       />
-      {!query.isLoading ? (
+      {!isInitialPending ? (
         <DataTablePagination
           itemLabel={clientsContent.list.itemLabel}
           rowCount={rowCount}
