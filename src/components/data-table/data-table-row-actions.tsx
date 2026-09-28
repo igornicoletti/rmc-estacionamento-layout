@@ -1,6 +1,6 @@
 import { CopyIcon, EyeIcon, MoreHorizontalIcon } from "lucide-react"
 
-import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { dataTableContent } from "@/components/data-table/data-table-content"
 import { dataTableNotify } from "@/components/data-table/data-table-notify"
 import { notify } from "@/components/toast/toast-notify"
 import { Button } from "@/components/ui/button"
@@ -30,9 +30,9 @@ export function DataTableRowActions({ accessibleLabel, onCopyData, onDetails }: 
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>{dataTableCopy.rowActions.label}</DropdownMenuLabel>
-            {onDetails ? <DropdownMenuItem onClick={onDetails}><EyeIcon aria-hidden="true" />{dataTableCopy.rowActions.details}</DropdownMenuItem> : null}
-            <DropdownMenuItem data-testid="data-table-row-action-copy" onClick={() => void copyData()}><CopyIcon aria-hidden="true" />{dataTableCopy.rowActions.copyData}</DropdownMenuItem>
+            <DropdownMenuLabel>{dataTableContent.rowActions.label}</DropdownMenuLabel>
+            {onDetails ? <DropdownMenuItem onClick={onDetails}><EyeIcon aria-hidden="true" />{dataTableContent.rowActions.details}</DropdownMenuItem> : null}
+            <DropdownMenuItem data-testid="data-table-row-action-copy" onClick={() => void copyData()}><CopyIcon aria-hidden="true" />{dataTableContent.rowActions.copyData}</DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -41,5 +41,5 @@ export function DataTableRowActions({ accessibleLabel, onCopyData, onDetails }: 
 }
 
 export function DataTableRowActionsHeader() {
-  return <span className="sr-only">{dataTableCopy.rowActions.label}</span>
+  return <span className="sr-only">{dataTableContent.rowActions.label}</span>
 }

@@ -2,20 +2,18 @@ import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { appRoutes } from "../../src/app/app-routes"
 import { headerContent } from "../../src/components/header/header-content"
-import { getClientDetailsPath } from "../../src/pages/clients/client-routes"
-import {
-  clientErpFixture,
-  clientVehicleErpFixture,
-} from "../../src/pages/clients/data/client-erp.fixture"
-import { mapErpClients } from "../../src/pages/clients/model/client-mapper"
-import { mapErpClientVehicles } from "../../src/pages/clients/model/client-vehicle-mapper"
-import { formatCityName } from "../../src/pages/clients/model/client-presentation"
-import { unitErpFixture } from "../../src/pages/units/data/unit-erp.fixture"
-import { mapErpUnits } from "../../src/pages/units/model/unit-mapper"
+import { clientErpFixture } from "../../src/mocks/mock-clients-fixtures"
+import { clientVehicleErpFixture } from "../../src/mocks/mock-vehicles-fixtures"
+import { mapErpClients } from "../../src/features/clients/clients-mapper"
+import { mapErpClientVehicles } from "../../src/features/clients/vehicles/vehicles-mapper"
+import { formatCityName } from "../../src/features/clients/clients-format"
+
+import { unitErpFixture } from "../../src/mocks/mock-units-fixtures"
+import { mapErpUnits } from "../../src/features/units/units-mapper"
 import {
   formatUnitCity,
   formatUnitName,
-} from "../../src/pages/units/model/unit-presentation"
+} from "../../src/features/units/units-format"
 
 const DEFAULT_PAGE_SIZE = 10
 const clients = mapErpClients(clientErpFixture)
@@ -217,7 +215,7 @@ test("filtra, pagina e abre clientes e veículos sem depender da copy", async ({
   await expect(firstClientRow).toBeVisible()
   await firstClientRow.getByRole("link").click()
 
-  await expect(page).toHaveURL(getClientDetailsPath(firstClient.id))
+  await expect(page).toHaveURL(appRoutes.clientDetails.path(firstClient.id))
 
   const { table: vehicleTable } = await waitForDataTable(page)
   const vehicleRows = vehicleTable.getByTestId("data-table-row")

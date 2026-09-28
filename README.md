@@ -72,51 +72,49 @@ em Chromium.
 - `src/components/app/`: decisões reutilizáveis da aplicação sobre primitives de `ui/`, sem regra de negócio.
 - `src/mocks/mock-shell-route.tsx`: integração do shell no runtime de demonstração atual; usuário e notificações simulados não representam autoridade autenticada.
 - `src/mocks/mock-shell-fixtures.ts`: dados desse shell de demonstração, consumidos exclusivamente pelo módulo mock.
-- `src/pages/<page>/<page>.layout.tsx`: entradas atuais de domínio, ainda aguardando a branch de migração para features.
+- `src/features/clients/` e `src/features/units/`: domínios planos com entrada, tabela, colunas, tipos, mapper, formatadores, conteúdo e query de demonstração.
+- `src/features/clients/vehicles/`: subdomínio de veículos com seus próprios contratos.
+- `src/pages/`: somente módulos vazios dependentes de Auth, adiados até a auditoria específica.
 
 `src/app` não possui subdiretórios: contém apenas composição e metadados técnicos.
 Auth real continua adiado. O router atual monta explicitamente o shell mock;
 a integração real deverá substituí-lo, remover seus dados simulados e auditar o
 scaffold de acesso. Não há seleção automática por ambiente nem integração Supabase.
 
-A migração `pages → features` acontecerá em branch própria, começando por Clientes
-e Unidades. Nela serão auditados prefixos, `*-content.ts`, `*-page.tsx`, fixtures e
-subdomínios reais, sem copiar automaticamente pastas técnicas genéricas. Imports
-internos usam `@/`; arquivos/diretórios usam inglês e conteúdo/URLs usam pt-BR.
+A migração `pages → features` foi iniciada em branch própria: Clientes, Unidades
+e os placeholders independentes de Auth já estão em features. As entradas usam
+`*-page.tsx`, o conteúdo usa `*-content.ts` e não há pastas técnicas genéricas
+nesses domínios. Fixtures demonstrativas ficam em `src/mocks`; o showcase de
+componentes também pertence ao runtime mock. Query continua explícita como demo
+e não representa API de produção. Imports internos usam `@/`; arquivos e
+diretórios usam inglês e conteúdo/URLs usam pt-BR.
 
 A [auditoria de auth/routing](docs/architecture/auth-routing-audit.md) registra
-os contratos confirmados, riscos e ordem da reconstrução. O primeiro bloco de
-`refactor/app-architecture` organiza o composition root; a remoção de config,
-layouts e do arquivo de metadados ainda em root continua nos blocos seguintes.
-Pages → Features será uma etapa posterior.
+a reconstrução integrada no PR #22. A [migração de features](docs/architecture/features-migration.md)
+detalha as fronteiras e as áreas adiadas até a auditoria de Auth.
 
 ## Decisões atuais
 
-As páginas continuam sendo scaffolds públicos de layout. A política
-`authentication: "either"` está declarada no catálogo de páginas para que a
-migração futura para autenticação real seja feita por rota, sem alterar a
-infraestrutura do router. `availability` descreve somente o estágio de entrega
-da página e não autorização.
+As rotas atuais continuam públicas. A composição da árvore declara
+`authentication: "either"` explicitamente até a auditoria de Auth real;
+`availability` foi removido do contrato de rotas e de layout.
 
-O `RouteAccessBoundary` compõe as políticas de todos os route matches
-registrados. Assim, uma rota filha não pode enfraquecer silenciosamente uma
-restrição declarada por uma rota ancestral.
+O `AuthAccessBoundary` preserva a avaliação agregada dos matches e a negação
+por padrão do scaffold. A localização em features não transforma capabilities,
+SessionCommands ou fresh-aal2 em contratos finais aprovados.
 
 A sessão diferencia bootstrap, anonimato, autenticação e indisponibilidade.
-Operações concorrentes usam `AbortController` e epoch. Quando a autoridade
-muda, queries em andamento são canceladas e o QueryClient é limpo antes do novo
-snapshot ser publicado, evitando reutilização de dados de outra identidade.
+Operações concorrentes usam cancelamento e descartam resultados obsoletos.
+Mudanças de autoridade cancelam e removem apenas queries marcadas com
+`meta.identityScoped === true`, antes da publicação da nova sessão.
 
-O shell usa os primitives oficiais do shadcn/ui com Base UI e mantém regras de
-dados fora dos componentes visuais. `AppShell` recebe dados e comandos por
-contrato; `AppShellRoute` é o adaptador temporário dos fixtures de preview.
-Estados de carregamento, indisponibilidade e ações pendentes continuam
-controlados fora dos componentes visuais.
+O `LayoutShell` recebe dados de apresentação, navegação e comandos por props.
+O `MockShellRoute` mantém a integração temporária com usuário/notificações de
+demonstração. Esses dados não comprovam identidade nem autorização.
 
-Antes de adicionar loaders privados, a autorização deverá migrar para uma
-barreira executada antes dos loaders, como middleware de rota quando a integração
-real estiver definida e a API escolhida estiver estável para o caso de uso.
-O boundary visual atual não deve ser tratado como proteção de dados.
+Loaders e serviços privados deverão ser auditados junto ao backend. O boundary
+visual orienta navegação e não protege dados; a integração real deverá definir
+a barreira de acesso e o enforcement no serviço/RLS.
 
 ## Referências oficiais
 
