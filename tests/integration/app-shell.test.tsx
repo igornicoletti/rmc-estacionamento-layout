@@ -1,4 +1,4 @@
-import { render, within } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it } from "vitest"
@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import App from "@/app/root/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
+import { headerContent } from "@/components/header/header-content"
 import { waitForRouterInitialization } from "@tests/support/router"
 
 async function renderApp(initialEntry = "/") {
@@ -19,26 +20,32 @@ async function renderApp(initialEntry = "/") {
 }
 
 describe("app shell", () => {
+  it("expõe o header e seus controles como banner da aplicação", async () => {
+    await renderApp()
+
+    const header = screen.getByRole("banner")
+    expect(within(header).getByRole("button", {
+      name: headerContent.userMenu.trigger,
+    })).toBeInTheDocument()
+    expect(within(header).getByRole("button", {
+      name: new RegExp(`^${headerContent.notifications.trigger}`),
+    })).toBeInTheDocument()
+  })
+
   it("não oferece ação no estado sem novas notificações", async () => {
     const user = userEvent.setup()
 
     await renderApp()
 
-    const notificationTrigger =
-      document.querySelector<HTMLButtonElement>('[data-slot="popover-trigger"]')
-
-    if (!notificationTrigger) {
-      throw new Error("Trigger de notificações não encontrado.")
-    }
+    const notificationTrigger = screen.getByRole("button", {
+      name: new RegExp(`^${headerContent.notifications.trigger}`),
+    })
 
     await user.click(notificationTrigger)
 
-    const popover =
-      document.querySelector<HTMLElement>('[data-slot="popover-content"]')
-
-    if (!popover) {
-      throw new Error("Popover de notificações não encontrado.")
-    }
+    const popover = await screen.findByRole("dialog", {
+      name: headerContent.notifications.title,
+    })
 
     await user.click(within(popover).getByRole("button"))
 

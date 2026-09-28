@@ -7,11 +7,8 @@ import {
 import { useRef, useState, type MouseEvent } from "react"
 import { Link, type To } from "react-router"
 
-import {
-  appCopy,
-  getNotificationsTriggerLabel,
-} from "@/app/config/app-copy"
 import { AppEmpty } from "@/components/app/app-empty"
+import { headerContent } from "@/components/header/header-content"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -33,7 +30,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { useIsMobile } from "@/hooks/use-mobile"
 
-export interface AppNotificationItem {
+export interface HeaderNotificationItem {
   dateTime: string
   id: string
   message: string
@@ -42,16 +39,39 @@ export interface AppNotificationItem {
   to: To
 }
 
-export type AppNotificationsStatus = "loading" | "ready" | "unavailable"
+export type HeaderNotificationsStatus = "loading" | "ready" | "unavailable"
 
-interface AppNotificationsProps {
+interface HeaderNotificationsProps {
   isMarkingAllAsRead?: boolean
   onMarkAllAsRead: () => void
   onNotificationRead: (notificationId: string) => void
   readingNotificationId?: string
-  status?: AppNotificationsStatus
-  unreadNotifications: readonly AppNotificationItem[]
+  status?: HeaderNotificationsStatus
+  unreadNotifications: readonly HeaderNotificationItem[]
   viewAllTo?: To
+}
+
+function getNotificationsTriggerLabel(
+  count: number,
+  status: HeaderNotificationsStatus,
+) {
+  const content = headerContent.notifications
+
+  if (status === "loading") {
+    return content.triggerLoading
+  }
+
+  if (status === "unavailable") {
+    return content.triggerUnavailable
+  }
+
+  if (count === 0) {
+    return content.trigger
+  }
+
+  return count === 1
+    ? `${content.trigger}, 1 não lida`
+    : `${content.trigger}, ${count} não lidas`
 }
 
 const notificationPreviewLimit = 5
@@ -60,7 +80,7 @@ function formatBadgeCount(count: number) {
   return count > 99 ? "+99" : count
 }
 
-export function AppNotifications({
+export function HeaderNotifications({
   isMarkingAllAsRead = false,
   onMarkAllAsRead,
   onNotificationRead,
@@ -68,12 +88,12 @@ export function AppNotifications({
   status = "ready",
   unreadNotifications,
   viewAllTo,
-}: AppNotificationsProps) {
+}: HeaderNotificationsProps) {
   const [open, setOpen] = useState(false)
   const [mobileAlignOffset, setMobileAlignOffset] = useState(0)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const isMobile = useIsMobile()
-  const copy = appCopy.toolbar.notifications
+  const content = headerContent.notifications
   const unreadCount = status === "ready" ? unreadNotifications.length : 0
   const previewNotifications = unreadNotifications.slice(
     0,
@@ -136,7 +156,7 @@ export function AppNotifications({
         className="w-[calc(100vw-2rem)] sm:w-96"
       >
         <PopoverHeader className="flex-row items-center justify-between">
-          <PopoverTitle>{copy.title}</PopoverTitle>
+          <PopoverTitle>{content.title}</PopoverTitle>
 
           {status === "ready" && unreadCount > 0 ? (
             <Button
@@ -151,7 +171,7 @@ export function AppNotifications({
               ) : (
                 <CheckCheckIcon aria-hidden="true" data-icon="inline-start" />
               )}
-              {copy.markAllRead}
+              {content.markAllRead}
             </Button>
           ) : null}
         </PopoverHeader>
@@ -163,14 +183,14 @@ export function AppNotifications({
             role="status"
           >
             <Spinner aria-hidden="true" />
-            <span className="sr-only">{copy.loading}</span>
+            <span className="sr-only">{content.loading}</span>
           </div>
         ) : status === "unavailable" ? (
           <AppEmpty
-            description={copy.unavailableDescription}
+            description={content.unavailableDescription}
             headingLevel={3}
             media={{ icon: TriangleAlertIcon }}
-            title={copy.unavailableTitle}
+            title={content.unavailableTitle}
           />
         ) : unreadCount > 0 ? (
           <>
@@ -220,16 +240,16 @@ export function AppNotifications({
                 onClick={() => setOpen(false)}
                 to={viewAllTo}
               >
-                {copy.viewAll}
+                {content.viewAll}
               </Link>
             ) : null}
           </>
         ) : (
           <AppEmpty
-            description={copy.emptyDescription}
+            description={content.emptyDescription}
             headingLevel={3}
             media={{ icon: BellOffIcon }}
-            title={copy.emptyTitle}
+            title={content.emptyTitle}
           />
         )}
       </PopoverContent>
