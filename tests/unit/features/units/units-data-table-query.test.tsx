@@ -1,4 +1,5 @@
 import { act, screen, waitFor, within } from "@testing-library/react"
+import { useQueryClient } from "@tanstack/react-query"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -8,8 +9,13 @@ import { unitErpFixture } from "@/mocks/mock-units-fixtures"
 import type { Unit } from "@/features/units/contracts/units-types"
 import { mapErpUnits } from "@/features/units/mapping/units-mapper"
 
-const { loadDemoUnitsMock } = vi.hoisted(() => ({
+const { loadDemoUnitsMock, notifyMock } = vi.hoisted(() => ({
   loadDemoUnitsMock: vi.fn(),
+  notifyMock: vi.fn(),
+}))
+
+vi.mock("@/components/toast/toast-notify", () => ({
+  notify: notifyMock,
 }))
 
 vi.mock("@/features/units/queries/units-query", async (importOriginal) => {
@@ -25,8 +31,35 @@ vi.mock("@/features/units/queries/units-query", async (importOriginal) => {
 })
 
 import { UnitsDataTable } from "@/features/units/components/units-data-table"
+import { unitsQueryKeys } from "@/features/units/queries/units-query"
 
 const previewUnits = mapErpUnits(unitErpFixture)
+
+function RefetchUnitsControl() {
+  const queryClient = useQueryClient()
+
+  return (
+    <button
+      aria-label="Atualizar unidades no teste"
+      data-testid="refetch-units"
+      onClick={() =>
+        void queryClient.invalidateQueries({
+          queryKey: unitsQueryKeys.units,
+        })
+      }
+      type="button"
+    />
+  )
+}
+
+function renderUnitsDataTable() {
+  renderWithProviders(
+    <>
+      <RefetchUnitsControl />
+      <UnitsDataTable />
+    </>,
+  )
+}
 
 function getDataTableRoot(table: HTMLElement) {
   const root = table.closest('[data-slot="data-table-root"]')
@@ -41,6 +74,7 @@ function getDataTableRoot(table: HTMLElement) {
 describe("UnitsDataTable query boundary", () => {
   beforeEach(() => {
     loadDemoUnitsMock.mockReset()
+    notifyMock.mockReset()
   })
 
   it("mantém o boundary ocupado até a carga inicial concluir", async () => {
@@ -52,12 +86,13 @@ describe("UnitsDataTable query boundary", () => {
       }),
     )
 
-    renderWithProviders(<UnitsDataTable />)
+    renderUnitsDataTable()
 
     const table = screen.getByRole("table")
     const root = getDataTableRoot(table)
 
     expect(root).toHaveAttribute("aria-busy", "true")
+    expect(screen.getByRole("searchbox")).toBeDisabled()
 
     act(() => {
       resolveUnits?.(previewUnits)
@@ -67,10 +102,11 @@ describe("UnitsDataTable query boundary", () => {
       expect(root).toHaveAttribute("aria-busy", "false")
     })
 
+    expect(screen.getByRole("searchbox")).not.toBeDisabled()
     expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
   })
 
-  it("isola a falha e permite refazer a consulta", async () => {
+  it("isola a falha inicial e permite refazer a consulta", async () => {
     const user = userEvent.setup()
 
     loadDemoUnitsMock
@@ -79,7 +115,7 @@ describe("UnitsDataTable query boundary", () => {
       })
       .mockReturnValueOnce(previewUnits)
 
-    renderWithProviders(<UnitsDataTable />)
+    renderUnitsDataTable()
 
     const alert = await screen.findByRole("alert")
     const retry = within(alert).getByRole("button")
@@ -96,5 +132,32 @@ describe("UnitsDataTable query boundary", () => {
     })
 
     expect(loadDemoUnitsMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("preserva dados e notifica uma vez quando o refetch falha", async () => {
+    const user = userEvent.setup()
+
+    loadDemoUnitsMock
+      .mockResolvedValueOnce(previewUnits)
+      .mockRejectedValueOnce(new Error("refetch indisponível"))
+
+    renderUnitsDataTable()
+
+    const table = await screen.findByRole("table")
+    await waitFor(() => {
+      expect(screen.getAllByTestId("data-table-row").length).toBeGreaterThan(0)
+    })
+    const root = getDataTableRoot(table)
+    const visibleRows = screen.getAllByTestId("data-table-row").length
+
+    await user.click(screen.getByTestId("refetch-units"))
+
+    await waitFor(() => {
+      expect(root).toHaveAttribute("aria-busy", "false")
+      expect(notifyMock).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+    expect(screen.getAllByTestId("data-table-row")).toHaveLength(visibleRows)
   })
 })

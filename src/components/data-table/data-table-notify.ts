@@ -6,6 +6,12 @@ export const dataTableNotify = {
     description: "Não foi possível gerar o arquivo CSV. Tente novamente.",
     type: "error",
   },
+  refreshFailed: {
+    title: "Falha ao atualizar",
+    description:
+      "Não foi possível atualizar os dados. As informações exibidas podem estar desatualizadas.",
+    type: "error",
+  },
   rowCopied: {
     title: "Dados copiados",
     description: "Os dados do registro foram copiados.",

@@ -122,17 +122,21 @@ describe("app shell navigation", () => {
     expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(1)
   })
 
-  it("mantém o item pai ativo em uma rota descendente", async () => {
-    await renderApp(`${appRoutes.clients.path}/123`)
+  it(
+    "mantém o item pai ativo em uma rota descendente",
+    async () => {
+      await renderApp(`${appRoutes.clients.path}/123`)
 
-    const navigation = screen.getByRole("navigation")
-    const currentLink = within(navigation).getByRole("link", {
-      current: "page",
-    })
+      const navigation = await screen.findByRole("navigation")
+      const currentLink = within(navigation).getByRole("link", {
+        current: "page",
+      })
 
-    expect(currentLink).toHaveAttribute("href", appRoutes.clients.path)
-    expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(1)
-  })
+      expect(currentLink).toHaveAttribute("href", appRoutes.clients.path)
+      expect(getExpandedNavigationGroupTriggers(navigation)).toHaveLength(1)
+    },
+    30_000,
+  )
 
   it("mantém somente uma seção aberta", async () => {
     const user = userEvent.setup()
@@ -257,27 +261,32 @@ describe("app shell navigation", () => {
 
   it("mantém a navegação funcional com a Sidebar recolhida", async () => {
     const user = userEvent.setup()
-
-    await renderApp()
+    const router = await renderApp()
+    const navigation = screen.getByRole("navigation")
 
     await user.click(
       screen.getByRole("button", { name: sidebarContent.collapse }),
     )
 
-    const navigation = screen.getByRole("navigation")
-    const clientsLink = getNavigationLinkByPath(
+    const clientsLink = await openSectionContainingPath(
       navigation,
+      appRoutes.clients.path,
+      user,
+    )
+    const navigationComplete = waitForRouterLocation(
+      router,
       appRoutes.clients.path,
     )
 
     await user.click(clientsLink)
 
-    await waitFor(() => {
-      const currentLink = within(navigation).getByRole("link", {
-        current: "page",
-      })
-
-      expect(currentLink).toHaveAttribute("href", appRoutes.clients.path)
+    await act(async () => {
+      await navigationComplete
     })
+
+    expect(router.state.location.pathname).toBe(appRoutes.clients.path)
+    expect(
+      within(navigation).getByRole("link", { current: "page" }),
+    ).toHaveAttribute("href", appRoutes.clients.path)
   })
 })

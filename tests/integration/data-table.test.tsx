@@ -6,53 +6,162 @@ import { DataTable } from "@/components/data-table/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 import { DataTableExport } from "@/components/data-table/data-table-export"
-import { createDataTableColumnHelper, useDataTable } from "@/components/data-table/data-table-features"
+import {
+  createDataTableColumnHelper,
+  useDataTable,
+} from "@/components/data-table/data-table-features"
 import { DataTablePagination } from "@/components/data-table/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/data-table-root"
-import { DataTableRowActions, DataTableRowActionsHeader } from "@/components/data-table/data-table-row-actions"
+import {
+  DataTableRowActions,
+  DataTableRowActionsHeader,
+} from "@/components/data-table/data-table-row-actions"
 import { DataTableSearch } from "@/components/data-table/data-table-search"
-import { DataTableEmpty, DataTableError, DataTableUpdating } from "@/components/data-table/data-table-state"
+import {
+  DataTableEmpty,
+  DataTableError,
+  DataTableUpdating,
+} from "@/components/data-table/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options"
 
-interface RecordRow { id: string; name: string; city: string }
+interface RecordRow {
+  id: string
+  name: string
+  city: string
+}
 
 const records: RecordRow[] = [
   { id: "01", name: "Álvaro", city: "São Paulo" },
   { id: "02", name: "Bruna", city: "Curitiba" },
-  ...Array.from({ length: 11 }, (_, index) => ({ id: String(index + 3).padStart(2, "0"), name: `Cliente ${index + 3}`, city: "São Paulo" })),
+  ...Array.from({ length: 11 }, (_, index) => ({
+    id: String(index + 3).padStart(2, "0"),
+    name: `Cliente ${index + 3}`,
+    city: "São Paulo",
+  })),
 ]
 const onCopy = vi.fn<(id: string) => Promise<void>>(async () => {})
 const onExport = vi.fn<(ids: string[]) => void>()
 const columnHelper = createDataTableColumnHelper<RecordRow>()
 const columns = columnHelper.columns([
-  columnHelper.accessor("id", { header: "Código", meta: { visibilityLabel: "Código" }, enableGlobalFilter: false }),
-  columnHelper.accessor("name", { header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />, meta: { visibilityLabel: "Nome" } }),
-  columnHelper.accessor("city", { header: "Cidade", filterFn: "equals", meta: { visibilityLabel: "Cidade" }, enableGlobalFilter: false }),
-  columnHelper.display({ id: "actions", header: DataTableRowActionsHeader, enableHiding: false, cell: ({ row }) => <DataTableRowActions accessibleLabel={`Ações de ${row.original.name}`} onCopyData={() => onCopy(row.original.id)} /> }),
+  columnHelper.accessor("id", {
+    header: "Código",
+    meta: { visibilityLabel: "Código" },
+    enableGlobalFilter: false,
+  }),
+  columnHelper.accessor("name", {
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nome" />
+    ),
+    meta: { visibilityLabel: "Nome" },
+  }),
+  columnHelper.accessor("city", {
+    header: "Cidade",
+    filterFn: "equals",
+    meta: { visibilityLabel: "Cidade" },
+    enableGlobalFilter: false,
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: DataTableRowActionsHeader,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <DataTableRowActions
+        accessibleLabel={`Ações de ${row.original.name}`}
+        onCopyData={() => onCopy(row.original.id)}
+      />
+    ),
+  }),
 ])
 
-function ExampleTable({ loading = false, updating = false, data = records }: { loading?: boolean; updating?: boolean; data?: RecordRow[] }) {
-  const table = useDataTable({ columns, data, getRowId: (row) => row.id, initialState: { pagination: { pageIndex: 0, pageSize: 10 } } })
+function ExampleTable({
+  loading = false,
+  updating = false,
+  data = records,
+  pageSize = 10,
+}: {
+  loading?: boolean
+  updating?: boolean
+  data?: RecordRow[]
+  pageSize?: number
+}) {
+  const table = useDataTable({
+    columns,
+    data,
+    getRowId: (row) => row.id,
+    initialState: { pagination: { pageIndex: 0, pageSize } },
+  })
   const city = table.getColumn("city")
   const search = String(table.state.globalFilter ?? "")
   const selectedCity = city?.getFilterValue() as string | undefined
-  const counts = new Map<string, number>(city?.getFacetedUniqueValues() as Map<string, number>)
-  const clear = () => { table.setGlobalFilter(""); table.resetColumnFilters() }
-  const activeCount = Number(Boolean(search)) + table.state.columnFilters.length
+  const counts = new Map<string, number>(
+    city?.getFacetedUniqueValues() as Map<string, number>,
+  )
+  const clear = () => {
+    table.setGlobalFilter("")
+    table.resetColumnFilters()
+  }
+  const activeCount =
+    Number(Boolean(search)) + table.state.columnFilters.length
+
   return (
     <DataTableRoot isBusy={loading || updating}>
       <DataTableToolbar
-        actions={<><DataTableExport disabled={table.getPrePaginatedRowModel().rows.length === 0} onExport={() => onExport(table.getPrePaginatedRowModel().rows.map((row) => row.original.id))} /><DataTableViewOptions table={table} /></>}
+        actions={
+          <>
+            <DataTableExport
+              disabled={table.getPrePaginatedRowModel().rows.length === 0}
+              onExport={() =>
+                onExport(
+                  table
+                    .getPrePaginatedRowModel()
+                    .rows.map((row) => row.original.id),
+                )
+              }
+            />
+            <DataTableViewOptions table={table} />
+          </>
+        }
         activeFilterCount={activeCount}
         onClearFilters={clear}
       >
-        <DataTableSearch onChange={table.setGlobalFilter} onClear={() => table.setGlobalFilter("")} value={search} />
-        <DataTableComboboxFilter ariaLabel="Filtrar cidade" counts={counts} items={[{ label: "Curitiba", value: "Curitiba" }, { label: "São Paulo", value: "São Paulo" }]} onValueChange={(value) => city?.setFilterValue(value)} placeholder="Cidade" value={selectedCity} />
+        <DataTableSearch
+          disabled={loading}
+          onChange={table.setGlobalFilter}
+          onClear={() => table.setGlobalFilter("")}
+          value={search}
+        />
+        <DataTableComboboxFilter
+          ariaLabel="Filtrar cidade"
+          counts={counts}
+          disabled={loading}
+          items={[
+            { label: "Curitiba", value: "Curitiba" },
+            { label: "São Paulo", value: "São Paulo" },
+          ]}
+          onValueChange={(value) => city?.setFilterValue(value)}
+          placeholder="Cidade"
+          value={selectedCity}
+        />
       </DataTableToolbar>
       <DataTableUpdating active={updating} />
-      <DataTable caption="Registros de exemplo" emptyState={<DataTableEmpty hasFilters={activeCount > 0} onClearFilters={clear} />} isInitialLoading={loading} table={table} />
-      {!loading ? <DataTablePagination rowCount={table.getPrePaginatedRowModel().rows.length} table={table} /> : null}
+      <DataTable
+        caption="Registros de exemplo"
+        emptyState={
+          <DataTableEmpty
+            hasFilters={activeCount > 0}
+            onClearFilters={clear}
+          />
+        }
+        isLoading={loading}
+        table={table}
+      />
+      {!loading ? (
+        <DataTablePagination
+          rowCount={table.getPrePaginatedRowModel().rows.length}
+          table={table}
+        />
+      ) : null}
     </DataTableRoot>
   )
 }
@@ -109,7 +218,11 @@ describe("Data Table", () => {
     expect(screen.getByRole("row", { name: /Bruna/ })).toBeInTheDocument()
     await user.type(screen.getByRole("searchbox"), "sem resultado")
     expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument()
-    await user.click(within(screen.getByRole("status")).getByRole("button", { name: "Limpar filtros" }))
+    await user.click(
+      within(screen.getByRole("status")).getByRole("button", {
+        name: "Limpar filtros",
+      }),
+    )
     expect(screen.getByText("13 registros")).toBeInTheDocument()
   })
 
@@ -127,21 +240,62 @@ describe("Data Table", () => {
     await user.click(await screen.findByRole("option", { name: "20" }))
     expect(screen.getByText("Página 1 de 1")).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Gerenciar colunas" }))
-    await user.click(await screen.findByRole("menuitemcheckbox", { name: "Código" }))
-    expect(screen.queryByRole("columnheader", { name: "Código" })).not.toBeInTheDocument()
-    await user.click(screen.getByRole("menuitemcheckbox", { name: "Cidade" }))
-    expect(screen.getByRole("menuitemcheckbox", { name: /Nome, última coluna visível/ })).toHaveAttribute("aria-disabled", "true")
+    await user.click(
+      await screen.findByRole("menuitemcheckbox", { name: "Código" }),
+    )
+    expect(
+      screen.queryByRole("columnheader", { name: "Código" }),
+    ).not.toBeInTheDocument()
+    await user.click(
+      screen.getByRole("menuitemcheckbox", { name: "Cidade" }),
+    )
+    expect(
+      screen.getByRole("menuitemcheckbox", {
+        name: /Nome, última coluna visível/,
+      }),
+    ).toHaveAttribute("aria-disabled", "true")
   })
 
-  it("apresenta loading, estado vazio, erro e atualização", async () => {
-    const { rerender } = render(<ExampleTable loading />)
-    expect(screen.getByRole("table")).toBeInTheDocument()
-    expect(screen.queryByText("Nenhum registro disponível")).not.toBeInTheDocument()
-    rerender(<ExampleTable data={[]} />)
-    expect(screen.getByText("Nenhum registro disponível")).toBeInTheDocument()
-    rerender(<><DataTableError onRetry={vi.fn()} /><ExampleTable updating /></>)
-    expect(screen.getByRole("button", { name: "Tentar novamente" })).toBeInTheDocument()
+  it("deriva o skeleton da página e bloqueia controles na carga inicial", () => {
+    const { container } = render(<ExampleTable loading pageSize={20} />)
+    const table = screen.getByRole("table")
+
+    expect(within(table).getAllByRole("row", { hidden: true })).toHaveLength(21)
+    expect(screen.getByRole("searchbox")).toBeDisabled()
+    expect(screen.getByRole("combobox", { name: "Filtrar cidade" })).toBeDisabled()
+    expect(
+      container.querySelector('[data-slot="data-table-pagination"]'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole("status")).not.toBeInTheDocument()
+  })
+
+  it("oculta paginação no estado vazio", () => {
+    const { container } = render(<ExampleTable data={[]} />)
+
+    expect(screen.getByRole("status")).toBeInTheDocument()
+    expect(
+      container.querySelector('[data-slot="data-table-pagination"]'),
+    ).not.toBeInTheDocument()
+  })
+
+  it("preserva os dados e controles durante atualização em background", async () => {
+    render(<ExampleTable updating />)
+
+    expect(screen.getAllByTestId("data-table-row")).toHaveLength(10)
+    expect(screen.getByRole("searchbox")).not.toBeDisabled()
+    expect(
+      screen.getByRole("combobox", { name: "Filtrar cidade" }),
+    ).not.toBeDisabled()
     expect(await screen.findByText("Atualizando")).toBeInTheDocument()
+  })
+
+  it("apresenta erro persistente com retry", () => {
+    render(<DataTableError onRetry={vi.fn()} />)
+
+    expect(screen.getByRole("alert")).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Tentar novamente" }),
+    ).toBeInTheDocument()
   })
 
   it("oferece ação de cópia por linha", async () => {
@@ -149,7 +303,9 @@ describe("Data Table", () => {
     onCopy.mockClear()
     render(<ExampleTable />)
     await user.click(screen.getByRole("button", { name: "Ações de Álvaro" }))
-    await user.click(await screen.findByRole("menuitem", { name: "Copiar dados" }))
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Copiar dados" }),
+    )
     expect(onCopy).toHaveBeenCalledWith("01")
   })
 
@@ -158,7 +314,9 @@ describe("Data Table", () => {
     onCopy.mockRejectedValueOnce(new Error("clipboard indisponível"))
     render(<ExampleTable />)
     await user.click(screen.getByRole("button", { name: "Ações de Álvaro" }))
-    await user.click(await screen.findByRole("menuitem", { name: "Copiar dados" }))
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Copiar dados" }),
+    )
     expect(screen.getByRole("table")).toBeInTheDocument()
   })
 })

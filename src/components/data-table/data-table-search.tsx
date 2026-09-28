@@ -1,10 +1,16 @@
 import { SearchIcon, XIcon } from "lucide-react"
 
 import { dataTableContent } from "@/components/data-table/data-table-content"
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 
 interface DataTableSearchProps {
   ariaLabel?: string
+  disabled?: boolean
   onChange: (value: string) => void
   onClear: () => void
   placeholder?: string
@@ -13,6 +19,7 @@ interface DataTableSearchProps {
 
 export function DataTableSearch({
   ariaLabel = dataTableContent.search.defaultAriaLabel,
+  disabled = false,
   onChange,
   onClear,
   placeholder = dataTableContent.search.defaultPlaceholder,
@@ -23,6 +30,7 @@ export function DataTableSearch({
       <InputGroupInput
         aria-label={ariaLabel}
         className="text-sm!"
+        disabled={disabled}
         inputMode="search"
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -30,10 +38,18 @@ export function DataTableSearch({
         type="text"
         value={value}
       />
-      <InputGroupAddon align="inline-start"><SearchIcon aria-hidden="true" /></InputGroupAddon>
+      <InputGroupAddon align="inline-start">
+        <SearchIcon aria-hidden="true" />
+      </InputGroupAddon>
       {value ? (
         <InputGroupAddon align="inline-end">
-          <InputGroupButton aria-label={dataTableContent.search.clear} data-testid="data-table-search-clear" onClick={onClear} size="icon-xs">
+          <InputGroupButton
+            aria-label={dataTableContent.search.clear}
+            data-testid="data-table-search-clear"
+            disabled={disabled}
+            onClick={onClear}
+            size="icon-xs"
+          >
             <XIcon aria-hidden="true" />
           </InputGroupButton>
         </InputGroupAddon>

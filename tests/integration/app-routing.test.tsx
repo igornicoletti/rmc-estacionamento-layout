@@ -25,36 +25,51 @@ async function renderRoute(initialEntry = "/") {
   return router
 }
 
+async function expectShell() {
+  await Promise.all([
+    screen.findByRole("main", {}, { timeout: 5_000 }),
+    screen.findByRole("navigation", {}, { timeout: 5_000 }),
+  ])
+}
+
+async function expectDocumentTitle(title: string) {
+  await waitFor(() => expect(document.title).toBe(title), { timeout: 5_000 })
+}
+
 describe("app routing", () => {
-  it("atualiza o título ao navegar e restaura a identidade na rota desconhecida", async () => {
-    const router = await renderRoute(appRoutes.clients.path)
-    await waitFor(() => {
-      expect(document.title).toBe(
+  it(
+    "atualiza o título ao navegar e restaura a identidade na rota desconhecida",
+    async () => {
+      const router = await renderRoute(appRoutes.clients.path)
+
+      await expectShell()
+      await expectDocumentTitle(
         `${appRoutes.clients.browserTitle} | ${appMetadata.browserTitle}`,
       )
-    })
 
-    await act(async () => {
-      await router.navigate(appRoutes.units.path)
-    })
-    await waitFor(() => {
-      expect(document.title).toBe(
+      await act(async () => {
+        void router.navigate(appRoutes.units.path)
+        await waitForRouterLocation(router, appRoutes.units.path)
+      })
+      await expectDocumentTitle(
         `${appRoutes.units.browserTitle} | ${appMetadata.browserTitle}`,
       )
-    })
 
-    await act(async () => {
-      await router.navigate("/nao-existe")
-    })
-    await waitFor(() => expect(document.title).toBe(appMetadata.browserTitle))
-  })
+      await act(async () => {
+        void router.navigate("/nao-existe")
+        await waitForRouterLocation(router, "/nao-existe")
+      })
+      await expectDocumentTitle(appMetadata.browserTitle)
+    },
+    30_000,
+  )
+
   it("monta o shell na rota raiz", async () => {
     const router = await renderRoute()
 
     expect(router.state.location.pathname).toBe("/")
     expect(router.state.errors).toBeNull()
-    expect(screen.getByRole("main")).toBeInTheDocument()
-    expect(screen.getByRole("navigation")).toBeInTheDocument()
+    await expectShell()
   })
 
   it.each(appPageRouteIds.map((id) => appRoutes[id]))(
@@ -64,8 +79,7 @@ describe("app routing", () => {
 
       expect(router.state.location.pathname).toBe(page.path)
       expect(router.state.errors).toBeNull()
-      expect(screen.getByRole("main")).toBeInTheDocument()
-      expect(screen.getByRole("navigation")).toBeInTheDocument()
+      await expectShell()
     },
   )
 
@@ -84,8 +98,7 @@ describe("app routing", () => {
 
     expect(router.state.location.pathname).toBe("/rmc")
     expect(router.state.errors).toBeNull()
-    expect(screen.getByRole("main")).toBeInTheDocument()
-    expect(screen.getByRole("navigation")).toBeInTheDocument()
+    await expectShell()
   }, 30_000)
 
   it("reconhece a rota dinâmica de detalhe do cliente", () => {

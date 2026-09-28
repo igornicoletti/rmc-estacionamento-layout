@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { DataTable } from "@/components/data-table/data-table"
-import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 import { DataTableActions } from "@/components/data-table/data-table-actions"
+import { DataTableComboboxFilter } from "@/components/data-table/data-table-combobox-filter"
 import { useDataTable } from "@/components/data-table/data-table-features"
+import { dataTableNotify } from "@/components/data-table/data-table-notify"
 import { DataTablePagination } from "@/components/data-table/data-table-pagination"
 import { DataTableRoot } from "@/components/data-table/data-table-root"
 import { DataTableSearch } from "@/components/data-table/data-table-search"
@@ -14,21 +15,21 @@ import {
   DataTableUpdating,
 } from "@/components/data-table/data-table-state"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
+import { notify } from "@/components/toast/toast-notify"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { serializeRecordForClipboard } from "@/lib/format-record-fields"
-import { clientsContent } from "@/features/clients/content/clients-content"
 import { createClientsTableColumns } from "@/features/clients/components/clients-table-columns"
-import {
-  clientsQueryKeys,
-  loadDemoClients,
-} from "@/features/clients/queries/clients-query"
+import { clientsContent } from "@/features/clients/content/clients-content"
 import type { Client } from "@/features/clients/contracts/clients-types"
 import { formatCityName } from "@/features/clients/presentation/clients-format"
-
 import {
   clientRecordCsvColumns,
   clientRecordSections,
 } from "@/features/clients/presentation/clients-record"
+import {
+  clientsQueryKeys,
+  loadDemoClients,
+} from "@/features/clients/queries/clients-query"
 
 const EMPTY_CLIENTS: Client[] = []
 
@@ -38,6 +39,22 @@ export function ClientsDataTable() {
     queryFn: loadDemoClients,
     staleTime: Number.POSITIVE_INFINITY,
   })
+  const isInitialPending = query.isPending
+  const notifiedRefetchErrorAt = useRef(query.errorUpdatedAt)
+
+  useEffect(() => {
+    if (
+      !query.isRefetchError ||
+      query.errorUpdatedAt === 0 ||
+      query.errorUpdatedAt === notifiedRefetchErrorAt.current
+    ) {
+      return
+    }
+
+    notifiedRefetchErrorAt.current = query.errorUpdatedAt
+    notify(dataTableNotify.refreshFailed)
+  }, [query.errorUpdatedAt, query.isRefetchError])
+
   const clients = query.data ?? EMPTY_CLIENTS
   const copyClient = useCallback(
     (client: Client) =>
@@ -58,13 +75,11 @@ export function ClientsDataTable() {
     initialState: {
       columnVisibility: {
         cityFacet: false,
-
         financialBlockStatus: false,
         id: false,
         personActiveStatus: false,
         phone: false,
         registeredAt: false,
-
         tradeName: false,
       },
       pagination: { pageIndex: 0, pageSize: 10 },
@@ -95,12 +110,13 @@ export function ClientsDataTable() {
   const search = String(table.state.globalFilter ?? "")
   const activeFilterCount =
     Number(Boolean(search.trim())) + table.state.columnFilters.length
+  const rowCount = table.getPrePaginatedRowModel().rows.length
   const clearFilters = () => {
     table.setGlobalFilter("")
     table.resetColumnFilters()
   }
 
-  if (query.isError) {
+  if (query.isLoadingError) {
     return (
       <DataTableError
         description={clientsContent.list.loadError}
@@ -110,13 +126,13 @@ export function ClientsDataTable() {
   }
 
   return (
-    <DataTableRoot isBusy={query.isPending || query.isFetching}>
+    <DataTableRoot isBusy={query.isFetching}>
       <DataTableToolbar
         actions={
           <DataTableActions
             csvColumns={clientRecordCsvColumns}
-            filename={"clientes.csv"}
-            isBusy={query.isPending || query.isFetching}
+            filename="clientes.csv"
+            isBusy={isInitialPending}
             table={table}
           />
         }
@@ -125,6 +141,7 @@ export function ClientsDataTable() {
       >
         <DataTableSearch
           ariaLabel={clientsContent.list.searchAriaLabel}
+          disabled={isInitialPending}
           onChange={table.setGlobalFilter}
           onClear={() => table.setGlobalFilter("")}
           placeholder={clientsContent.list.searchPlaceholder}
@@ -134,13 +151,14 @@ export function ClientsDataTable() {
           ariaLabel={clientsContent.list.cityFilterAriaLabel}
           clearAriaLabel={clientsContent.list.cityFilterClearAriaLabel}
           counts={cityCounts}
+          disabled={isInitialPending}
           items={cityItems}
           onValueChange={(value) => cityColumn?.setFilterValue(value)}
           placeholder={clientsContent.list.cityFilterPlaceholder}
           value={cityValue}
         />
       </DataTableToolbar>
-      <DataTableUpdating active={query.isFetching && !query.isPending} />
+      <DataTableUpdating active={query.isRefetching} />
       <DataTable
         caption={clientsContent.list.caption}
         emptyState={
@@ -151,13 +169,13 @@ export function ClientsDataTable() {
             onClearFilters={clearFilters}
           />
         }
-        isInitialLoading={query.isPending}
+        isLoading={isInitialPending}
         table={table}
       />
-      {!query.isPending ? (
+      {!isInitialPending ? (
         <DataTablePagination
           itemLabel={clientsContent.list.itemLabel}
-          rowCount={table.getPrePaginatedRowModel().rows.length}
+          rowCount={rowCount}
           table={table}
         />
       ) : null}

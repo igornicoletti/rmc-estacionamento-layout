@@ -1,17 +1,23 @@
+import { useState } from "react"
 import { act, screen, waitFor, within } from "@testing-library/react"
+import { onlineManager, useQueryClient } from "@tanstack/react-query"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
 import { clientErpFixture } from "@/mocks/mock-clients-fixtures"
-
 import type { Client } from "@/features/clients/contracts/clients-types"
 import { mapErpClients } from "@/features/clients/mapping/clients-mapper"
 
-const { loadDemoClientsMock } = vi.hoisted(() => ({
+const { loadDemoClientsMock, notifyMock } = vi.hoisted(() => ({
   loadDemoClientsMock: vi.fn(),
+  notifyMock: vi.fn(),
+}))
+
+vi.mock("@/components/toast/toast-notify", () => ({
+  notify: notifyMock,
 }))
 
 vi.mock("@/features/clients/queries/clients-query", async (importOriginal) => {
@@ -27,15 +33,46 @@ vi.mock("@/features/clients/queries/clients-query", async (importOriginal) => {
 })
 
 import { ClientsDataTable } from "@/features/clients/components/clients-data-table"
+import { clientsQueryKeys } from "@/features/clients/queries/clients-query"
 
 const previewClients = mapErpClients(clientErpFixture)
 
-function renderClientsDataTable() {
-  renderWithProviders(
-    <MemoryRouter>
-      <ClientsDataTable />
-    </MemoryRouter>,
+function RefetchClientsControl() {
+  const queryClient = useQueryClient()
+
+  return (
+    <button
+      aria-label="Atualizar clientes no teste"
+      data-testid="refetch-clients"
+      onClick={() =>
+        void queryClient.invalidateQueries({
+          queryKey: clientsQueryKeys.clients,
+        })
+      }
+      type="button"
+    />
   )
+}
+
+function ClientsDataTableHarness() {
+  const [isVisible, setIsVisible] = useState(true)
+
+  return (
+    <>
+      <RefetchClientsControl />
+      <button
+        aria-label="Alternar tabela de clientes no teste"
+        data-testid="toggle-clients"
+        onClick={() => setIsVisible((current) => !current)}
+        type="button"
+      />
+      <MemoryRouter>{isVisible ? <ClientsDataTable /> : null}</MemoryRouter>
+    </>
+  )
+}
+
+function renderClientsDataTable() {
+  return renderWithProviders(<ClientsDataTableHarness />)
 }
 
 function getDataTableRoot(table: HTMLElement) {
@@ -48,9 +85,14 @@ function getDataTableRoot(table: HTMLElement) {
   return root
 }
 
+afterEach(() => {
+  onlineManager.setOnline(true)
+})
+
 describe("ClientsDataTable query boundary", () => {
   beforeEach(() => {
     loadDemoClientsMock.mockReset()
+    notifyMock.mockReset()
   })
 
   it("mantém o boundary ocupado até a carga inicial concluir", async () => {
@@ -68,6 +110,7 @@ describe("ClientsDataTable query boundary", () => {
     const root = getDataTableRoot(table)
 
     expect(root).toHaveAttribute("aria-busy", "true")
+    expect(screen.getByRole("searchbox")).toBeDisabled()
 
     act(() => {
       resolveClients?.(previewClients)
@@ -77,10 +120,25 @@ describe("ClientsDataTable query boundary", () => {
       expect(root).toHaveAttribute("aria-busy", "false")
     })
 
+    expect(screen.getByRole("searchbox")).not.toBeDisabled()
     expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
   })
 
-  it("isola a falha e permite refazer a consulta", async () => {
+  it("mantém o estado inicial quando a consulta está pausada sem dados", () => {
+    onlineManager.setOnline(false)
+    loadDemoClientsMock.mockResolvedValue(previewClients)
+
+    renderClientsDataTable()
+
+    const table = screen.getByRole("table")
+
+    expect(screen.getByRole("searchbox")).toBeDisabled()
+    expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    expect(within(table).queryAllByTestId("data-table-row")).toHaveLength(0)
+    expect(loadDemoClientsMock).not.toHaveBeenCalled()
+  })
+
+  it("isola a falha inicial e permite refazer a consulta", async () => {
     const user = userEvent.setup()
 
     loadDemoClientsMock
@@ -106,5 +164,45 @@ describe("ClientsDataTable query boundary", () => {
     })
 
     expect(loadDemoClientsMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("preserva dados e não repete erro de refetch cacheado após remontagem", async () => {
+    const user = userEvent.setup()
+
+    loadDemoClientsMock
+      .mockResolvedValueOnce(previewClients)
+      .mockRejectedValueOnce(new Error("refetch indisponível"))
+
+    const view = renderClientsDataTable()
+
+    const table = await screen.findByRole("table")
+    await waitFor(() => {
+      expect(screen.getAllByTestId("data-table-row").length).toBeGreaterThan(0)
+    })
+    const root = getDataTableRoot(table)
+    const visibleRows = screen.getAllByTestId("data-table-row").length
+
+    await user.click(screen.getByTestId("refetch-clients"))
+
+    await waitFor(() => {
+      expect(root).toHaveAttribute("aria-busy", "false")
+      expect(notifyMock).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+    expect(screen.getAllByTestId("data-table-row")).toHaveLength(visibleRows)
+
+    act(() => {
+      onlineManager.setOnline(false)
+    })
+    await user.click(screen.getByTestId("toggle-clients"))
+    expect(screen.queryByRole("table")).not.toBeInTheDocument()
+
+    await user.click(screen.getByTestId("toggle-clients"))
+    await screen.findByRole("table")
+
+    expect(notifyMock).toHaveBeenCalledTimes(1)
+
+    view.unmount()
   })
 })

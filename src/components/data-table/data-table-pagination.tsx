@@ -45,8 +45,13 @@ export function DataTablePagination({
   rowCount,
   table,
 }: DataTablePaginationProps) {
+  if (rowCount === 0) {
+    return null
+  }
+
   const { pageIndex, pageSize } = table.state.pagination
   const pageCount = Math.max(table.getPageCount(), 1)
+
   return (
     <div
       className="flex flex-col items-center gap-3 text-center md:flex-row md:justify-between md:text-left"
