@@ -42,7 +42,8 @@ export function UnitsDataTable() {
     queryFn: loadDemoUnits,
     staleTime: Number.POSITIVE_INFINITY,
   })
-  const notifiedRefetchErrorAt = useRef(0)
+  const isInitialPending = query.isPending
+  const notifiedRefetchErrorAt = useRef(query.errorUpdatedAt)
 
   useEffect(() => {
     if (
@@ -140,7 +141,7 @@ export function UnitsDataTable() {
           <DataTableActions
             csvColumns={unitRecordCsvColumns}
             filename="unidades.csv"
-            isBusy={query.isLoading}
+            isBusy={isInitialPending}
             table={table}
           />
         }
@@ -149,7 +150,7 @@ export function UnitsDataTable() {
       >
         <DataTableSearch
           ariaLabel={unitsContent.list.searchAriaLabel}
-          disabled={query.isLoading}
+          disabled={isInitialPending}
           onChange={table.setGlobalFilter}
           onClear={() => table.setGlobalFilter("")}
           placeholder={unitsContent.list.searchPlaceholder}
@@ -159,7 +160,7 @@ export function UnitsDataTable() {
           ariaLabel={unitsContent.list.brandFilterAriaLabel}
           clearAriaLabel={unitsContent.list.brandFilterClearAriaLabel}
           counts={brandCounts}
-          disabled={query.isLoading}
+          disabled={isInitialPending}
           items={brandItems}
           onValueChange={(value) => brandColumn?.setFilterValue(value)}
           placeholder={unitsContent.list.brandFilterPlaceholder}
@@ -169,7 +170,7 @@ export function UnitsDataTable() {
           ariaLabel={unitsContent.list.cityFilterAriaLabel}
           clearAriaLabel={unitsContent.list.cityFilterClearAriaLabel}
           counts={cityCounts}
-          disabled={query.isLoading}
+          disabled={isInitialPending}
           items={cityItems}
           onValueChange={(value) => cityColumn?.setFilterValue(value)}
           placeholder={unitsContent.list.cityFilterPlaceholder}
@@ -187,10 +188,10 @@ export function UnitsDataTable() {
             onClearFilters={clearFilters}
           />
         }
-        isLoading={query.isLoading}
+        isLoading={isInitialPending}
         table={table}
       />
-      {!query.isLoading ? (
+      {!isInitialPending ? (
         <DataTablePagination
           itemLabel={unitsContent.list.itemLabel}
           rowCount={rowCount}
