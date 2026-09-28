@@ -8,6 +8,7 @@ import { appPages } from "@/app/config/app-config"
 import App from "@/app/root/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
+import { headerContent } from "@/components/header/header-content"
 import {
   waitForRouterInitialization,
   waitForRouterLocation,
@@ -235,7 +236,7 @@ describe("app shell navigation", () => {
     await renderApp()
 
     await user.click(
-      screen.getByRole("button", { name: appCopy.toolbar.openSidebar }),
+      screen.getByRole("button", { name: headerContent.sidebar.open }),
     )
 
     const navigation = screen.getByRole("navigation")
@@ -249,7 +250,7 @@ describe("app shell navigation", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: appCopy.toolbar.openSidebar }),
+        screen.getByRole("button", { name: headerContent.sidebar.open }),
       ).toBeInTheDocument()
     })
   })

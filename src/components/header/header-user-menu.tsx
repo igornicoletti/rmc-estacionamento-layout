@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { Link, type To } from "react-router"
 
-import { appCopy, getUserAvatarAlt } from "@/app/config/app-copy"
+import { headerContent } from "@/components/header/header-content"
 import { isTheme } from "@/components/theme/theme-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,11 @@ import {
 import { useTheme } from "@/hooks/use-theme"
 import { getUserInitials } from "@/lib/user-initials"
 
-export interface AppUserMenuProps {
+function getUserAvatarAlt(name: string) {
+  return `Foto de perfil de ${name}`
+}
+
+export interface HeaderUserMenuProps {
   avatarSrc?: string
   email?: string
   isSigningOut?: boolean
@@ -38,17 +42,17 @@ export interface AppUserMenuProps {
   profileTo: To
 }
 
-export function AppUserMenu({
+export function HeaderUserMenu({
   avatarSrc,
   email,
   isSigningOut = false,
   name,
   onLogout,
   profileTo,
-}: AppUserMenuProps) {
+}: HeaderUserMenuProps) {
   const { theme, setTheme } = useTheme()
   const normalizedEmail = email?.trim()
-  const copy = appCopy.toolbar.userMenu
+  const content = headerContent.userMenu
 
   const handleThemeChange = (value: string) => {
     if (isTheme(value)) {
@@ -59,7 +63,7 @@ export function AppUserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button aria-label={copy.trigger} variant="ghost" />}
+        render={<Button aria-label={content.trigger} variant="ghost" />}
       >
         <Avatar>
           {avatarSrc ? (
@@ -97,14 +101,14 @@ export function AppUserMenu({
         <DropdownMenuGroup>
           <DropdownMenuItem render={<Link to={profileTo} />}>
             <UserRoundIcon aria-hidden="true" />
-            {copy.profile}
+            {content.profile}
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <SunMoonIcon aria-hidden="true" />
-            {copy.appearance}
+            {content.appearance}
           </DropdownMenuSubTrigger>
 
           <DropdownMenuSubContent>
@@ -114,15 +118,15 @@ export function AppUserMenu({
             >
               <DropdownMenuRadioItem value="light">
                 <SunIcon aria-hidden="true" />
-                {copy.themeLight}
+                {content.themeLight}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="dark">
                 <MoonIcon aria-hidden="true" />
-                {copy.themeDark}
+                {content.themeDark}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="system">
                 <MonitorIcon aria-hidden="true" />
-                {copy.themeSystem}
+                {content.themeSystem}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
@@ -137,7 +141,7 @@ export function AppUserMenu({
             variant="destructive"
           >
             <LogOutIcon aria-hidden="true" />
-            {isSigningOut ? copy.signingOut : copy.signOut}
+            {isSigningOut ? content.signingOut : content.signOut}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

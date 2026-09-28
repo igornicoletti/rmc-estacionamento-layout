@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
-import { appCopy } from "../../src/app/config/app-copy"
 import { appPages } from "../../src/app/config/app-config"
+import { headerContent } from "../../src/components/header/header-content"
 import { getClientDetailsPath } from "../../src/pages/clients/client-routes"
 import {
   clientErpFixture,
@@ -122,7 +122,7 @@ test("fecha o menu lateral mobile após navegar", async ({ page }) => {
   await page.goto(appPages.clients.path)
 
   await page
-    .getByRole("button", { name: appCopy.toolbar.openSidebar })
+    .getByRole("button", { name: headerContent.sidebar.open })
     .click()
 
   const navigation = page.getByRole("navigation")
@@ -133,7 +133,7 @@ test("fecha o menu lateral mobile após navegar", async ({ page }) => {
 
   await expect(page).toHaveURL(appPages.units.path)
   await expect(
-    page.getByRole("button", { name: appCopy.toolbar.openSidebar }),
+    page.getByRole("button", { name: headerContent.sidebar.open }),
   ).toBeVisible()
 })
 

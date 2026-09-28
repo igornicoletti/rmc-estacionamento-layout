@@ -4,15 +4,15 @@ import { Outlet } from "react-router"
 import { appPages } from "@/app/config/app-config"
 import { navigationSections, primaryNavigation } from "@/app/shell/app-navigation"
 import { shellPreviewData } from "@/app/shell/app-preview"
-import {
-  AppNotifications,
-  type AppNotificationItem,
-  type AppNotificationsStatus,
-} from "@/app/shell/components/app-notifications"
-import { AppToolbar } from "@/app/shell/components/app-toolbar"
-import { AppUserMenu } from "@/app/shell/components/app-user-menu"
 import { sessionNotify } from "@/app/session/content/session-notify"
 import { useSession } from "@/app/session/session-context"
+import { Header } from "@/components/header/header"
+import {
+  HeaderNotifications,
+  type HeaderNotificationItem,
+  type HeaderNotificationsStatus,
+} from "@/components/header/header-notifications"
+import { HeaderUserMenu } from "@/components/header/header-user-menu"
 import { SidebarApp } from "@/components/sidebar/sidebar-app"
 import { notify } from "@/components/toast/toast-notify"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -29,12 +29,12 @@ interface AppShellProps {
   currentUser: AppShellUser
   isMarkingAllAsRead?: boolean
   isSigningOut?: boolean
-  notificationsStatus?: AppNotificationsStatus
+  notificationsStatus?: HeaderNotificationsStatus
   onLogout: () => void
   onMarkAllAsRead: () => void
   onNotificationRead: (notificationId: string) => void
   readingNotificationId?: string
-  unreadNotifications: readonly AppNotificationItem[]
+  unreadNotifications: readonly HeaderNotificationItem[]
 }
 
 function AppShell({
@@ -58,8 +58,8 @@ function AppShell({
       />
 
       <SidebarInset>
-        <AppToolbar>
-          <AppNotifications
+        <Header>
+          <HeaderNotifications
             isMarkingAllAsRead={isMarkingAllAsRead}
             onMarkAllAsRead={onMarkAllAsRead}
             onNotificationRead={onNotificationRead}
@@ -69,7 +69,7 @@ function AppShell({
             viewAllTo={appPages.notifications.path}
           />
 
-          <AppUserMenu
+          <HeaderUserMenu
             avatarSrc={currentUser.avatarSrc}
             email={currentUser.email}
             isSigningOut={isSigningOut}
@@ -77,7 +77,7 @@ function AppShell({
             onLogout={onLogout}
             profileTo={appPages.profile.path}
           />
-        </AppToolbar>
+        </Header>
 
         <div className="flex min-w-0 flex-1 flex-col p-6">{children}</div>
       </SidebarInset>
@@ -88,7 +88,7 @@ function AppShell({
 export function AppShellRoute() {
   const { isSigningOut, signOut } = useSession()
   const [unreadNotifications, setUnreadNotifications] = useState<
-    AppNotificationItem[]
+    HeaderNotificationItem[]
   >(() => [...shellPreviewData.notifications])
 
   const handleNotificationRead = (notificationId: string) => {
