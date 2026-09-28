@@ -54,20 +54,21 @@ em Chromium.
 
 ## Organização do código
 
-- `src/main.tsx`: entry point do Vite; cria o Data Router uma única vez, fora da árvore React.
-- `src/app/root/app.tsx`: composition root da aplicação; recebe o router criado em `main.tsx`.
+- `src/main.tsx`: bootstrap do React; resolve o DOM root e monta App com StrictMode.
+- `src/app/app.tsx`: composition root da aplicação; recebe o router e dependências injetáveis.
+- `src/app/app-router.ts`: cria o Data Router uma única vez, fora da árvore React.
 - `src/app/config/app-config.ts`: identidade, metadados e política de acesso declarativa das páginas.
-- `src/app/config/app-copy.ts`: copy estática de feedback, acessibilidade e ações do shell.
+- `src/app/config/app-copy.ts`: conteúdo estático ainda compartilhado entre fallbacks, sidebar e ações de página.
 - `src/app/root/app-layout.tsx`: título da navegação e outlet raiz.
-- `src/app/root/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
-- `src/app/root/query-client.ts`: política de cache/retry e fábrica do QueryClient.
-- `src/app/root/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
+- `src/app/app-providers.tsx`: montagem estável de Query, tema, sessão, tooltip e toast.
+- `src/lib/query/query-client.ts`: política de cache/retry e fábrica do QueryClient.
+- `src/app/app-error-boundary.tsx`: recuperação de falhas de renderização da aplicação.
 - `src/app/routing/`: rotas, política pura de acesso, bloqueio visual e erros de rota.
 - `src/app/session/`: contratos, comandos, contexto, provider e estados de bootstrap.
-- `src/app/shell/app-shell.tsx`: composição do sidebar, toolbar e conteúdo das rotas liberadas.
+- `src/app/shell/app-shell.tsx`: composição de Sidebar, Header e conteúdo das rotas liberadas.
 - `src/app/shell/app-navigation.ts`: modelo de navegação derivado do catálogo de páginas.
 - `src/app/shell/app-preview.ts`: fixture visual do shell; nunca resolve autenticação ou autorização.
-- `src/app/shell/components/`: apresentação específica do shell da aplicação.
+- `src/components/header/`: Header, menu do usuário, notificações e conteúdo próprio.
 - `src/app/layouts/`: layouts estruturais específicos da aplicação.
 - `src/components/app/`: decisões reutilizáveis da aplicação sobre primitives de `ui/`, sem regra de negócio.
 - `src/components/sidebar/`: composição e navegação exclusivas do sidebar.
@@ -79,9 +80,15 @@ para validação de dados em runtime. Pastas e arquivos usam inglês; URLs e
 conteúdo exibido usam português brasileiro. Imports internos usam `@/` e imports
 exclusivamente de tipos usam `import type`.
 
-A nomenclatura `*.layout.tsx` é uma convenção deste projeto. No Data Mode,
-o React Router associa explicitamente os componentes às rotas e não depende
-dessa extensão para descobrir arquivos.
+A organização de páginas e a nomenclatura `*.layout.tsx` acima descrevem o
+estado atual, em migração. O React Router associa explicitamente os componentes
+às rotas e não depende dessa extensão para descobrir arquivos.
+
+A [auditoria de auth/routing](docs/architecture/auth-routing-audit.md) registra
+os contratos confirmados, riscos e ordem da reconstrução. O primeiro bloco de
+`refactor/app-architecture` organiza o composition root; a remoção de config,
+layouts e do arquivo de metadados ainda em root continua nos blocos seguintes.
+Pages → Features será uma etapa posterior.
 
 ## Decisões atuais
 

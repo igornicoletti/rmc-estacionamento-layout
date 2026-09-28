@@ -116,7 +116,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/app/root/app-providers.tsx"],
+    files: ["src/app/app-providers.tsx"],
     rules: {
       "no-restricted-imports": [
         "error",

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { appCopy } from "@/app/config/app-copy"
 import { appPages } from "@/app/config/app-config"
-import App from "@/app/root/app"
+import App from "@/app/app"
 import { routes } from "@/app/routing/routes"
 import { anonymousSession } from "@/app/session/session-types"
 import { headerContent } from "@/components/header/header-content"

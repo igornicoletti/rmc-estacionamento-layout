@@ -1,7 +1,6 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query"
 import { useState, type ReactNode } from "react"
 
-import { createAppQueryClient } from "@/app/root/query-client"
 import { SessionBootstrapBoundary } from "@/app/session/session-boundary"
 import type { SessionCommands } from "@/app/session/session-commands"
 import { SessionProvider } from "@/app/session/session-provider"
@@ -9,6 +8,7 @@ import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
 import { ThemeProvider } from "@/components/theme/theme-provider"
 import { Toaster } from "@/components/ui/toast"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { createAppQueryClient } from "@/lib/query/query-client"
 
 export interface AppProvidersProps {
   children: ReactNode

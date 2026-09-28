@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { createMemoryRouter } from "react-router"
 import { describe, expect, it, vi } from "vitest"
 
-import App from "@/app/root/app"
+import App from "@/app/app"
 import { routes } from "@/app/routing/routes"
 import type { SessionCommands } from "@/app/session/session-commands"
 import type { ResolvedSessionSnapshot } from "@/app/session/session-types"

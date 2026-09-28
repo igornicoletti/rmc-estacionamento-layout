@@ -6,7 +6,7 @@ import { waitForRouterInitialization, waitForRouterLocation } from "@tests/suppo
 
 import { appPages } from "@/app/config/app-config"
 import { routes } from "@/app/routing/routes"
-import App from "@/app/root/app"
+import App from "@/app/app"
 import { anonymousSession } from "@/app/session/session-types"
 
 async function renderRoute(initialEntry = "/") {
