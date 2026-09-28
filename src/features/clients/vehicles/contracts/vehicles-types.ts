@@ -7,8 +7,4 @@ export interface ClientVehicle {
   plate: string
   description: string
   driverName: string
-  clientActiveWithin120Days: boolean
-  synchronizedAt: string
-  createdAt: string
-  updatedAt: string
 }

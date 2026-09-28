@@ -22,7 +22,10 @@ import {
   unitsQueryKeys,
 } from "@/features/units/queries/units-query"
 import type { Unit } from "@/features/units/contracts/units-types"
-import { formatUnitCity } from "@/features/units/presentation/units-format"
+import {
+  formatUnitCity,
+  formatUnitName,
+} from "@/features/units/presentation/units-format"
 import {
   unitRecordCsvColumns,
   unitRecordSections,
@@ -58,10 +61,8 @@ export function UnitsDataTable() {
         cityCode: false,
         cityFacet: false,
         coordinates: false,
-        createdAt: false,
+
         state: false,
-        synchronizedAt: false,
-        updatedAt: false,
       },
       pagination: { pageIndex: 0, pageSize: 10 },
     },
@@ -76,7 +77,7 @@ export function UnitsDataTable() {
     units.map((unit) => [
       `${unit.stateCode}:${unit.city}`,
       {
-        group: unit.state,
+        group: formatUnitName(unit.state),
         label: formatUnitCity(unit.city),
         value: `${unit.stateCode}:${unit.city}`,
       },

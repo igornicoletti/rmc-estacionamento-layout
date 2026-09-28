@@ -11,10 +11,6 @@ export interface Client {
   registeredAt: string | null
   personActiveStatus: string
   financialBlockStatus: string
-  vehicleCount: number
+  vehicleCount: number | null
   lastPurchaseAt: string | null
-  activeWithin120Days: boolean
-  synchronizedAt: string
-  createdAt: string
-  updatedAt: string
 }

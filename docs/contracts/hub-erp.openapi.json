@@ -1,0 +1,538 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hub ERP - selected response contracts",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/erp/cliente-cadastro/": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Lista de clientes encontrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClienteCadastroResponse"
+                  },
+                  "title": "Response Busca Cliente Cadastro Erp Cliente Cadastro  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/erp/cliente-veiculos/": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Lista de ve\u00edculos encontrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClienteVeiculoResponse"
+                  },
+                  "title": "Response Busca Cliente Veiculos Erp Cliente Veiculos  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/erp/captura-cad-empresas/": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Lista de empresas ativas cadastradas no fluig/tab_fluig_empresa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CapturaCadEmpresasResponse"
+                  },
+                  "title": "Response Captura Cad Empresas Erp Captura Cad Empresas  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClienteCadastroResponse": {
+        "properties": {
+          "cod_pessoa": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cod Pessoa"
+          },
+          "nom_pessoa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Pessoa"
+          },
+          "nom_fantasia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Fantasia"
+          },
+          "num_cnpj_cpf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Cnpj Cpf"
+          },
+          "des_email_1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Des Email 1"
+          },
+          "num_telefone_1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Telefone 1"
+          },
+          "nom_cidade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Cidade"
+          },
+          "sgl_estado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sgl Estado"
+          },
+          "dta_cadastro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dta Cadastro"
+          },
+          "ind_pessoa_ativa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ind Pessoa Ativa"
+          },
+          "bloqueio_financeiro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bloqueio Financeiro"
+          },
+          "qtd_veiculos": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qtd Veiculos"
+          },
+          "dta_ultima_compra": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dta Ultima Compra"
+          }
+        },
+        "type": "object",
+        "title": "ClienteCadastroResponse"
+      },
+      "ClienteVeiculoResponse": {
+        "properties": {
+          "cod_veiculo": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cod Veiculo"
+          },
+          "cod_pessoa": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cod Pessoa"
+          },
+          "nom_pessoa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Pessoa"
+          },
+          "nom_fantasia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Fantasia"
+          },
+          "num_cnpj_cpf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Cnpj Cpf"
+          },
+          "num_placa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Placa"
+          },
+          "des_veiculo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Des Veiculo"
+          },
+          "nom_motorista": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Motorista"
+          }
+        },
+        "type": "object",
+        "title": "ClienteVeiculoResponse"
+      },
+      "CapturaCadEmpresasResponse": {
+        "properties": {
+          "cod_empresa": {
+            "type": "integer",
+            "title": "Cod Empresa"
+          },
+          "nom_razao_social": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Razao Social"
+          },
+          "nom_fantasia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Fantasia"
+          },
+          "num_cnpj": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Cnpj"
+          },
+          "cod_bandeira": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cod Bandeira"
+          },
+          "des_bandeira": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Des Bandeira"
+          },
+          "cod_cidade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cod Cidade"
+          },
+          "nom_cidade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Cidade"
+          },
+          "nom_estado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Estado"
+          },
+          "sgl_estado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sgl Estado"
+          },
+          "des_coordenada_empresa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Des Coordenada Empresa"
+          },
+          "ip_rede": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip Rede"
+          },
+          "nom_banco_dados": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom Banco Dados"
+          }
+        },
+        "type": "object",
+        "required": ["cod_empresa"],
+        "title": "CapturaCadEmpresasResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

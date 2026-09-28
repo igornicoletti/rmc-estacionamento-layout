@@ -20,12 +20,6 @@ const validRecord = {
   bloqueio_financeiro: "N",
   qtd_veiculos: 3,
   dta_ultima_compra: "2026-08-20",
-  is_active_120d: true,
-  source_hash: "ABC123",
-  source_updated_at: null,
-  synced_at: "2026-09-22T12:00:00Z",
-  created_at: "2026-09-22T12:00:00Z",
-  updated_at: "2026-09-22T12:00:00Z",
 }
 
 describe("client mapper", () => {
@@ -43,7 +37,6 @@ describe("client mapper", () => {
       financialBlockStatus: "N",
       vehicleCount: 3,
       lastPurchaseAt: "2026-08-20",
-      activeWithin120Days: true,
     })
   })
 

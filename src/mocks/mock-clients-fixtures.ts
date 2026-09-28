@@ -1,6 +1,6 @@
+import type { ErpClient } from "@/features/clients/contracts/clients-erp-types"
 import { createMockCnpj } from "@/mocks/mock-tax-id"
 
-const FIXTURE_TIMESTAMP = "2026-09-01T12:00:00.000Z"
 const CITIES = [
   ["SAO JOSE DO RIO PRETO", "SP"],
   ["RIBEIRAO PRETO", "SP"],
@@ -11,7 +11,7 @@ const CITIES = [
 export const clientErpFixture: unknown = Array.from(
   { length: 24 },
   (_, index) => {
-    const clientId = String(1001 + index)
+    const clientId = 1001 + index
     const [city, stateCode] = CITIES[index % CITIES.length]
 
     return {
@@ -31,10 +31,6 @@ export const clientErpFixture: unknown = Array.from(
       bloqueio_financeiro: index % 7 === 0 ? "S" : "N",
       qtd_veiculos: 2,
       dta_ultima_compra: index % 6 === 0 ? null : "2026-08-20",
-      is_active_120d: index % 5 !== 0,
-      synced_at: FIXTURE_TIMESTAMP,
-      created_at: FIXTURE_TIMESTAMP,
-      updated_at: FIXTURE_TIMESTAMP,
-    }
+    } satisfies ErpClient
   },
 )

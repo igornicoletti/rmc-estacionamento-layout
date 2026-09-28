@@ -35,6 +35,40 @@ const firstClientVehicles = vehicles.filter(
   (vehicle) => vehicle.clientId === firstClient.id,
 )
 
+test("distingue códigos de veículo e cliente sem tipografia mono ou tabular", async ({
+  page,
+}) => {
+  await page.goto(appRoutes.clientDetails.path(firstClient.id))
+  const { table } = await waitForDataTable(page)
+  await expect(
+    table.getByRole("columnheader", { name: /Código do veículo/ }),
+  ).toBeVisible()
+  await page.getByRole("button", { name: "Gerenciar colunas" }).click()
+  await expect(
+    page.getByRole("menuitemcheckbox", {
+      name: /Sincronização|Criação|Atualização|120 dias/,
+    }),
+  ).toHaveCount(0)
+  await page
+    .getByRole("menuitemcheckbox", { name: "Código do cliente", exact: true })
+    .click()
+  await page.keyboard.press("Escape")
+  const firstVehicle = firstClientVehicles[0]
+  if (!firstVehicle) throw new Error("Fixture de veículo vazia")
+  const row = table.getByRole("row").nth(1)
+  await expect(row.getByRole("cell").nth(0)).toHaveText(firstVehicle.id)
+  await expect(row.getByRole("cell").nth(1)).toHaveText(firstVehicle.clientId)
+  const typography = await row
+    .getByRole("cell")
+    .nth(0)
+    .evaluate((cell) => {
+      const style = getComputedStyle(cell.firstElementChild ?? cell)
+      return { family: style.fontFamily, numeric: style.fontVariantNumeric }
+    })
+  expect(typography.family).not.toMatch(/mono/i)
+  expect(typography.numeric).toBe("normal")
+})
+
 const unitCityCounts = units.reduce<Map<string, number>>((counts, unit) => {
   const key = `${unit.stateCode}:${unit.city}`
   counts.set(key, (counts.get(key) ?? 0) + 1)

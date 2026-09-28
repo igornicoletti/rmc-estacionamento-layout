@@ -135,3 +135,6 @@ a barreira de acesso e o enforcement no serviço/RLS.
 
 A organização vigente e a revisão dos componentes compartilhados estão em
 [Features e componentes compartilhados](docs/architecture/shared-components-review.md).
+
+Os campos ERP de Clientes, Veículos e Unidades seguem o OpenAPI compartilhado;
+[proveniência e limites dos contratos](docs/contracts/hub-erp.md).

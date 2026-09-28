@@ -14,12 +14,6 @@ const validVehicle = {
   num_placa: "FSL8590",
   des_veiculo: "VEICULO",
   nom_motorista: "",
-  client_is_active_120d: true,
-  source_hash: "0662dbaf736b830b7b41cd2986c1289b",
-  source_updated_at: null,
-  synced_at: "2026-08-01 07:57:45.009+00",
-  created_at: "2026-08-01 07:33:15.302608+00",
-  updated_at: "2026-08-01 07:57:55.574986+00",
 }
 
 describe("client vehicle mapper", () => {
@@ -33,7 +27,6 @@ describe("client vehicle mapper", () => {
       plate: "FSL8590",
       description: "VEICULO",
       driverName: "",
-      clientActiveWithin120Days: true,
     })
   })
 

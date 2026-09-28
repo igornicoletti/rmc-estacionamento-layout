@@ -66,7 +66,11 @@ describe("unitRecordSections", () => {
       .find((section) => section.key === "location")
       ?.fields.find((field) => field.key === "city")
 
-    expect(goiasUnit.state).toBe("Goiás")
+    expect(goiasUnit.state).toBe("GOIAS")
+    const stateField = unitRecordSections
+      .find((section) => section.key === "location")
+      ?.fields.find((field) => field.key === "state")
+    expect(stateField?.getValue(goiasUnit)).toBe("Goiás")
     expect(cityField?.getValue(goiasUnit)).toBe("Goiânia")
   })
 })

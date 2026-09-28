@@ -17,11 +17,6 @@ const validRecord = {
   des_coordenada_empresa: "-20.8646651, -49.4135844",
   ip_rede: "192.168.9.190",
   nom_banco_dados: "IGUA",
-  source_hash: "ABC123",
-  source_updated_at: null,
-  synced_at: "2026-08-01 15:00:04.67+00",
-  created_at: "2026-08-01 06:44:30.89959+00",
-  updated_at: "2026-08-01 15:00:04.792792+00",
 }
 
 describe("unit mapper", () => {
@@ -33,34 +28,34 @@ describe("unit mapper", () => {
       cnpj: "21.384.959/0001-48",
       brand: "BANDEIRA BRANCA",
       city: "SAO JOSE DO RIO PRETO",
-      state: "São Paulo",
+      state: "SAO PAULO",
       stateCode: "SP",
       coordinates: "-20.864665, -49.413584",
     })
   })
 
-  it("usa o mapa canônico das UFs, inclusive Goiás, DF e Espírito Santo", () => {
+  it("preserva o nome do estado recebido e normaliza sua UF", () => {
     expect(
       mapErpUnit({
         ...validRecord,
         nom_estado: "GOIAS",
         sgl_estado: "go",
       }).state,
-    ).toBe("Goiás")
+    ).toBe("GOIAS")
     expect(
       mapErpUnit({
         ...validRecord,
         nom_estado: "DISTRITO FEDERAL",
         sgl_estado: "df",
       }).state,
-    ).toBe("Distrito Federal")
+    ).toBe("DISTRITO FEDERAL")
     expect(
       mapErpUnit({
         ...validRecord,
         nom_estado: "ESPIRITO SANTO",
         sgl_estado: "es",
       }).state,
-    ).toBe("Espírito Santo")
+    ).toBe("ESPIRITO SANTO")
   })
 
   it("aceita identificador inteiro em número, string ou bigint", () => {

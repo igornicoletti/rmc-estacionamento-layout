@@ -1,31 +1,24 @@
-import { readErpDateTime } from "@/lib/erp/date-time"
 import {
   asErpRecord,
-  readErpBoolean,
   readErpIdentifier,
-  readErpString,
+  readErpOptionalText,
 } from "@/lib/erp/erp-record"
 import { formatCpfCnpj } from "@/lib/erp/tax-id"
 import type { ClientVehicle } from "@/features/clients/vehicles/contracts/vehicles-types"
 
 export function mapErpClientVehicle(input: unknown): ClientVehicle {
   const record = asErpRecord(input, "Veículo de cliente")
+  const taxId = readErpOptionalText(record, "num_cnpj_cpf")
 
   return {
     id: readErpIdentifier(record, "cod_veiculo"),
     clientId: readErpIdentifier(record, "cod_pessoa"),
-    clientName: readErpString(record, "nom_pessoa"),
-    clientTradeName: readErpString(record, "nom_fantasia", {
-      allowEmpty: true,
-    }),
-    clientTaxId: formatCpfCnpj(readErpString(record, "num_cnpj_cpf")),
-    plate: readErpString(record, "num_placa"),
-    description: readErpString(record, "des_veiculo", { allowEmpty: true }),
-    driverName: readErpString(record, "nom_motorista", { allowEmpty: true }),
-    clientActiveWithin120Days: readErpBoolean(record, "client_is_active_120d"),
-    synchronizedAt: readErpDateTime(record, "synced_at"),
-    createdAt: readErpDateTime(record, "created_at"),
-    updatedAt: readErpDateTime(record, "updated_at"),
+    clientName: readErpOptionalText(record, "nom_pessoa"),
+    clientTradeName: readErpOptionalText(record, "nom_fantasia"),
+    clientTaxId: taxId ? formatCpfCnpj(taxId) : "",
+    plate: readErpOptionalText(record, "num_placa"),
+    description: readErpOptionalText(record, "des_veiculo"),
+    driverName: readErpOptionalText(record, "nom_motorista"),
   }
 }
 
