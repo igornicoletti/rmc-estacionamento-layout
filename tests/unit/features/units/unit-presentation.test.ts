@@ -21,7 +21,26 @@ describe("unit presentation", () => {
     expect(formatUnitCity("Goiânia")).toBe("Goiânia")
   })
 
-  it("preserva acrônimos desconhecidos curtos em caixa alta", () => {
-    expect(formatUnitName("ABC POSTO CENTRAL")).toBe("ABC Posto Central")
+  it("preserva siglas e rodovias, mas não confunde Rio e Sul com siglas", () => {
+    expect(formatUnitName("POSTO MC RIO CLARO BR-376 KM58")).toBe(
+      "Posto MC Rio Claro BR-376 KM58",
+    )
+    expect(formatUnitName("santa fé do sul")).toBe("Santa Fé do Sul")
+    expect(formatUnitName("POSTO SANTOPOLIS DO AGUAPEI LTDA")).toBe(
+      "Posto Santópolis do Aguapeí Ltda",
+    )
+    expect(formatUnitName("2OWT - EMPREENDIMENTOS E PARTICIPACOES LTDA")).toBe(
+      "2OWT - Empreendimentos e Participações Ltda",
+    )
+  })
+
+  it.each([
+    ["ARACARIGUAMA", "Araçariguama"],
+    ["CANDIDO MOTA", "Cândido Mota"],
+    ["PARIQUERA-ACU", "Pariquera-Açu"],
+    ["SANTOPOLIS DO AGUAPEI", "Santópolis do Aguapeí"],
+    ["VARZEA GRANDE", "Várzea Grande"],
+  ])("apresenta a cidade %s com a grafia oficial", (source, display) => {
+    expect(formatUnitCity(source)).toBe(display)
   })
 })

@@ -13,6 +13,9 @@ export const unitsContent = {
     cityFilterAriaLabel: "Filtrar unidades por cidade",
     cityFilterClearAriaLabel: "Limpar filtro de cidade",
     cityFilterPlaceholder: "Todas as cidades",
+    brandFilterAriaLabel: "Filtrar unidades por bandeira",
+    brandFilterClearAriaLabel: "Limpar filtro de bandeira",
+    brandFilterPlaceholder: "Todas as bandeiras",
     itemLabel: { singular: "unidade", plural: "unidades" },
   },
 } as const

@@ -34,43 +34,47 @@ describe("unitRecordSections", () => {
       throw new Error("Fixture de unidade vazia.")
     }
 
-    expect(unit.legalName).toBe("UNIDADE DEMONSTRACAO 01 LTDA")
-    expect(unit.tradeName).toBe("UNIDADE 01")
+    expect(unit.legalName).toBe("POSTO MONTE CARLO IGUATEMI LTDA")
+    expect(unit.tradeName).toBe("IGUATEMI")
 
     const legalNameField = unitRecordSections
       .find((section) => section.key === "identification")
       ?.fields.find((field) => field.key === "legalName")
 
-    expect(legalNameField?.getValue(unit)).toBe("Unidade Demonstracao 01 Ltda")
+    expect(legalNameField?.getValue(unit)).toBe(
+      "Posto Monte Carlo Iguatemi Ltda",
+    )
     expect(serializeRecordForClipboard(unit, unitRecordSections)).toContain(
-      "Razão social: Unidade Demonstracao 01 Ltda",
+      "Razão social: Posto Monte Carlo Iguatemi Ltda",
     )
 
     const legalNameColumn = unitRecordCsvColumns.find(
       (column) => column.header === "Razão social",
     )
 
-    expect(legalNameColumn?.getValue(unit)).toBe("Unidade Demonstracao 01 Ltda")
+    expect(legalNameColumn?.getValue(unit)).toBe(
+      "Posto Monte Carlo Iguatemi Ltda",
+    )
   })
 
-  it("apresenta Goiás e Goiânia corretamente a partir do fixture", () => {
+  it("apresenta Paraná e Paranaguá corretamente a partir do espelho", () => {
     const goiasUnit = mapErpUnits(unitErpFixture).find(
-      (unit) => unit.stateCode === "GO",
+      (unit) => unit.city === "PARANAGUA",
     )
 
     if (!goiasUnit) {
-      throw new Error("Fixture não contém unidade de Goiás.")
+      throw new Error("Fixture não contém unidade de Paranaguá.")
     }
 
     const cityField = unitRecordSections
       .find((section) => section.key === "location")
       ?.fields.find((field) => field.key === "city")
 
-    expect(goiasUnit.state).toBe("GOIAS")
+    expect(goiasUnit.state).toBe("PARANA")
     const stateField = unitRecordSections
       .find((section) => section.key === "location")
       ?.fields.find((field) => field.key === "state")
-    expect(stateField?.getValue(goiasUnit)).toBe("Goiás")
-    expect(cityField?.getValue(goiasUnit)).toBe("Goiânia")
+    expect(stateField?.getValue(goiasUnit)).toBe("Paraná")
+    expect(cityField?.getValue(goiasUnit)).toBe("Paranaguá")
   })
 })

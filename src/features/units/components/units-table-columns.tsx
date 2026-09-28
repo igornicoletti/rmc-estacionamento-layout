@@ -30,6 +30,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "Código" },
     }),
     columnHelper.accessor("tradeName", {
+      sortFn: "ptBR",
       cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
@@ -39,6 +40,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "Nome fantasia" },
     }),
     columnHelper.accessor("legalName", {
+      sortFn: "ptBR",
       cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
@@ -54,6 +56,8 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "CNPJ" },
     }),
     columnHelper.accessor("brand", {
+      sortFn: "ptBR",
+      filterFn: "equals",
       cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
@@ -69,6 +73,7 @@ export function createUnitsTableColumns({
       meta: { visibilityLabel: "Código da bandeira" },
     }),
     columnHelper.accessor("city", {
+      sortFn: "ptBR",
       cell: ({ getValue, row }) =>
         `${formatUnitCity(getValue())} — ${row.original.stateCode}`,
       enableHiding: true,
@@ -87,6 +92,7 @@ export function createUnitsTableColumns({
       header: "Cidade do filtro",
     }),
     columnHelper.accessor("state", {
+      sortFn: "ptBR",
       cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,

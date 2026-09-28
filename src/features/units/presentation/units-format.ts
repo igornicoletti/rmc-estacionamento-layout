@@ -1,3 +1,4 @@
+import { unitCityNames } from "@/features/units/presentation/units-city-names"
 import { sanitizeErpText } from "@/lib/erp/erp-record"
 
 const EMPTY_DISPLAY = "—"
@@ -22,6 +23,12 @@ const LOWERCASE_WORDS = new Set([
 ])
 
 const CORRECTED_WORDS = new Map([
+  ["ACU", "Açu"],
+  ["AGUAPEI", "Aguapeí"],
+  ["CANDIDO", "Cândido"],
+  ["CUIABA", "Cuiabá"],
+  ["FE", "Fé"],
+  ["SANTOPOLIS", "Santópolis"],
   ["CONVENIENCIA", "Conveniência"],
   ["FENIX", "Fênix"],
   ["GOIANIA", "Goiânia"],
@@ -41,14 +48,12 @@ const CORRECTED_WORDS = new Map([
 ])
 
 const VERIFIED_CITY_NAMES = new Map([
-  ["CAMPINAS", "Campinas"],
+  ...unitCityNames,
+  ["GOIANIA", "Goi\u00e2nia"],
   ["CURITIBA", "Curitiba"],
-  ["GOIANIA", "Goiânia"],
-  ["LONDRINA", "Londrina"],
-  ["RIBEIRAO PRETO", "Ribeirão Preto"],
-  ["SAO JOSE DO RIO PRETO", "São José do Rio Preto"],
+  ["CAMPINAS", "Campinas"],
   ["SOROCABA", "Sorocaba"],
-  ["UBERLANDIA", "Uberlândia"],
+  ["LONDRINA", "Londrina"],
 ])
 
 function capitalize(value: string) {
@@ -59,8 +64,20 @@ function capitalize(value: string) {
         .toLocaleLowerCase("pt-BR")}`
 }
 
+const PRESERVED_WORDS = new Set([
+  "BR",
+  "JK",
+  "MC",
+  "PV",
+  "PQ.",
+  "KM",
+  "S/A",
+  "S.A.",
+])
+
 function formatUppercaseWord(value: string, index: number) {
-  const corrected = CORRECTED_WORDS.get(value)
+  value = value.toLocaleUpperCase("pt-BR")
+  const corrected = CORRECTED_WORDS.get(value) ?? unitCityNames.get(value)
 
   if (corrected) {
     return corrected
@@ -70,7 +87,10 @@ function formatUppercaseWord(value: string, index: number) {
     return value.toLocaleLowerCase("pt-BR")
   }
 
-  if (/^[A-Z0-9]{1,3}$/u.test(value)) {
+  if (
+    PRESERVED_WORDS.has(value) ||
+    /^(?:\d+[A-Z]+|BR\d+|KM\d+|\d+)$/u.test(value)
+  ) {
     return value
   }
 
@@ -86,10 +106,6 @@ export function formatUnitName(value: string) {
 
   if (!normalized) {
     return EMPTY_DISPLAY
-  }
-
-  if (normalized !== normalized.toLocaleUpperCase("pt-BR")) {
-    return normalized
   }
 
   return normalized
