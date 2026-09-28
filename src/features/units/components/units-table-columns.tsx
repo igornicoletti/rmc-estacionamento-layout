@@ -7,7 +7,6 @@ import { createDataTableColumnHelper } from "@/components/data-table/data-table-
 import type { Unit } from "@/features/units/contracts/units-types"
 import {
   formatUnitCity,
-  formatUnitDateTime,
   formatUnitName,
   formatUnitOptionalText,
 } from "@/features/units/presentation/units-format"
@@ -88,6 +87,7 @@ export function createUnitsTableColumns({
       header: "Cidade do filtro",
     }),
     columnHelper.accessor("state", {
+      cell: ({ getValue }) => formatUnitName(getValue()),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -107,33 +107,6 @@ export function createUnitsTableColumns({
       enableSorting: false,
       header: "Coordenadas",
       meta: { visibilityLabel: "Coordenadas" },
-    }),
-    columnHelper.accessor("synchronizedAt", {
-      cell: ({ getValue }) => formatUnitDateTime(getValue()),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Sincronização" />
-      ),
-      meta: { visibilityLabel: "Sincronização" },
-    }),
-    columnHelper.accessor("createdAt", {
-      cell: ({ getValue }) => formatUnitDateTime(getValue()),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Criação" />
-      ),
-      meta: { visibilityLabel: "Criação" },
-    }),
-    columnHelper.accessor("updatedAt", {
-      cell: ({ getValue }) => formatUnitDateTime(getValue()),
-      enableHiding: true,
-      enableSorting: true,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Atualização" />
-      ),
-      meta: { visibilityLabel: "Atualização" },
     }),
     columnHelper.display({
       cell: ({ row }) => (

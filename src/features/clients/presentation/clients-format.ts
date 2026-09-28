@@ -7,11 +7,6 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "UTC",
 })
 
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeStyle: "short",
-})
-
 const VERIFIED_ACRONYMS = new Set(["HU", "REP", "RO", "RPS", "RS"])
 
 const LOWERCASE_WORDS = new Set([
@@ -114,10 +109,6 @@ export function formatDate(value: string | null) {
   return value
     ? dateFormatter.format(new Date(`${value}T00:00:00.000Z`))
     : EMPTY_DISPLAY
-}
-
-export function formatDateTime(value: string | null) {
-  return value ? dateTimeFormatter.format(new Date(value)) : EMPTY_DISPLAY
 }
 
 export function formatErpName(value: string) {

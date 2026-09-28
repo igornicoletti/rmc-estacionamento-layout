@@ -6,7 +6,6 @@ import type { Client } from "@/features/clients/contracts/clients-types"
 import {
   formatCityName,
   formatDate,
-  formatDateTime,
   formatErpName,
   formatPhone,
   formatYesNo,
@@ -104,32 +103,6 @@ export const clientRecordSections = [
         label: "Última compra",
         getValue: (client) =>
           client.lastPurchaseAt ? formatDate(client.lastPurchaseAt) : null,
-      },
-      {
-        key: "activeWithin120Days",
-        label: "Ativo em 120 dias",
-        getValue: (client) => formatYesNo(client.activeWithin120Days),
-      },
-    ],
-  },
-  {
-    key: "system",
-    title: "Sistema",
-    fields: [
-      {
-        key: "synchronizedAt",
-        label: "Sincronização",
-        getValue: (client) => formatDateTime(client.synchronizedAt),
-      },
-      {
-        key: "createdAt",
-        label: "Criação",
-        getValue: (client) => formatDateTime(client.createdAt),
-      },
-      {
-        key: "updatedAt",
-        label: "Atualização",
-        getValue: (client) => formatDateTime(client.updatedAt),
       },
     ],
   },

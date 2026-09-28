@@ -64,7 +64,6 @@ export function VehiclesDataTable({ clientId }: { clientId: string }) {
     getRowId: (vehicle) => vehicle.id,
     initialState: {
       columnVisibility: {
-        clientActiveWithin120Days: false,
         clientId: false,
         clientName: false,
         clientTaxId: false,

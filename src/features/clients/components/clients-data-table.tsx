@@ -57,17 +57,15 @@ export function ClientsDataTable() {
     getRowId: (client) => client.id,
     initialState: {
       columnVisibility: {
-        activeWithin120Days: false,
         cityFacet: false,
-        createdAt: false,
+
         financialBlockStatus: false,
         id: false,
         personActiveStatus: false,
         phone: false,
         registeredAt: false,
-        synchronizedAt: false,
+
         tradeName: false,
-        updatedAt: false,
       },
       pagination: { pageIndex: 0, pageSize: 10 },
     },

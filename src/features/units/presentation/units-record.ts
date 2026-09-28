@@ -5,7 +5,6 @@ import {
 import type { Unit } from "@/features/units/contracts/units-types"
 import {
   formatUnitCity,
-  formatUnitDateTime,
   formatUnitName,
 } from "@/features/units/presentation/units-format"
 
@@ -52,33 +51,16 @@ export const unitRecordSections = [
         label: "Código da cidade",
         getValue: (unit) => unit.cityCode,
       },
-      { key: "state", label: "Estado", getValue: (unit) => unit.state },
+      {
+        key: "state",
+        label: "Estado",
+        getValue: (unit) => formatUnitName(unit.state),
+      },
       { key: "stateCode", label: "UF", getValue: (unit) => unit.stateCode },
       {
         key: "coordinates",
         label: "Coordenadas",
         getValue: (unit) => unit.coordinates,
-      },
-    ],
-  },
-  {
-    key: "system",
-    title: "Sistema",
-    fields: [
-      {
-        key: "synchronizedAt",
-        label: "Sincronização",
-        getValue: (unit) => formatUnitDateTime(unit.synchronizedAt),
-      },
-      {
-        key: "createdAt",
-        label: "Criação",
-        getValue: (unit) => formatUnitDateTime(unit.createdAt),
-      },
-      {
-        key: "updatedAt",
-        label: "Atualização",
-        getValue: (unit) => formatUnitDateTime(unit.updatedAt),
       },
     ],
   },

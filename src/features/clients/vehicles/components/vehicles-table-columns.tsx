@@ -5,11 +5,7 @@ import {
 } from "@/components/data-table/data-table-row-actions"
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features"
 import type { ClientVehicle } from "@/features/clients/vehicles/contracts/vehicles-types"
-import {
-  formatDateTime,
-  formatErpName,
-  formatYesNo,
-} from "@/features/clients/presentation/clients-format"
+import { formatErpName } from "@/features/clients/presentation/clients-format"
 import {
   formatLicensePlate,
   formatVehicleDescription,
@@ -28,14 +24,14 @@ export function createVehiclesTableColumns(
   return columnHelper.columns([
     columnHelper.accessor("id", {
       cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">{getValue()}</span>
+        <span className="text-muted-foreground">{getValue()}</span>
       ),
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Código" />
+        <DataTableColumnHeader column={column} title="Código do veículo" />
       ),
-      meta: { visibilityLabel: "Código" },
+      meta: { visibilityLabel: "Código do veículo" },
     }),
     columnHelper.accessor("clientId", {
       enableHiding: true,
@@ -99,46 +95,6 @@ export function createVehiclesTableColumns(
           }),
         ]
       : []),
-    columnHelper.accessor("clientActiveWithin120Days", {
-      cell: ({ getValue }) => formatYesNo(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Cliente ativo em 120 dias",
-      meta: { visibilityLabel: "Cliente ativo em 120 dias" },
-    }),
-    columnHelper.accessor("synchronizedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Sincronização",
-      meta: { visibilityLabel: "Sincronização" },
-    }),
-    columnHelper.accessor("createdAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Criação",
-      meta: { visibilityLabel: "Criação" },
-    }),
-    columnHelper.accessor("updatedAt", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">
-          {formatDateTime(getValue())}
-        </span>
-      ),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Atualização",
-      meta: { visibilityLabel: "Atualização" },
-    }),
     columnHelper.display({
       cell: ({ row }) => (
         <DataTableRowActions

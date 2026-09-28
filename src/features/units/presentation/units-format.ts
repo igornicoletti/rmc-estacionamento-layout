@@ -2,11 +2,6 @@ import { sanitizeErpText } from "@/lib/erp/erp-record"
 
 const EMPTY_DISPLAY = "—"
 
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short",
-  timeStyle: "short",
-})
-
 const LOWERCASE_WORDS = new Set([
   "A",
   "AS",
@@ -30,6 +25,8 @@ const CORRECTED_WORDS = new Map([
   ["CONVENIENCIA", "Conveniência"],
   ["FENIX", "Fênix"],
   ["GOIANIA", "Goiânia"],
+  ["GOIAS", "Goiás"],
+  ["PARANA", "Paraná"],
   ["JUNDIAI", "Jundiaí"],
   ["JOSE", "José"],
   ["MAQUINA", "Máquina"],
@@ -115,10 +112,6 @@ export function formatUnitCity(value: string) {
 
   const upper = normalized.toLocaleUpperCase("pt-BR")
   return VERIFIED_CITY_NAMES.get(upper) ?? formatUnitName(normalized)
-}
-
-export function formatUnitDateTime(value: string) {
-  return dateTimeFormatter.format(new Date(value))
 }
 
 export function formatUnitOptionalText(value: string | null | undefined) {

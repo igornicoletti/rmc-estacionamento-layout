@@ -3,11 +3,7 @@ import {
   type RecordSectionDefinition,
 } from "@/lib/format-record-fields"
 import type { ClientVehicle } from "@/features/clients/vehicles/contracts/vehicles-types"
-import {
-  formatDateTime,
-  formatErpName,
-  formatYesNo,
-} from "@/features/clients/presentation/clients-format"
+import { formatErpName } from "@/features/clients/presentation/clients-format"
 import {
   formatLicensePlate,
   formatVehicleDescription,
@@ -25,7 +21,11 @@ export const clientVehicleRecordSections = [
     key: "vehicle",
     title: "Veículo",
     fields: [
-      { key: "id", label: "Código", getValue: (vehicle) => vehicle.id },
+      {
+        key: "id",
+        label: "Código do veículo",
+        getValue: (vehicle) => vehicle.id,
+      },
       {
         key: "plate",
         label: "Placa",
@@ -69,32 +69,6 @@ export const clientVehicleRecordSections = [
         key: "clientTaxId",
         label: "CPF/CNPJ do cliente",
         getValue: (vehicle) => vehicle.clientTaxId,
-      },
-      {
-        key: "clientActiveWithin120Days",
-        label: "Cliente ativo em 120 dias",
-        getValue: (vehicle) => formatYesNo(vehicle.clientActiveWithin120Days),
-      },
-    ],
-  },
-  {
-    key: "system",
-    title: "Sistema",
-    fields: [
-      {
-        key: "synchronizedAt",
-        label: "Sincronização",
-        getValue: (vehicle) => formatDateTime(vehicle.synchronizedAt),
-      },
-      {
-        key: "createdAt",
-        label: "Criação",
-        getValue: (vehicle) => formatDateTime(vehicle.createdAt),
-      },
-      {
-        key: "updatedAt",
-        label: "Atualização",
-        getValue: (vehicle) => formatDateTime(vehicle.updatedAt),
       },
     ],
   },

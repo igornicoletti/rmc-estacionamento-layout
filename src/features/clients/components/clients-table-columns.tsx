@@ -12,7 +12,6 @@ import type { Client } from "@/features/clients/contracts/clients-types"
 import {
   formatCityName,
   formatDate,
-  formatDateTime,
   formatErpName,
   formatPhone,
   formatYesNo,
@@ -30,7 +29,7 @@ export function createClientsTableColumns({
   return columnHelper.columns([
     columnHelper.accessor("id", {
       cell: ({ getValue }) => (
-        <span className="tabular-nums text-muted-foreground">{getValue()}</span>
+        <span className="text-muted-foreground">{getValue()}</span>
       ),
       enableHiding: true,
       enableSorting: true,
@@ -65,9 +64,7 @@ export function createClientsTableColumns({
       meta: { visibilityLabel: "Nome fantasia" },
     }),
     columnHelper.accessor("taxId", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums">{getValue()}</span>
-      ),
+      cell: ({ getValue }) => <span>{getValue()}</span>,
       enableHiding: true,
       enableSorting: false,
       header: "CPF/CNPJ",
@@ -137,9 +134,7 @@ export function createClientsTableColumns({
       meta: { visibilityLabel: "Bloqueio financeiro" },
     }),
     columnHelper.accessor("vehicleCount", {
-      cell: ({ getValue }) => (
-        <span className="tabular-nums">{getValue()}</span>
-      ),
+      cell: ({ getValue }) => <span>{getValue()}</span>,
       enableHiding: true,
       enableSorting: true,
       header: ({ column }) => (
@@ -155,34 +150,6 @@ export function createClientsTableColumns({
         <DataTableColumnHeader column={column} title="Última compra" />
       ),
       meta: { visibilityLabel: "Última compra" },
-    }),
-    columnHelper.accessor("activeWithin120Days", {
-      cell: ({ getValue }) => formatYesNo(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Ativo em 120 dias",
-      meta: { visibilityLabel: "Ativo em 120 dias" },
-    }),
-    columnHelper.accessor("synchronizedAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Sincronização",
-      meta: { visibilityLabel: "Sincronização" },
-    }),
-    columnHelper.accessor("createdAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Criação",
-      meta: { visibilityLabel: "Criação" },
-    }),
-    columnHelper.accessor("updatedAt", {
-      cell: ({ getValue }) => formatDateTime(getValue()),
-      enableHiding: true,
-      enableSorting: false,
-      header: "Atualização",
-      meta: { visibilityLabel: "Atualização" },
     }),
     columnHelper.display({
       cell: ({ row }) => (

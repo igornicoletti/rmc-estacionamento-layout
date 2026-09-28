@@ -44,9 +44,7 @@ export function readErpNullableString(record: ErpRecord, key: string) {
   }
 
   if (typeof value !== "string") {
-    throw new TypeError(
-      `Registro ERP inválido: ${key} deve ser texto ou nulo.`,
-    )
+    throw new TypeError(`Registro ERP inválido: ${key} deve ser texto ou nulo.`)
   }
 
   const normalized = sanitizeErpText(value)
@@ -63,6 +61,16 @@ export function readErpInteger(record: ErpRecord, key: string) {
   }
 
   return value
+}
+
+export function readErpNullableInteger(record: ErpRecord, key: string) {
+  if (record[key] === null || record[key] === undefined) return null
+  return readErpInteger(record, key)
+}
+
+// Optional API text is represented as empty text in the presentation model.
+export function readErpOptionalText(record: ErpRecord, key: string) {
+  return readErpNullableString(record, key) ?? ""
 }
 
 export function readErpIdentifier(record: ErpRecord, key: string) {
@@ -87,16 +95,4 @@ export function readErpIdentifier(record: ErpRecord, key: string) {
   throw new TypeError(
     `Registro ERP inválido: ${key} deve ser um identificador inteiro.`,
   )
-}
-
-export function readErpBoolean(record: ErpRecord, key: string) {
-  const value = record[key]
-
-  if (typeof value !== "boolean") {
-    throw new TypeError(
-      `Registro ERP inválido: ${key} deve ser booleano.`,
-    )
-  }
-
-  return value
 }

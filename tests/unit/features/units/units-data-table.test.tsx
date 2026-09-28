@@ -126,7 +126,6 @@ describe("UnitsDataTable", () => {
     expect(firstRow).toHaveTextContent(formatUnitName(firstUnit.tradeName))
     expect(firstRow).toHaveTextContent(firstUnit.cnpj)
     expect(firstRow).toHaveTextContent(formatUnitName(firstUnit.brand))
-    expect(firstRow).not.toHaveTextContent(firstUnit.synchronizedAt)
   })
 
   it("copia dados funcionais da unidade selecionada", async () => {

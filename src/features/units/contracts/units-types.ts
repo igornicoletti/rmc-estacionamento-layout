@@ -3,14 +3,11 @@ export interface Unit {
   legalName: string
   tradeName: string
   cnpj: string
-  brandCode: number
+  brandCode: number | null
   brand: string
-  cityCode: number
+  cityCode: number | null
   city: string
   state: string
   stateCode: string
   coordinates: string | null
-  synchronizedAt: string
-  createdAt: string
-  updatedAt: string
 }
