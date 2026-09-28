@@ -1,8 +1,9 @@
+import { useState } from "react"
 import { act, screen, waitFor, within } from "@testing-library/react"
-import { useQueryClient } from "@tanstack/react-query"
+import { onlineManager, useQueryClient } from "@tanstack/react-query"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { renderWithProviders } from "@tests/support/render"
 
@@ -53,15 +54,25 @@ function RefetchClientsControl() {
   )
 }
 
-function renderClientsDataTable() {
-  renderWithProviders(
+function ClientsDataTableHarness() {
+  const [isVisible, setIsVisible] = useState(true)
+
+  return (
     <>
       <RefetchClientsControl />
-      <MemoryRouter>
-        <ClientsDataTable />
-      </MemoryRouter>
-    </>,
+      <button
+        aria-label="Alternar tabela de clientes no teste"
+        data-testid="toggle-clients"
+        onClick={() => setIsVisible((current) => !current)}
+        type="button"
+      />
+      <MemoryRouter>{isVisible ? <ClientsDataTable /> : null}</MemoryRouter>
+    </>
   )
+}
+
+function renderClientsDataTable() {
+  return renderWithProviders(<ClientsDataTableHarness />)
 }
 
 function getDataTableRoot(table: HTMLElement) {
@@ -73,6 +84,10 @@ function getDataTableRoot(table: HTMLElement) {
 
   return root
 }
+
+afterEach(() => {
+  onlineManager.setOnline(true)
+})
 
 describe("ClientsDataTable query boundary", () => {
   beforeEach(() => {
@@ -109,6 +124,20 @@ describe("ClientsDataTable query boundary", () => {
     expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
   })
 
+  it("mantém o estado inicial quando a consulta está pausada sem dados", () => {
+    onlineManager.setOnline(false)
+    loadDemoClientsMock.mockResolvedValue(previewClients)
+
+    renderClientsDataTable()
+
+    const table = screen.getByRole("table")
+
+    expect(screen.getByRole("searchbox")).toBeDisabled()
+    expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    expect(within(table).queryAllByTestId("data-table-row")).toHaveLength(0)
+    expect(loadDemoClientsMock).not.toHaveBeenCalled()
+  })
+
   it("isola a falha inicial e permite refazer a consulta", async () => {
     const user = userEvent.setup()
 
@@ -137,7 +166,7 @@ describe("ClientsDataTable query boundary", () => {
     expect(loadDemoClientsMock).toHaveBeenCalledTimes(2)
   })
 
-  it("preserva dados e notifica uma vez quando o refetch falha", async () => {
+  it("preserva dados e não repete erro de refetch cacheado após remontagem", async () => {
     const user = userEvent.setup()
 
     loadDemoClientsMock
@@ -162,5 +191,16 @@ describe("ClientsDataTable query boundary", () => {
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument()
     expect(screen.getAllByTestId("data-table-row")).toHaveLength(visibleRows)
+
+    act(() => {
+      onlineManager.setOnline(false)
+    })
+    await user.click(screen.getByTestId("toggle-clients"))
+    expect(screen.queryByRole("table")).not.toBeInTheDocument()
+
+    await user.click(screen.getByTestId("toggle-clients"))
+    await screen.findByRole("table")
+
+    expect(notifyMock).toHaveBeenCalledTimes(1)
   })
 })
