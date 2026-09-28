@@ -1,10 +1,6 @@
-import { TriangleAlertIcon } from "lucide-react"
 import { Component, type ErrorInfo, type ReactNode } from "react"
 
-import { appCopy } from "@/app/config/app-copy"
-import { AppRootLayout } from "@/app/layouts/app-root-layout"
-import { AppEmpty } from "@/components/app/app-empty"
-import { Button } from "@/components/ui/button"
+import { FallbackApplicationError } from "@/components/fallback/fallback-application-error"
 
 interface AppErrorBoundaryProps {
   children: ReactNode
@@ -44,21 +40,6 @@ export class AppErrorBoundary extends Component<
       return this.props.children
     }
 
-    const feedback = appCopy.feedback.applicationFailure
-
-    return (
-      <AppRootLayout>
-        <AppEmpty
-          description={feedback.description}
-          headingLevel={1}
-          media={{ icon: TriangleAlertIcon }}
-          title={feedback.title}
-        >
-          <Button onClick={this.reload} type="button">
-            {feedback.action}
-          </Button>
-        </AppEmpty>
-      </AppRootLayout>
-    )
+    return <FallbackApplicationError onReload={this.reload} />
   }
 }

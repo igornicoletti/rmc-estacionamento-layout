@@ -4,9 +4,9 @@ import { createMemoryRouter } from "react-router"
 import { describe, expect, it, vi } from "vitest"
 
 import App from "@/app/app"
-import { routes } from "@/app/routing/routes"
-import type { SessionCommands } from "@/app/session/session-commands"
-import type { ResolvedSessionSnapshot } from "@/app/session/session-types"
+import { routes } from "@/app/app-route-tree"
+import type { SessionCommands } from "@/features/auth/auth-commands"
+import type { ResolvedSessionSnapshot } from "@/features/auth/auth-types"
 import { notify } from "@/components/toast/toast-notify"
 import { waitForRouterInitialization } from "@tests/support/router"
 

@@ -9,7 +9,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 
-import { AppPageLayout } from "@/app/layouts/app-page-layout";
+import { LayoutPage } from "@/components/layout/layout-page";
 import { AppAlertDialog } from "@/components/app/app-alert-dialog";
 import { AppBadge } from "@/components/app/app-badge";
 import { AppCalendar } from "@/components/app/app-calendar";
@@ -67,9 +67,8 @@ export function RmcPreviewPage() {
   const closePreview = () => setActivePreview(null);
 
   return (
-    <AppPageLayout
+    <LayoutPage
       page={{
-        availability: "available",
         title: "Componentes compartilhados",
         subtitle: "Prévia visual dos componentes reutilizados sobre shadcn/ui.",
       }}
@@ -204,6 +203,6 @@ export function RmcPreviewPage() {
       >
         <ScrollPreview />
       </AppSheet>
-    </AppPageLayout>
+    </LayoutPage>
   );
 }

@@ -4,8 +4,8 @@ import {
   evaluateRouteAccess,
   evaluateRouteAccessPolicies,
   type RouteAccessPolicy,
-} from "@/app/routing/route-access"
-import type { SessionSnapshot } from "@/app/session/session-types"
+} from "@/features/auth/auth-access-policy"
+import type { SessionSnapshot } from "@/features/auth/auth-types"
 
 const authenticated = {
   status: "authenticated",

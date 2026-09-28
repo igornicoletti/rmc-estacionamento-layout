@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from "react"
 import { render, type RenderOptions } from "@testing-library/react"
 
 import { AppProviders } from "@/app/app-providers"
-import { anonymousSession } from "@/app/session/session-types"
+import { anonymousSession } from "@/features/auth/auth-types"
 
 function TestProviders({ children }: { children: ReactNode }) {
   return (

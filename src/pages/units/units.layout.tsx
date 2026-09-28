@@ -1,11 +1,11 @@
-import { appPages } from "@/app/config/app-config"
-import { AppPageLayout } from "@/app/layouts/app-page-layout"
+import { unitsCopy } from "@/pages/units/units.copy"
+import { LayoutPage } from "@/components/layout/layout-page"
 import { LazyUnitsDataTable } from "@/pages/units/components/lazy-units-data-table"
 
 export function UnitsPage() {
   return (
-    <AppPageLayout page={appPages.units}>
+    <LayoutPage page={unitsCopy.page}>
       <LazyUnitsDataTable />
-    </AppPageLayout>
+    </LayoutPage>
   )
 }

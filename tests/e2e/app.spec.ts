@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
-import { appPages } from "../../src/app/config/app-config"
+import { appRoutes } from "../../src/app/app-routes"
 import { headerContent } from "../../src/components/header/header-content"
 import { getClientDetailsPath } from "../../src/pages/clients/client-routes"
 import {
@@ -103,35 +103,35 @@ test("resolve uma rota por deep link", async ({ page }) => {
 })
 
 test("navega pelo menu lateral no desktop", async ({ page }) => {
-  await page.goto(appPages.users.path)
+  await page.goto(appRoutes.users.path)
 
   const navigation = page.getByRole("navigation")
   const notificationsLink = navigation.locator(
-    `a[href="${appPages.notifications.path}"]`,
+    `a[href="${appRoutes.notifications.path}"]`,
   )
 
   await expect(notificationsLink).toBeVisible()
   await notificationsLink.click()
 
-  await expect(page).toHaveURL(appPages.notifications.path)
+  await expect(page).toHaveURL(appRoutes.notifications.path)
   await expect(notificationsLink).toHaveAttribute("aria-current", "page")
 })
 
 test("fecha o menu lateral mobile após navegar", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto(appPages.clients.path)
+  await page.goto(appRoutes.clients.path)
 
   await page
     .getByRole("button", { name: headerContent.sidebar.open })
     .click()
 
   const navigation = page.getByRole("navigation")
-  const unitsLink = navigation.locator(`a[href="${appPages.units.path}"]`)
+  const unitsLink = navigation.locator(`a[href="${appRoutes.units.path}"]`)
 
   await expect(unitsLink).toBeVisible()
   await unitsLink.click()
 
-  await expect(page).toHaveURL(appPages.units.path)
+  await expect(page).toHaveURL(appRoutes.units.path)
   await expect(
     page.getByRole("button", { name: headerContent.sidebar.open }),
   ).toBeVisible()

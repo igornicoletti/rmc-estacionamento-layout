@@ -126,3 +126,23 @@ As decisões de Auth continuam transitórias e identificadas como scaffold. O pr
 A exceção de ESLint para permitir somente `Toaster` em AppProviders acompanha o novo caminho do arquivo; a restrição geral de importação do toast nativo continua ativa.
 
 Validação do primeiro bloco: lint, tipos/build, knip e `git diff --check` aprovados; 59 testes focados em 10 arquivos aprovados; E2E Chromium 13/13 aprovado. Todos finalizaram com exit 0. A suíte unitária completa, cobertura, Firefox e WebKit não foram repetidos neste bloco.
+
+## Reconstrução estrutural — bloco seguinte
+
+Implementação sobre `91efa8c`, mantendo o diagnóstico anterior vinculado ao SHA de referência:
+
+- `app/config`, `app/root`, `app/layouts`, `app/routing`, `app/session` e `app/shell` deixam de existir. App contém composição, registro único e metadata técnica.
+- `app-routes.ts` concentra os paths/IDs, inclusive preview e detalhe, com builder que codifica o ID. Títulos/subtítulos de Clientes e Unidades pertencem ao domínio; labels de navegação pertencem ao Sidebar. `availability` é removido. Os 11 módulos vazios continuam vazios.
+- `LayoutPage` recebe conteúdo e children sem fallback implícito; `LayoutShell` recebe navegação, identidade de apresentação, callbacks e destinos. Ambos ignoram os contratos de sessão.
+- Os boundaries globais, de rota e de Auth continuam separados. Os componentes de fallback apenas apresentam o estado recebido. O de rota utiliza `isRouteErrorResponse`; Response bruta preserva classificação por status, enquanto Error/valores arbitrários recebem falha inesperada sem exposição de detalhes.
+- A criação do router continua fora de React. O outlet/título antes chamados AppLayout são absorvidos na composição da rota raiz.
+- O scaffold de Auth muda de localização e nomes de componentes para `features/auth/auth-*`; o comportamento de sessão, cancelamento, autoridade, cache e guard é preservado. Essa movimentação não valida SessionCommands, capabilities ou fresh-aal2 como contratos finais.
+- O runtime de demonstração atual é explícito: a árvore monta `MockShellRoute` de `src/mocks`, que alimenta a apresentação com fixtures e simula notificações. Não foi introduzido um seletor de ambiente. O módulo mock deve desaparecer quando a integração real alimentar o shell.
+
+Decisão do usuário nesta etapa: Auth real seguirá as definições de
+`igornicoletti/rmc-estacionamento`, mas sua implementação é extensa e fica para
+depois de auditoria específica desse projeto. Nenhum SDK, login, MFA, RLS ou
+política real foi implementado neste bloco. Pages → Features permanece na branch
+posterior, conforme a sequência da auditoria estrutural.
+
+Validação da reconstrução: lint, tipos/build, Knip e diff check aprovados; suíte completa Vitest serial com 44 arquivos/161 testes aprovada; Chromium 13/13 aprovado. O teste ajustado de erros de rota foi repetido: 6/6 aprovado. Todos os comandos terminaram com exit 0. Cobertura, Firefox e WebKit não foram executados neste bloco.

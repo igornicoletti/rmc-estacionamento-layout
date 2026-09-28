@@ -1,11 +1,11 @@
-import { appPages } from "@/app/config/app-config"
-import { AppPageLayout } from "@/app/layouts/app-page-layout"
+import { clientsCopy } from "@/pages/clients/clients.copy"
+import { LayoutPage } from "@/components/layout/layout-page"
 import { LazyClientsDataTable } from "@/pages/clients/components/lazy-clients-data-table"
 
 export function ClientsPage() {
   return (
-    <AppPageLayout page={appPages.clients}>
+    <LayoutPage page={clientsCopy.page}>
       <LazyClientsDataTable />
-    </AppPageLayout>
+    </LayoutPage>
   )
 }

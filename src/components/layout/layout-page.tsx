@@ -1,23 +1,17 @@
-import { Clock3Icon } from "lucide-react"
 import type { ReactNode } from "react"
 
-import { appCopy } from "@/app/config/app-copy"
-import { AppEmpty } from "@/components/app/app-empty"
 import { Separator } from "@/components/ui/separator"
 
-interface AppPageLayoutProps {
+interface LayoutPageProps {
   actions?: ReactNode
   children?: ReactNode
   page: {
     title: string
     subtitle: string
-    availability: "available" | "reserved"
   }
 }
 
-export function AppPageLayout({ actions, children, page }: AppPageLayoutProps) {
-  const reservedCopy = appCopy.feedback.reservedPage
-
+export function LayoutPage({ actions, children, page }: LayoutPageProps) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -35,14 +29,7 @@ export function AppPageLayout({ actions, children, page }: AppPageLayoutProps) {
 
       <Separator />
 
-      {children ?? (page.availability === "reserved" ? (
-        <AppEmpty
-          description={reservedCopy.description}
-          headingLevel={2}
-          media={{ icon: Clock3Icon }}
-          title={reservedCopy.title}
-        />
-      ) : null)}
+      {children}
     </div>
   )
 }

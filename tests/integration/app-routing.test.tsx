@@ -2,12 +2,16 @@ import { act, render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter, matchRoutes } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import { waitForRouterInitialization, waitForRouterLocation } from "@tests/support/router"
+import {
+  waitForRouterInitialization,
+  waitForRouterLocation,
+} from "@tests/support/router"
 
-import { appPages } from "@/app/config/app-config"
-import { routes } from "@/app/routing/routes"
+import { appRoutes, appPageRouteIds } from "@/app/app-routes"
+import { appMetadata } from "@/app/app-metadata"
+import { routes } from "@/app/app-route-tree"
 import App from "@/app/app"
-import { anonymousSession } from "@/app/session/session-types"
+import { anonymousSession } from "@/features/auth/auth-types"
 
 async function renderRoute(initialEntry = "/") {
   const router = createMemoryRouter(routes, {
@@ -22,6 +26,28 @@ async function renderRoute(initialEntry = "/") {
 }
 
 describe("app routing", () => {
+  it("atualiza o título ao navegar e restaura a identidade na rota desconhecida", async () => {
+    const router = await renderRoute(appRoutes.clients.path)
+    await waitFor(() => {
+      expect(document.title).toBe(
+        `${appRoutes.clients.browserTitle} | ${appMetadata.browserTitle}`,
+      )
+    })
+
+    await act(async () => {
+      await router.navigate(appRoutes.units.path)
+    })
+    await waitFor(() => {
+      expect(document.title).toBe(
+        `${appRoutes.units.browserTitle} | ${appMetadata.browserTitle}`,
+      )
+    })
+
+    await act(async () => {
+      await router.navigate("/nao-existe")
+    })
+    await waitFor(() => expect(document.title).toBe(appMetadata.browserTitle))
+  })
   it("monta o shell na rota raiz", async () => {
     const router = await renderRoute()
 
@@ -31,20 +57,23 @@ describe("app routing", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument()
   })
 
-  it.each(Object.values(appPages))("resolve o deep link $path", async (page) => {
-    const router = await renderRoute(page.path)
+  it.each(appPageRouteIds.map((id) => appRoutes[id]))(
+    "resolve o deep link $path",
+    async (page) => {
+      const router = await renderRoute(page.path)
 
-    expect(router.state.location.pathname).toBe(page.path)
-    expect(router.state.errors).toBeNull()
-    expect(screen.getByRole("main")).toBeInTheDocument()
-    expect(screen.getByRole("navigation")).toBeInTheDocument()
-  })
+      expect(router.state.location.pathname).toBe(page.path)
+      expect(router.state.errors).toBeNull()
+      expect(screen.getByRole("main")).toBeInTheDocument()
+      expect(screen.getByRole("navigation")).toBeInTheDocument()
+    },
+  )
 
-  it("resolve a rota interna sem registrá-la em appPages", async () => {
+  it("resolve a rota interna sem registrá-la em appRoutes", async () => {
     const router = await renderRoute()
-    const publicPagePaths: string[] = Object.values(appPages).map(
-      (page) => page.path,
-    )
+    const publicPagePaths: string[] = appPageRouteIds
+      .map((id) => appRoutes[id])
+      .map((page) => page.path)
 
     expect(publicPagePaths).not.toContain("/rmc")
 

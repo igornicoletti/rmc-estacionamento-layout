@@ -2,7 +2,7 @@ import type {
   SessionAssurance,
   SessionCapability,
   SessionSnapshot,
-} from "@/app/session/session-types"
+} from "@/features/auth/auth-types"
 
 interface AuthenticatedRouteRequirements {
   assurance?: SessionAssurance
@@ -35,11 +35,7 @@ const assuranceRank: Record<SessionAssurance, number> = {
   "fresh-aal2": 3,
 }
 
-const authenticationModes = new Set([
-  "required",
-  "anonymous-only",
-  "either",
-])
+const authenticationModes = new Set(["required", "anonymous-only", "either"])
 const assuranceLevels: ReadonlySet<string> = new Set([
   "aal1",
   "aal2",
@@ -54,8 +50,7 @@ function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
   const authentication =
     "authentication" in value ? value.authentication : undefined
   const assurance = "assurance" in value ? value.assurance : undefined
-  const capabilities =
-    "capabilities" in value ? value.capabilities : undefined
+  const capabilities = "capabilities" in value ? value.capabilities : undefined
   const hasAuthenticatedRequirements =
     assurance !== undefined || capabilities !== undefined
 
@@ -122,7 +117,9 @@ export function evaluateRouteAccess(
 
   const capabilities = new Set(snapshot.session.capabilities)
 
-  if (policy.capabilities?.some((capability) => !capabilities.has(capability))) {
+  if (
+    policy.capabilities?.some((capability) => !capabilities.has(capability))
+  ) {
     return { kind: "deny" }
   }
 

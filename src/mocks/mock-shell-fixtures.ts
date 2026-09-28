@@ -1,7 +1,7 @@
-import { appPages } from "@/app/config/app-config"
+import { appRoutes } from "@/app/app-routes"
 
 // Demonstration only: never used to resolve authentication or capabilities.
-export const shellPreviewData = {
+export const mockShellFixtures = {
   currentUser: {
     email: "usuario@redemontecarlo.com",
     name: "Nome do Usuário",
@@ -14,7 +14,7 @@ export const shellPreviewData = {
       message: "Uma nova captura foi adicionada ao Pátio Virtual.",
       dateTime: "2026-08-30T07:42:00-03:00",
       timeLabel: "30/08, 07:42",
-      to: appPages["virtual-yard"].path,
+      to: appRoutes["virtual-yard"].path,
     },
     {
       id: "unit-updated",
@@ -22,7 +22,7 @@ export const shellPreviewData = {
       message: "Os dados da unidade foram atualizados.",
       dateTime: "2026-08-29T16:20:00-03:00",
       timeLabel: "29/08, 16:20",
-      to: appPages.units.path,
+      to: appRoutes.units.path,
     },
     {
       id: "vehicle-updated",
@@ -30,7 +30,7 @@ export const shellPreviewData = {
       message: "As informações do veículo foram atualizadas.",
       dateTime: "2026-07-29T09:10:00-03:00",
       timeLabel: "29/07, 09:10",
-      to: appPages["virtual-yard"].path,
+      to: appRoutes["virtual-yard"].path,
     },
   ],
 } as const
