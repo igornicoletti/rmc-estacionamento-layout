@@ -35,12 +35,12 @@ const pageLoaders = {
     return { Component: AuditPage }
   },
   clients: async () => {
-    const { ClientsPage } = await import("@/pages/clients/clients.layout")
+    const { ClientsPage } = await import("@/features/clients/clients-page")
 
     return { Component: ClientsPage }
   },
   dashboard: async () => {
-    const { DashboardPage } = await import("@/pages/dashboard/dashboard.layout")
+    const { DashboardPage } = await import("@/features/dashboard/dashboard-page")
 
     return { Component: DashboardPage }
   },
@@ -57,7 +57,7 @@ const pageLoaders = {
     return { Component: PermissionsPage }
   },
   prices: async () => {
-    const { PricesPage } = await import("@/pages/prices/prices.layout")
+    const { PricesPage } = await import("@/features/prices/prices-page")
 
     return { Component: PricesPage }
   },
@@ -67,17 +67,17 @@ const pageLoaders = {
     return { Component: ProfilePage }
   },
   reports: async () => {
-    const { ReportsPage } = await import("@/pages/reports/reports.layout")
+    const { ReportsPage } = await import("@/features/reports/reports-page")
 
     return { Component: ReportsPage }
   },
   rules: async () => {
-    const { RulesPage } = await import("@/pages/rules/rules.layout")
+    const { RulesPage } = await import("@/features/rules/rules-page")
 
     return { Component: RulesPage }
   },
   units: async () => {
-    const { UnitsPage } = await import("@/pages/units/units.layout")
+    const { UnitsPage } = await import("@/features/units/units-page")
 
     return { Component: UnitsPage }
   },
@@ -88,7 +88,7 @@ const pageLoaders = {
   },
   "virtual-yard": async () => {
     const { VirtualYardPage } =
-      await import("@/pages/virtual-yard/virtual-yard.layout")
+      await import("@/features/virtual-yard/virtual-yard-page")
 
     return { Component: VirtualYardPage }
   },
@@ -112,7 +112,7 @@ const rmcPreviewRoute = {
   id: appRoutes.preview.id,
   path: appRoutes.preview.path,
   lazy: async () => {
-    const { RmcPreviewPage } = await import("@/pages/rmc/rmc.layout")
+    const { RmcPreviewPage } = await import("@/mocks/mock-components-page")
 
     return { Component: RmcPreviewPage }
   },
@@ -128,7 +128,7 @@ const clientDetailsRoute = {
   path: appRoutes.clientDetails.pattern,
   lazy: async () => {
     const { ClientDetailsPage } =
-      await import("@/pages/clients/client-details.layout")
+      await import("@/features/clients/clients-details-page")
 
     return { Component: ClientDetailsPage }
   },

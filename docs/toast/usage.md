@@ -4,7 +4,7 @@
 
 ```ts
 import { notify } from "@/components/toast/toast-notify"
-import { sessionNotify } from "@/app/session/content/session-notify"
+import { sessionNotify } from "@/features/auth/auth-notify"
 
 notify(sessionNotify.signOutFailed)
 ```
@@ -13,7 +13,7 @@ notify(sessionNotify.signOutFailed)
 
 ```ts
 import { notify } from "@/components/toast/toast-notify"
-import { clientsNotify } from "@/pages/clients/content/clients-notify"
+import { clientsNotify } from "@/features/clients/clients-notify"
 
 notify(clientsNotify.emailCopied({ email }))
 ```

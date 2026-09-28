@@ -1,6 +1,6 @@
 import { SearchIcon, XIcon } from "lucide-react"
 
-import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { dataTableContent } from "@/components/data-table/data-table-content"
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 
 interface DataTableSearchProps {
@@ -12,10 +12,10 @@ interface DataTableSearchProps {
 }
 
 export function DataTableSearch({
-  ariaLabel = dataTableCopy.search.defaultAriaLabel,
+  ariaLabel = dataTableContent.search.defaultAriaLabel,
   onChange,
   onClear,
-  placeholder = dataTableCopy.search.defaultPlaceholder,
+  placeholder = dataTableContent.search.defaultPlaceholder,
   value,
 }: DataTableSearchProps) {
   return (
@@ -33,7 +33,7 @@ export function DataTableSearch({
       <InputGroupAddon align="inline-start"><SearchIcon aria-hidden="true" /></InputGroupAddon>
       {value ? (
         <InputGroupAddon align="inline-end">
-          <InputGroupButton aria-label={dataTableCopy.search.clear} data-testid="data-table-search-clear" onClick={onClear} size="icon-xs">
+          <InputGroupButton aria-label={dataTableContent.search.clear} data-testid="data-table-search-clear" onClick={onClear} size="icon-xs">
             <XIcon aria-hidden="true" />
           </InputGroupButton>
         </InputGroupAddon>

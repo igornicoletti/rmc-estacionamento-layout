@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { XIcon } from "lucide-react"
 
-import { dataTableCopy } from "@/components/data-table/data-table.copy"
+import { dataTableContent } from "@/components/data-table/data-table-content"
 import { Button } from "@/components/ui/button"
 
 interface DataTableToolbarProps {
@@ -17,7 +17,7 @@ export function DataTableToolbar({ actions, activeFilterCount, children, onClear
       <div className="flex min-w-0 flex-col gap-3 @sm/toolbar:flex-row @sm/toolbar:flex-wrap @sm/toolbar:items-center">
         {children}
         {activeFilterCount >= 2 ? (
-          <Button aria-label={dataTableCopy.empty.clearFilters} data-testid="data-table-clear-filters" onClick={onClearFilters} size="icon" variant="outline">
+          <Button aria-label={dataTableContent.empty.clearFilters} data-testid="data-table-clear-filters" onClick={onClearFilters} size="icon" variant="outline">
             <XIcon aria-hidden="true" />
           </Button>
         ) : null}

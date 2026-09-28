@@ -4,7 +4,7 @@ Notificações transitórias usam `notify(ToastDefinition)` de `src/components/t
 
 ```ts
 import { notify } from "@/components/toast/toast-notify"
-import { sessionNotify } from "@/app/session/content/session-notify"
+import { sessionNotify } from "@/features/auth/auth-notify"
 
 notify(sessionNotify.signOutFailed)
 ```
