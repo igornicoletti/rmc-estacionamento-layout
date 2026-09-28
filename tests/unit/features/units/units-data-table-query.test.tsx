@@ -1,8 +1,5 @@
 import { act, screen, waitFor, within } from "@testing-library/react"
-import {
-  type QueryClient,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -37,17 +34,28 @@ import { UnitsDataTable } from "@/features/units/components/units-data-table"
 import { unitsQueryKeys } from "@/features/units/queries/units-query"
 
 const previewUnits = mapErpUnits(unitErpFixture)
-let activeQueryClient: QueryClient | null = null
 
-function QueryClientCapture() {
-  activeQueryClient = useQueryClient()
-  return null
+function RefetchUnitsControl() {
+  const queryClient = useQueryClient()
+
+  return (
+    <button
+      aria-label="Atualizar unidades no teste"
+      data-testid="refetch-units"
+      onClick={() =>
+        void queryClient.invalidateQueries({
+          queryKey: unitsQueryKeys.units,
+        })
+      }
+      type="button"
+    />
+  )
 }
 
 function renderUnitsDataTable() {
   renderWithProviders(
     <>
-      <QueryClientCapture />
+      <RefetchUnitsControl />
       <UnitsDataTable />
     </>,
   )
@@ -63,17 +71,8 @@ function getDataTableRoot(table: HTMLElement) {
   return root
 }
 
-function getQueryClient() {
-  if (!activeQueryClient) {
-    throw new Error("QueryClient não encontrado.")
-  }
-
-  return activeQueryClient
-}
-
 describe("UnitsDataTable query boundary", () => {
   beforeEach(() => {
-    activeQueryClient = null
     loadDemoUnitsMock.mockReset()
     notifyMock.mockReset()
   })
@@ -136,6 +135,8 @@ describe("UnitsDataTable query boundary", () => {
   })
 
   it("preserva dados e notifica uma vez quando o refetch falha", async () => {
+    const user = userEvent.setup()
+
     loadDemoUnitsMock
       .mockResolvedValueOnce(previewUnits)
       .mockRejectedValueOnce(new Error("refetch indisponível"))
@@ -149,11 +150,7 @@ describe("UnitsDataTable query boundary", () => {
     const root = getDataTableRoot(table)
     const visibleRows = screen.getAllByTestId("data-table-row").length
 
-    await act(async () => {
-      await getQueryClient().invalidateQueries({
-        queryKey: unitsQueryKeys.units,
-      })
-    })
+    await user.click(screen.getByTestId("refetch-units"))
 
     await waitFor(() => {
       expect(root).toHaveAttribute("aria-busy", "false")

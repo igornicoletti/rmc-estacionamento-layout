@@ -1,8 +1,5 @@
 import { act, screen, waitFor, within } from "@testing-library/react"
-import {
-  type QueryClient,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -38,17 +35,28 @@ import { ClientsDataTable } from "@/features/clients/components/clients-data-tab
 import { clientsQueryKeys } from "@/features/clients/queries/clients-query"
 
 const previewClients = mapErpClients(clientErpFixture)
-let activeQueryClient: QueryClient | null = null
 
-function QueryClientCapture() {
-  activeQueryClient = useQueryClient()
-  return null
+function RefetchClientsControl() {
+  const queryClient = useQueryClient()
+
+  return (
+    <button
+      aria-label="Atualizar clientes no teste"
+      data-testid="refetch-clients"
+      onClick={() =>
+        void queryClient.invalidateQueries({
+          queryKey: clientsQueryKeys.clients,
+        })
+      }
+      type="button"
+    />
+  )
 }
 
 function renderClientsDataTable() {
   renderWithProviders(
     <>
-      <QueryClientCapture />
+      <RefetchClientsControl />
       <MemoryRouter>
         <ClientsDataTable />
       </MemoryRouter>
@@ -66,17 +74,8 @@ function getDataTableRoot(table: HTMLElement) {
   return root
 }
 
-function getQueryClient() {
-  if (!activeQueryClient) {
-    throw new Error("QueryClient não encontrado.")
-  }
-
-  return activeQueryClient
-}
-
 describe("ClientsDataTable query boundary", () => {
   beforeEach(() => {
-    activeQueryClient = null
     loadDemoClientsMock.mockReset()
     notifyMock.mockReset()
   })
@@ -139,6 +138,8 @@ describe("ClientsDataTable query boundary", () => {
   })
 
   it("preserva dados e notifica uma vez quando o refetch falha", async () => {
+    const user = userEvent.setup()
+
     loadDemoClientsMock
       .mockResolvedValueOnce(previewClients)
       .mockRejectedValueOnce(new Error("refetch indisponível"))
@@ -152,11 +153,7 @@ describe("ClientsDataTable query boundary", () => {
     const root = getDataTableRoot(table)
     const visibleRows = screen.getAllByTestId("data-table-row").length
 
-    await act(async () => {
-      await getQueryClient().invalidateQueries({
-        queryKey: clientsQueryKeys.clients,
-      })
-    })
+    await user.click(screen.getByTestId("refetch-clients"))
 
     await waitFor(() => {
       expect(root).toHaveAttribute("aria-busy", "false")
