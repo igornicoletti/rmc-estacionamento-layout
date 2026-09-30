@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { authProblemSchema, authProblemStatuses } from "@/shared/auth"
+import { authProblemSchema, authProblemStatuses } from "@/shared/auth/auth-index"
 
 describe("application/problem+json canônico", () => {
   it("mantém o mapa fechado de códigos e status", () => {
@@ -24,4 +24,3 @@ describe("application/problem+json canônico", () => {
     expect(authProblemSchema.safeParse({ ...base, stack: "secret" }).success).toBe(false)
   })
 })
-

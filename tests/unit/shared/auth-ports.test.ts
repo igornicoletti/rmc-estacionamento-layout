@@ -11,7 +11,7 @@ import type {
   DatabaseGateway,
   QueuePublisher,
   SmsGateway,
-} from "@/shared/auth"
+} from "@/shared/auth/auth-index"
 
 describe("portas puras de Auth", () => {
   it("expõe contratos tipados sem selecionar adapters", () => {

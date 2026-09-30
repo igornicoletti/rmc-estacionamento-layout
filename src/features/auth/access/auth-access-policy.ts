@@ -3,7 +3,7 @@ import type {
   SessionCapability,
   SessionSnapshot,
 } from "@/features/auth/contracts/auth-types"
-import { recognizeCapability } from "@/shared/authorization/capability-catalog"
+import { recognizeCapability } from "@/shared/authorization/authorization-capability-catalog"
 
 interface AuthenticatedRouteRequirements {
   assurance?: SessionAssurance

@@ -25,12 +25,12 @@ type PageRouteLoader = () => Promise<PageRouteModule>
 const pageLoaders = {
   "account-security": async () => {
     const { AccountSecurityPage } =
-      await import("@/pages/account-security/account-security.layout")
+      await import("@/features/account-security/account-security-page")
 
     return { Component: AccountSecurityPage }
   },
   audit: async () => {
-    const { AuditPage } = await import("@/pages/audit/audit.layout")
+    const { AuditPage } = await import("@/features/audit/audit-page")
 
     return { Component: AuditPage }
   },
@@ -47,13 +47,13 @@ const pageLoaders = {
   },
   notifications: async () => {
     const { NotificationsPage } =
-      await import("@/pages/notifications/notifications.layout")
+      await import("@/features/notifications/notifications-page")
 
     return { Component: NotificationsPage }
   },
   permissions: async () => {
     const { PermissionsPage } =
-      await import("@/pages/permissions/permissions.layout")
+      await import("@/features/permissions/permissions-page")
 
     return { Component: PermissionsPage }
   },
@@ -63,7 +63,7 @@ const pageLoaders = {
     return { Component: PricesPage }
   },
   profile: async () => {
-    const { ProfilePage } = await import("@/pages/profile/profile.layout")
+    const { ProfilePage } = await import("@/features/profile/profile-page")
 
     return { Component: ProfilePage }
   },
@@ -83,7 +83,7 @@ const pageLoaders = {
     return { Component: UnitsPage }
   },
   users: async () => {
-    const { UsersPage } = await import("@/pages/users/users.layout")
+    const { UsersPage } = await import("@/features/users/users-page")
 
     return { Component: UsersPage }
   },

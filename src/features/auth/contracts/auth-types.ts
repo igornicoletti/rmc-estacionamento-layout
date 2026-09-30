@@ -1,5 +1,5 @@
-import type { AssuranceLevel } from "@/shared/auth"
-import type { UserCapability } from "@/shared/authorization/capability-catalog"
+import type { AssuranceLevel } from "@/shared/auth/auth-index"
+import type { UserCapability } from "@/shared/authorization/authorization-capability-catalog"
 
 export type SessionCapability = UserCapability
 export type SessionAssurance = AssuranceLevel

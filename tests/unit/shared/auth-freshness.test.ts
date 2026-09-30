@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { authPolicy, evaluateFreshness } from "@/shared/auth"
+import { authPolicy, evaluateFreshness } from "@/shared/auth/auth-index"
 
 const nowMs = Date.parse("2026-09-30T17:00:00Z")
 const base = {
@@ -40,4 +40,3 @@ describe("fresh step-up", () => {
     })
   })
 })
-

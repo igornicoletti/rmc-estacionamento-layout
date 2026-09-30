@@ -10,7 +10,7 @@ import {
   loginCommandSchema,
   otpCommandSchema,
   sessionSnapshotSchema,
-} from "@/shared/auth"
+} from "@/shared/auth/auth-index"
 
 const validSession = {
   state: "authenticated",
