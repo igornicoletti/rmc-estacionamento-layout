@@ -8,13 +8,14 @@
 | Versão | `1.0` |
 | Data de consolidação | 28/09/2026 |
 | SHA-256 do artefato recebido | `74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148` |
-| Checkout de implementação F00 | `a097e74b8cba1822c1c73f2a47900106cf315b39` |
+| Checkout inicial da F00 | `a097e74b8cba1822c1c73f2a47900106cf315b39` |
+| Merge de encerramento da baseline | `b10043a7b516a9056a86c694679a1a453bef90a5` (PR #28) |
 
 Mudança material de requisito exige nova versão, justificativa, impacto, testes e supersessão explícita. Este registro não substitui o contrato.
 
 ## Status do bloco
 
-**F00 em andamento. Não é PASS_LOCAL, PASS_TARGET nem autorização de release.**
+**F00 encerrada como baseline local. Não é PASS_LOCAL, PASS_TARGET nem autorização de release.**
 
 O baseline mantém Auth fechado por padrão e não inclui Worker/BFF, Supabase SDK, banco, Queue/DLQ, SMS, cookies de sessão ou endpoints Auth. Esses elementos entram apenas nas fases posteriores previstas pelo contrato.
 
@@ -167,4 +168,6 @@ A ausência dessas provas mantém os fluxos dependentes desabilitados.
 | dependências sem prova | inventário explícito acima |
 | funcionalidades fora do release/bloco | bloqueios explícitos acima |
 
-O bloco só poderá ser marcado como F00 PASS quando os itens obrigatórios pendentes forem resolvidos e a configuração candidata do SHA corrente for validada sem secrets reais e sem caminhos permissivos. Testes unitários da flag, isoladamente, não constituem PASS_LOCAL ou PASS_TARGET.
+O encerramento da F00 registra somente a baseline implementada e revisada: Auth permanece fechado, a configuração `candidate` foi exercitada sem selecionar upstream e a toolchain pinada foi validada localmente. Dependências externas continuam pendentes e impedem qualquer alegação de `PASS_LOCAL`, `PASS_TARGET` ou release.
+
+O workflow hospedado do PR #28 não iniciou steps porque a conta estava bloqueada por billing. Essa limitação externa não foi convertida em sucesso de CI; o merge ocorreu por waiver explícito do responsável após a validação local.

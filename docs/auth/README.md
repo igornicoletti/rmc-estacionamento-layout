@@ -4,13 +4,18 @@ Esta pasta registra a implementação incremental do **Contrato canônico de aut
 
 ## Estado atual
 
-O bloco em andamento é **F00 — baseline e ameaça**. Nenhum fluxo real de autenticação foi habilitado por esta fase: não há BFF de Auth, adapter Supabase, persistência Auth, Queue/DLQ, SMS, MFA, sessão funcional ou endpoint privado implementado por este bloco.
+O bloco **F00 — baseline e ameaça** foi encerrado como baseline local no merge `b10043a7b516a9056a86c694679a1a453bef90a5` (PR #28). Esse encerramento não é `PASS_LOCAL`, `PASS_TARGET` nem autorização de release.
+
+O próximo bloco de implementação é **F01 — contratos puros**. Nenhum fluxo real de autenticação foi habilitado pela F00: não há BFF de Auth, adapter Supabase, persistência Auth, Queue/DLQ, SMS, MFA, sessão funcional ou endpoint privado implementado por esse bloco.
 
 O shell e as fixtures já existentes continuam sendo demonstração visual e não representam sessão autenticada nem autorização de produção.
 
 A ordem seguinte permanece a definida pelo contrato: F01 contratos puros, F02 persistência e F03 fronteira BFF. O Worker, o roteamento `/api/*`, os adapters de provider e os contratos HTTP serão introduzidos somente nos respectivos blocos.
 
 - [Registro do contrato e baseline F00](contract-registry.md)
+- [Plano de implementação F01–F14](implementation-plan.md)
+- [Matriz viva de requisitos](requirements-matrix.md)
+- [Contrato de evidências](evidence/README.md)
 
 ## Configuração pública
 
