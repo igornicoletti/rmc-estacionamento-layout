@@ -12,7 +12,6 @@ const authenticated = {
   session: {
     assurance: "aal2",
     capabilities: ["users.read"],
-    freshUntil: null,
     identity: { displayName: "Usuária", id: "user-1" },
   },
 } satisfies SessionSnapshot
@@ -41,17 +40,18 @@ describe("evaluateRouteAccess", () => {
     ).toEqual({ kind: "deny" })
   })
 
-  it("mantém freshness separada de assurance", () => {
-    expect(
-      evaluateRouteAccess(authenticated, {
-        authentication: "required",
-        assurance: "aal2",
-        fresh: true,
-      }),
-    ).toEqual({ kind: "deny" })
+  it("não trata freshness transacional como estado global da rota", () => {
+    const unsupportedFreshnessPolicy = {
+      authentication: "required",
+      fresh: true,
+    } as unknown as RouteAccessPolicy
+
+    expect(evaluateRouteAccess(authenticated, unsupportedFreshnessPolicy)).toEqual({
+      kind: "deny",
+    })
   })
 
-  it("nega políticas desconhecidas ou contraditórias em runtime", () => {
+  it("nega políticas desconhecidas, contraditórias ou com propriedades extras", () => {
     const malformedAuthentication = {
       authentication: "unexpected",
     } as unknown as RouteAccessPolicy
@@ -62,6 +62,10 @@ describe("evaluateRouteAccess", () => {
     const unknownCapability = {
       authentication: "required",
       capabilities: ["users.future"],
+    } as unknown as RouteAccessPolicy
+    const unknownProperty = {
+      authentication: "required",
+      typoCapability: ["users.read"],
     } as unknown as RouteAccessPolicy
 
     expect(evaluateRouteAccess(authenticated, malformedAuthentication)).toEqual(
@@ -74,6 +78,9 @@ describe("evaluateRouteAccess", () => {
       ),
     ).toEqual({ kind: "deny" })
     expect(evaluateRouteAccess(authenticated, unknownCapability)).toEqual({
+      kind: "deny",
+    })
+    expect(evaluateRouteAccess(authenticated, unknownProperty)).toEqual({
       kind: "deny",
     })
   })

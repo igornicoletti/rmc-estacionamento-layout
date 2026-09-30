@@ -23,7 +23,7 @@ export const authProblemStatuses = {
 export type AuthProblemCode = keyof typeof authProblemStatuses
 
 export const authProblemSchema = z
-  .object({
+  .strictObject({
     type: z.literal("about:blank"),
     title: z.string().min(1).max(100),
     status: z.number().int(),
@@ -31,7 +31,6 @@ export const authProblemSchema = z
     requestId: z.string().min(8).max(128),
     detail: z.string().max(500).optional(),
   })
-  .strict()
   .superRefine((problem, context) => {
     if (problem.status !== authProblemStatuses[problem.code]) {
       context.addIssue({
@@ -43,4 +42,3 @@ export const authProblemSchema = z
   })
 
 export type AuthProblem = z.infer<typeof authProblemSchema>
-

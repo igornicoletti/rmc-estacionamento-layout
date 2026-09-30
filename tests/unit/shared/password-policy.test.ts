@@ -23,4 +23,3 @@ describe("política canônica de senha", () => {
     expect(validateAndNormalizePassword(password)).toEqual({ valid: false, error })
   })
 })
-

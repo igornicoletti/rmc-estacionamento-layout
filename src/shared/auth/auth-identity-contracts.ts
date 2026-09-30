@@ -1,5 +1,8 @@
 import { z } from "zod"
 
+import { opaqueIdSchema } from "./auth-contracts"
+import { authPolicy } from "./auth-policy"
+
 const hasValidCpfCheckDigits = (cpf: string) => {
   if (/^(\d)\1{10}$/.test(cpf)) return false
 
@@ -20,7 +23,7 @@ export const cpfSchema = z
   .regex(/^\d{11}$/)
   .refine(hasValidCpfCheckDigits, "CPF check digits are invalid.")
 
-export const e164PhoneSchema = z.string().regex(/^\+[1-9]\d{7,14}$/)
+export const e164PhoneSchema = z.e164()
 
 export const corporateEmailSchema = z
   .email()
@@ -31,15 +34,14 @@ export const corporateEmailSchema = z
   }, "Email domain is not allowed.")
   .nullable()
 
-export const loginCommandSchema = z
-  .object({ cpf: cpfSchema, password: z.string(), commandId: z.string().min(16).max(128) })
-  .strict()
+export const loginCommandSchema = z.strictObject({
+  cpf: cpfSchema,
+  password: z.string(),
+  commandId: opaqueIdSchema,
+})
 
-export const otpCommandSchema = z
-  .object({
-    challengeId: z.string().min(16).max(128),
-    otp: z.string().regex(/^\d{8}$/),
-    commandId: z.string().min(16).max(128),
-  })
-  .strict()
-
+export const otpCommandSchema = z.strictObject({
+  challengeId: opaqueIdSchema,
+  otp: z.string().length(authPolicy.otpDigits).regex(/^\d+$/),
+  commandId: opaqueIdSchema,
+})

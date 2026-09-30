@@ -24,4 +24,3 @@ describe("application/problem+json canônico", () => {
     expect(authProblemSchema.safeParse({ ...base, stack: "secret" }).success).toBe(false)
   })
 })
-

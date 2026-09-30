@@ -3,13 +3,13 @@ import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
 
-import type { SessionCommands } from "@/features/auth/session/auth-commands"
-import { useSession } from "@/features/auth/session/auth-context"
-import { AuthProvider } from "@/features/auth/session/auth-provider"
 import type {
   ResolvedSessionSnapshot,
   SessionCapability,
 } from "@/features/auth/contracts/auth-types"
+import type { SessionCommands } from "@/features/auth/session/auth-commands"
+import { useSession } from "@/features/auth/session/auth-context"
+import { AuthProvider } from "@/features/auth/session/auth-provider"
 
 interface SessionHarnessOptions {
   commands: SessionCommands
@@ -43,7 +43,6 @@ function createAuthenticatedSession(
     status: "authenticated",
     session: {
       assurance: "aal1",
-      freshUntil: null,
       capabilities,
       identity: { displayName: "Usuária", id: "user-1" },
     },

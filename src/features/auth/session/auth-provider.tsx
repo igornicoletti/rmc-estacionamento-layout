@@ -9,6 +9,12 @@ import {
 } from "react"
 
 import {
+  anonymousSession,
+  bootstrappingSession,
+  type ResolvedSessionSnapshot,
+  type SessionSnapshot,
+} from "@/features/auth/contracts/auth-types"
+import {
   anonymousSessionCommands,
   type SessionCommands,
 } from "@/features/auth/session/auth-commands"
@@ -16,12 +22,6 @@ import {
   SessionContext,
   type SessionContextValue,
 } from "@/features/auth/session/auth-context"
-import {
-  anonymousSession,
-  bootstrappingSession,
-  type ResolvedSessionSnapshot,
-  type SessionSnapshot,
-} from "@/features/auth/contracts/auth-types"
 
 interface AuthProviderProps {
   children: ReactNode
@@ -62,7 +62,6 @@ function isSameAuthority(
     next.status === "authenticated" &&
     current.session.identity.id === next.session.identity.id &&
     current.session.assurance === next.session.assurance &&
-    current.session.freshUntil === next.session.freshUntil &&
     hasSameCapabilities(current.session.capabilities, next.session.capabilities)
   )
 }

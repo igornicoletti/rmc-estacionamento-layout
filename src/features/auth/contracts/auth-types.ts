@@ -1,5 +1,5 @@
 import type { AssuranceLevel } from "@/shared/auth"
-import type { UserCapability } from "@/shared/authorization/capability-catalog"
+import type { UserCapability } from "@/shared/authorization/authorization-capability-catalog"
 
 export type SessionCapability = UserCapability
 export type SessionAssurance = AssuranceLevel
@@ -12,7 +12,6 @@ interface SessionIdentity {
 interface AuthenticatedSession {
   assurance: SessionAssurance
   capabilities: readonly SessionCapability[]
-  freshUntil: string | null
   identity: SessionIdentity
 }
 
