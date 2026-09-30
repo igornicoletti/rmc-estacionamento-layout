@@ -3,8 +3,11 @@ import { createRoot } from "react-dom/client";
 
 import App from "@/app/app";
 import { appRouter } from "@/app/app-router";
+import { assertAuthRuntimeConfig } from "@/features/auth/config/auth-runtime-config";
 
 import "@/index.css";
+
+assertAuthRuntimeConfig(import.meta.env);
 
 const root = document.getElementById("root");
 
