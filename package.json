@@ -31,12 +31,12 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "npm run build && playwright test",
     "test:e2e:deterministic": "npm run build && playwright test --workers=1",
-    "test:e2e:ci": "playwright test --project=chromium --workers=1",
+    "test:e2e:check": "playwright test --project=chromium --workers=1",
     "test:e2e:ui": "npm run build && playwright test --ui",
     "audit:security": "npm audit --audit-level=moderate",
     "unused:check": "knip",
     "check": "npm run lint && npm run build && npm run test",
-    "check:full": "npm run unused:check && npm run audit:security && npm run lint && npm run build && npm run test:coverage && npm run test:e2e:ci"
+    "check:full": "npm run unused:check && npm run audit:security && npm run lint && npm run build && npm run test:coverage && npm run test:e2e:check"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
