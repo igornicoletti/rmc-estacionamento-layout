@@ -11,8 +11,9 @@
 | Requisito ou conjunto | Fase | Implementação | Testes mínimos | Evidência | Status |
 | --- | --- | --- | --- | --- | --- |
 | D01–D18, SEC-01–20, baseline e feature stage | F00 | registro, configuração pública fail-closed e toolchain pinada | flag inválida, candidate sem upstream e checks do projeto | merge `b10043a`; PR #28 com CI não iniciada por billing | verified-local |
-| Estados, DTOs, schemas, erros, clocks e portas | F01 | `shared/auth` | T03, T10, T21, T31 e malformed/unknown | pendente | planned |
-| Capability, hierarchy e policy pura | F01/F10 | `shared/authorization` e enforcement BFF | T22–T27 | pendente | planned |
+| Estados, DTOs, schemas, erros, clocks e portas | F01 | `src/shared/auth` | T03, T10, T21, T31 e malformed/unknown | `evidence/F01-local.md`; `f57c291` | verified-local |
+| Catálogo fechado de capabilities e reconhecimento puro | F01 | `src/shared/authorization` | capability desconhecida e imports proibidos | `evidence/F01-local.md`; `f57c291` | verified-local |
+| Hierarquia, scope, target e enforcement BFF | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | migrations, constraints, grants/RLS e RPCs | T24–T29, pgTAP e rebuild | pendente | planned |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker/BFF e transporte same-origin | T02, T03, T18, T21, T35 | pendente | planned |
 | Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais | pendente | planned |
