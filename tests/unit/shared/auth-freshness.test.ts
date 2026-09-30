@@ -53,11 +53,18 @@ describe("fresh step-up", () => {
     { verifiedSessionId: "   " },
     { currentIntentHash: "" },
     { verifiedIntentHash: "   " },
+    { requiredAal: "aal3" },
+    { verifiedAal: "aal3" },
     { verifiedAmr: [] },
     { verifiedAmr: [" "] },
     { requiredAmr: "" },
   ])("falha fechado para prova malformada (%s)", (change) => {
-    expect(evaluateFreshness({ ...base, ...change })).toEqual({
+    const input = {
+      ...base,
+      ...change,
+    } as unknown as Parameters<typeof evaluateFreshness>[0]
+
+    expect(evaluateFreshness(input)).toEqual({
       allowed: false,
       reason: "INVALID_PROOF",
     })
