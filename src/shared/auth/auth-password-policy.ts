@@ -45,4 +45,3 @@ export function validateAndNormalizePassword(value: string): PasswordValidation 
 
   return { valid: true, normalized, codePoints, utf8Bytes }
 }
-
