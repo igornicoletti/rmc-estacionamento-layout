@@ -20,6 +20,7 @@ const authenticatedSession = {
   status: "authenticated",
   session: {
     assurance: "aal1",
+    freshUntil: null,
     capabilities: [],
     identity: {
       displayName: "Usuária",

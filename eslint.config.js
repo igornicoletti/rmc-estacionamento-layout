@@ -86,6 +86,35 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/shared/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "react",
+                "react-dom",
+                "react-router",
+                "@tanstack/*",
+                "@supabase/*",
+                "cloudflare:*",
+                "@/app/*",
+                "@/components/*",
+                "@/features/*",
+                "@/lib/*",
+                "@tests/*",
+              ],
+              message:
+                "Contratos compartilhados devem permanecer puros e sem dependências de runtime, UI ou testes.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
