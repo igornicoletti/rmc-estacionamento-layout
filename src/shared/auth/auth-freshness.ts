@@ -1,4 +1,7 @@
-import type { AssuranceLevel } from "./auth-contracts"
+import {
+  assuranceLevels,
+  type AssuranceLevel,
+} from "./auth-contracts"
 import { authPolicy } from "./auth-policy"
 
 export type FreshnessInput = {
@@ -33,7 +36,11 @@ const assuranceRank: Readonly<Record<AssuranceLevel, number>> = {
   aal2: 2,
 }
 
+const assuranceLevelSet: ReadonlySet<string> = new Set(assuranceLevels)
+
 const isBlank = (value: string) => value.trim().length === 0
+const isAssuranceLevel = (value: unknown): value is AssuranceLevel =>
+  typeof value === "string" && assuranceLevelSet.has(value)
 
 export function evaluateFreshness(input: FreshnessInput): FreshnessDecision {
   if (
@@ -43,6 +50,8 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessDecision {
     isBlank(input.verifiedSessionId) ||
     isBlank(input.currentIntentHash) ||
     isBlank(input.verifiedIntentHash) ||
+    !isAssuranceLevel(input.requiredAal) ||
+    !isAssuranceLevel(input.verifiedAal) ||
     input.verifiedAmr.length === 0 ||
     input.verifiedAmr.some(isBlank) ||
     (input.requiredAmr !== undefined && isBlank(input.requiredAmr))
