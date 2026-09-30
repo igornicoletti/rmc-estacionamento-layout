@@ -11,8 +11,8 @@
 | Requisito ou conjunto | Fase | Implementação | Testes mínimos | Evidência | Status |
 | --- | --- | --- | --- | --- | --- |
 | D01–D18, SEC-01–20, baseline e feature stage | F00 | registro, configuração pública fail-closed e toolchain pinada | flag inválida, candidate sem upstream e checks do projeto | merge `b10043a`; PR #28 com CI não iniciada por billing | verified-local |
-| Estados, DTOs, schemas, erros, clocks e portas | F01 | `src/shared/auth`; restricted step fechado por jornada; política central versionada; portas F01 limitadas a Auth/DB/SMS + clock | T03, parcela pura de T10/T21/T31 e malformed/unknown | `evidence/F01-local.md` comprova historicamente `f57c291`; correções do SHA corrente exigem nova execução | implemented |
-| Catálogo fechado de capabilities e reconhecimento puro | F01 | `src/shared/authorization`; capability desconhecida falha fechado | capability desconhecida e imports proibidos | `evidence/F01-local.md` comprova historicamente `f57c291`; SHA corrente exige nova execução | implemented |
+| Estados, DTOs, schemas, erros, clocks e portas | F01 | `src/shared/auth`; restricted step fechado por jornada; política central versionada; portas F01 limitadas a Auth/DB/SMS + clock | T03, parcela pura de T10/T21/T31 e malformed/unknown | `evidence/F01-local.md`; SHA testado `8aa2148e78f6ff8c2c643f4d28e71ee60ba643b7` | verified-local |
+| Catálogo fechado de capabilities e reconhecimento puro | F01 | `src/shared/authorization`; capability desconhecida falha fechado | capability desconhecida e imports proibidos | `evidence/F01-local.md`; SHA testado `8aa2148e78f6ff8c2c643f4d28e71ee60ba643b7` | verified-local |
 | Hierarquia, scope, target e evaluator/enforcement completo | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | migrations, constraints, grants/RLS e RPCs | T24–T29, pgTAP e rebuild | pendente | planned |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker/BFF e transporte same-origin | T02, T03, T18, T21, T35 | pendente | planned |
@@ -29,5 +29,7 @@
 | GO operacional | F14 | rollout, rollback, alertas e runbooks | exercício operacional | depende de F12 e F13 | blocked |
 
 A política de acesso existente em `src/features/auth` continua sendo scaffold de UX do layout; ela não é o evaluator autoritativo de F10. Fresh step-up não é modelado como flag global dessa policy: a prova final permanece vinculada à sessão e à intenção no servidor.
+
+A F01 está `verified-local` no SHA de implementação registrado na evidência. Esse estado não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de Worker, banco, provider, staging ou target.
 
 Atualizar esta matriz no mesmo PR que altera implementação ou evidência. Um teste contado sem vínculo ao requisito não muda status, e evidência de outro SHA não é transportada por inferência.
