@@ -3,10 +3,12 @@ import type {
   SessionCapability,
   SessionSnapshot,
 } from "@/features/auth/contracts/auth-types"
+import { recognizeCapability } from "@/shared/authorization/capability-catalog"
 
 interface AuthenticatedRouteRequirements {
   assurance?: SessionAssurance
   capabilities?: readonly SessionCapability[]
+  fresh?: boolean
 }
 
 export type RouteAccessPolicy =
@@ -14,6 +16,7 @@ export type RouteAccessPolicy =
       authentication: "anonymous-only"
       assurance?: never
       capabilities?: never
+      fresh?: never
     }
   | ({
       authentication: "required" | "either"
@@ -32,14 +35,12 @@ export interface RouteAccessOptions {
 const assuranceRank: Record<SessionAssurance, number> = {
   aal1: 1,
   aal2: 2,
-  "fresh-aal2": 3,
 }
 
 const authenticationModes = new Set(["required", "anonymous-only", "either"])
 const assuranceLevels: ReadonlySet<string> = new Set([
   "aal1",
   "aal2",
-  "fresh-aal2",
 ])
 
 function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
@@ -51,8 +52,9 @@ function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
     "authentication" in value ? value.authentication : undefined
   const assurance = "assurance" in value ? value.assurance : undefined
   const capabilities = "capabilities" in value ? value.capabilities : undefined
+  const fresh = "fresh" in value ? value.fresh : undefined
   const hasAuthenticatedRequirements =
-    assurance !== undefined || capabilities !== undefined
+    assurance !== undefined || capabilities !== undefined || fresh !== undefined
 
   if (
     typeof authentication !== "string" ||
@@ -68,9 +70,14 @@ function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
   return (
     (assurance === undefined ||
       (typeof assurance === "string" && assuranceLevels.has(assurance))) &&
+    (fresh === undefined || typeof fresh === "boolean") &&
     (capabilities === undefined ||
       (Array.isArray(capabilities) &&
-        capabilities.every((capability) => typeof capability === "string")))
+        capabilities.every(
+          (capability) =>
+            typeof capability === "string" &&
+            recognizeCapability(capability).allowed,
+        )))
   )
 }
 
@@ -101,7 +108,9 @@ export function evaluateRouteAccess(
 
   if (snapshot.status === "anonymous") {
     const hasAuthenticatedRequirements =
-      policy.assurance !== undefined || (policy.capabilities?.length ?? 0) > 0
+      policy.assurance !== undefined ||
+      (policy.capabilities?.length ?? 0) > 0 ||
+      policy.fresh === true
 
     return hasAuthenticatedRequirements ? { kind: "deny" } : { kind: "allow" }
   }
@@ -113,6 +122,14 @@ export function evaluateRouteAccess(
     if (!actualRank || !requiredRank || actualRank < requiredRank) {
       return { kind: "deny" }
     }
+  }
+
+  if (
+    policy.fresh === true &&
+    (snapshot.session.freshUntil === null ||
+      Date.parse(snapshot.session.freshUntil) <= Date.now())
+  ) {
+    return { kind: "deny" }
   }
 
   const capabilities = new Set(snapshot.session.capabilities)

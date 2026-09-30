@@ -62,6 +62,7 @@ function isSameAuthority(
     next.status === "authenticated" &&
     current.session.identity.id === next.session.identity.id &&
     current.session.assurance === next.session.assurance &&
+    current.session.freshUntil === next.session.freshUntil &&
     hasSameCapabilities(current.session.capabilities, next.session.capabilities)
   )
 }

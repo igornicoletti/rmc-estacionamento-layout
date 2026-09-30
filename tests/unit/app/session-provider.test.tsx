@@ -6,7 +6,10 @@ import { describe, expect, it, vi } from "vitest"
 import type { SessionCommands } from "@/features/auth/session/auth-commands"
 import { useSession } from "@/features/auth/session/auth-context"
 import { AuthProvider } from "@/features/auth/session/auth-provider"
-import type { ResolvedSessionSnapshot } from "@/features/auth/contracts/auth-types"
+import type {
+  ResolvedSessionSnapshot,
+  SessionCapability,
+} from "@/features/auth/contracts/auth-types"
 
 interface SessionHarnessOptions {
   commands: SessionCommands
@@ -34,12 +37,13 @@ function renderSessionHook({
 }
 
 function createAuthenticatedSession(
-  capabilities: readonly string[] = [],
+  capabilities: readonly SessionCapability[] = [],
 ): ResolvedSessionSnapshot {
   return {
     status: "authenticated",
     session: {
       assurance: "aal1",
+      freshUntil: null,
       capabilities,
       identity: { displayName: "Usuária", id: "user-1" },
     },
@@ -147,8 +151,8 @@ describe("AuthProvider", () => {
       meta: { identityScoped: true },
     })
     queryClient.setQueryData(["private"], "old-authority-data")
-    const current = createAuthenticatedSession(["yard:read"])
-    const next = createAuthenticatedSession(["yard:read", "yard:manage"])
+    const current = createAuthenticatedSession(["users.read"])
+    const next = createAuthenticatedSession(["users.read", "users.create"])
     const commands: SessionCommands = {
       getSession: vi.fn(),
       refreshSession: vi.fn().mockResolvedValue(next),

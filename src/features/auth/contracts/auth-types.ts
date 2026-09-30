@@ -1,6 +1,8 @@
-export type SessionCapability = string
+import type { AssuranceLevel } from "@/shared/auth"
+import type { UserCapability } from "@/shared/authorization/capability-catalog"
 
-export type SessionAssurance = "aal1" | "aal2" | "fresh-aal2"
+export type SessionCapability = UserCapability
+export type SessionAssurance = AssuranceLevel
 
 interface SessionIdentity {
   displayName: string
@@ -10,6 +12,7 @@ interface SessionIdentity {
 interface AuthenticatedSession {
   assurance: SessionAssurance
   capabilities: readonly SessionCapability[]
+  freshUntil: string | null
   identity: SessionIdentity
 }
 

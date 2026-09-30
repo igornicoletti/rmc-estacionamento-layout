@@ -11,7 +11,8 @@ const authenticated = {
   status: "authenticated",
   session: {
     assurance: "aal2",
-    capabilities: ["users:read"],
+    capabilities: ["users.read"],
+    freshUntil: null,
     identity: { displayName: "Usuária", id: "user-1" },
   },
 } satisfies SessionSnapshot
@@ -35,16 +36,17 @@ describe("evaluateRouteAccess", () => {
     expect(
       evaluateRouteAccess(authenticated, {
         authentication: "required",
-        capabilities: ["users:read", "users:write"],
+        capabilities: ["users.read", "users.create"],
       }),
     ).toEqual({ kind: "deny" })
   })
 
-  it("respeita a hierarquia de assurance", () => {
+  it("mantém freshness separada de assurance", () => {
     expect(
       evaluateRouteAccess(authenticated, {
         authentication: "required",
-        assurance: "fresh-aal2",
+        assurance: "aal2",
+        fresh: true,
       }),
     ).toEqual({ kind: "deny" })
   })
@@ -57,6 +59,10 @@ describe("evaluateRouteAccess", () => {
       authentication: "anonymous-only",
       assurance: "aal2",
     } as unknown as RouteAccessPolicy
+    const unknownCapability = {
+      authentication: "required",
+      capabilities: ["users.future"],
+    } as unknown as RouteAccessPolicy
 
     expect(evaluateRouteAccess(authenticated, malformedAuthentication)).toEqual(
       { kind: "deny" },
@@ -67,6 +73,9 @@ describe("evaluateRouteAccess", () => {
         contradictoryAnonymousPolicy,
       ),
     ).toEqual({ kind: "deny" })
+    expect(evaluateRouteAccess(authenticated, unknownCapability)).toEqual({
+      kind: "deny",
+    })
   })
 
   it("só redireciona para autenticação quando o destino é configurado", () => {
@@ -94,11 +103,11 @@ describe("evaluateRouteAccess", () => {
       evaluateRouteAccessPolicies(authenticated, [
         {
           authentication: "required",
-          capabilities: ["users:read"],
+          capabilities: ["users.read"],
         },
         {
           authentication: "required",
-          capabilities: ["users:write"],
+          capabilities: ["users.create"],
         },
       ]),
     ).toEqual({ kind: "deny" })
