@@ -1,6 +1,6 @@
 # Evidência local F01 — contratos puros
 
-> **Evidência corrente:** este manifesto comprova o SHA de implementação `8aa2148e78f6ff8c2c643f4d28e71ee60ba643b7`. O commit documental que atualizar esta evidência pode ter SHA posterior, mas não altera o código testado.
+> **Evidência histórica mais recente:** este manifesto comprova o SHA de implementação `8aa2148e78f6ff8c2c643f4d28e71ee60ba643b7`. Após essa execução, a revisão do PR #31 identificou uma correção fail-closed adicional para AAL desconhecido em freshness. O SHA corrente da branch deve ser revalidado antes de retornar a `verified-local`.
 
 | Campo | Valor |
 | --- | --- |
@@ -31,10 +31,11 @@
 
 No SHA acima, os testes provaram parsing estrito e shapes desconhecidos (T03), restricted steps fechados por jornada, política canônica versionada, fail-closed para provas malformed, binding temporal/sessão/intenção/AMR/AAL da parcela pura de freshness (T10), mapa fechado de Problem Details no nível do body/schema (parcela pura de T21), e limites locais Unicode/NFC/code points/bytes sem truncamento (parcela pura de T31).
 
-A cobertura específica de `src/shared/auth` no gate corrente ficou em 98.96% statements, 94.64% branches, 100% functions e 98.88% lines; `src/shared/authorization` ficou em 100% nas quatro métricas.
+A cobertura específica de `src/shared/auth` no gate acima ficou em 98.96% statements, 94.64% branches, 100% functions e 98.88% lines; `src/shared/authorization` ficou em 100% nas quatro métricas.
 
 ## Revisão e limitações
 
+- O PR #31 recebeu revisão posterior ao gate acima. A correção para rejeitar AAL desconhecido em runtime foi incorporada à branch e exige nova execução completa; a evidência deste arquivo não é transportada automaticamente para esse SHA posterior.
 - AUTHZ-03 não é declarado como comprovado pela F01. Hierarquia, target, scope e enforcement autoritativo permanecem em F10. A F01 comprova o catálogo fechado e a negação de capability desconhecida.
 - T21 não foi comprovado end-to-end: correspondência entre status HTTP real, headers, media type e Problem Details pertence à F03. Este gate comprova somente a parcela pura do schema/mapa.
 - T10 não foi comprovado com provider/assinatura/AMR real; a prova completa pertence à integração de F07. Este gate comprova a parcela pura de binding, assurance, AMR e limites temporais.
