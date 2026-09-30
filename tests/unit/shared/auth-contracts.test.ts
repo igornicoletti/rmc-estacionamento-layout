@@ -1,25 +1,37 @@
 import { describe, expect, expectTypeOf, it } from "vitest"
 
 import {
-  AUTH_POLICY_VERSION,
-  authPolicy,
+  authScopeSchema,
   authenticatedSessionSchema,
-  canTransitionLifecycle,
-  canTransitionOnboarding,
+  externalUnitKeySchema,
+  opaqueIdSchema,
+  sessionSnapshotSchema,
+  restrictedSessionSchema,
+  type AuthScope,
+  type AuthorityPurpose,
+} from "@/shared/auth/auth-contracts"
+import {
   corporateEmailSchema,
   cpfSchema,
   e164PhoneSchema,
   loginCommandSchema,
   otpCommandSchema,
-  restrictedSessionSchema,
-  sessionSnapshotSchema,
-  type AuthorityPurpose,
-} from "@/shared/auth"
+} from "@/shared/auth/auth-identity-contracts"
+import { AUTH_POLICY_VERSION, authPolicy } from "@/shared/auth/auth-policy"
+import {
+  evaluateLifecycleTransition,
+  evaluateOnboardingTransition,
+} from "@/shared/auth/auth-transitions"
+
+const contextId = "11111111-1111-4111-8111-111111111111"
+const identityId = "22222222-2222-4222-8222-222222222222"
+const commandId = "33333333-3333-4333-8333-333333333333"
+const challengeId = "44444444-4444-4444-8444-444444444444"
 
 const validPublicSession = {
   contractVersion: "1.0",
-  contextId: "context_123456789",
-  identityId: "identity_12345678",
+  contextId,
+  identityId,
   displayName: "Usuária",
   role: "A",
   scope: { kind: "GLOBAL" },
@@ -87,7 +99,7 @@ describe("contratos runtime de Auth", () => {
     const base = {
       kind: "restricted",
       contractVersion: "1.0",
-      contextId: "context_123456789",
+      contextId,
       expiresAt: "2026-09-30T14:30:00-03:00",
       serverTime: "2026-09-30T14:00:00-03:00",
     } as const
@@ -115,11 +127,77 @@ describe("contratos runtime de Auth", () => {
     ).toBe(false)
   })
 
-  it("permite apenas transições canônicas e mantém dimensões separadas", () => {
-    expect(canTransitionLifecycle("PENDING", "ACTIVE")).toBe(true)
-    expect(canTransitionLifecycle("DELETED", "ACTIVE")).toBe(false)
-    expect(canTransitionOnboarding("PASSWORD_REQUIRED", "SECURITY_SETUP")).toBe(true)
-    expect(canTransitionOnboarding("COMPLETE", "ACTIVATION_REQUIRED")).toBe(false)
+  it("totaliza transições, exige fatos e falha fechado para estados desconhecidos", () => {
+    expect(
+      evaluateLifecycleTransition({
+        from: null,
+        to: "PENDING",
+        facts: { provisioningAuthorized: true, consistencyProved: true },
+      }),
+    ).toEqual({ allowed: true })
+    expect(
+      evaluateLifecycleTransition({
+        from: "PENDING",
+        to: "ACTIVE",
+        facts: {
+          onboardingComplete: true,
+          proofsComplete: true,
+          assignmentEligible: true,
+        },
+      }),
+    ).toEqual({ allowed: true })
+    expect(
+      evaluateLifecycleTransition({ from: "PENDING", to: "ACTIVE" }),
+    ).toEqual({ allowed: false, reason: "FACTS_REQUIRED" })
+    expect(
+      evaluateLifecycleTransition({ from: "DELETED", to: "ACTIVE" }),
+    ).toEqual({ allowed: false, reason: "TRANSITION_NOT_ALLOWED" })
+    expect(
+      evaluateLifecycleTransition({ from: "UNKNOWN", to: "ACTIVE" }),
+    ).toEqual({ allowed: false, reason: "UNKNOWN_STATE" })
+    expect(
+      evaluateLifecycleTransition({ from: "ACTIVE", to: "UNKNOWN" }),
+    ).toEqual({ allowed: false, reason: "UNKNOWN_STATE" })
+    expect(
+      evaluateOnboardingTransition({
+        from: "PASSWORD_REQUIRED",
+        to: "SECURITY_SETUP",
+        facts: { passwordCommitProved: true },
+      }),
+    ).toEqual({ allowed: true })
+    expect(evaluateOnboardingTransition(null)).toEqual({
+      allowed: false,
+      reason: "INVALID_INPUT",
+    })
+    expect(
+      evaluateOnboardingTransition({
+        from: "ACTIVATION_REQUIRED",
+        to: "PASSWORD_REQUIRED",
+      }),
+    ).toEqual({ allowed: false, reason: "FACTS_REQUIRED" })
+  })
+
+  it("formaliza IDs opacos internos como UUID v4 sem aceitar segredos arbitrários", () => {
+    expect(opaqueIdSchema.safeParse(contextId).success).toBe(true)
+    expect(opaqueIdSchema.safeParse("opaque-id-123").success).toBe(false)
+    expect(
+      opaqueIdSchema.safeParse("11111111-1111-5111-8111-111111111111").success,
+    ).toBe(false)
+  })
+
+  it("expõe scope estrito com chave externa opaca, sem presumir UUID", () => {
+    expectTypeOf<AuthScope>().toEqualTypeOf<
+      { kind: "GLOBAL" } | { kind: "UNIT"; unitId: string }
+    >()
+    expect(authScopeSchema.safeParse({ kind: "GLOBAL" }).success).toBe(true)
+    expect(
+      authScopeSchema.safeParse({ kind: "UNIT", unitId: "12345" }).success,
+    ).toBe(true)
+    expect(externalUnitKeySchema.safeParse(" 12345").success).toBe(false)
+    expect(
+      authScopeSchema.safeParse({ kind: "UNIT", unitId: "12345", role: "M" })
+        .success,
+    ).toBe(false)
   })
 
   it("valida identificadores humanos canônicos sem coerção", () => {
@@ -133,9 +211,9 @@ describe("contratos runtime de Auth", () => {
 
   it("rejeita OTP fora do formato ou comando com campo extra", () => {
     const command = {
-      challengeId: "challenge_123456789",
+      challengeId,
       otp: "12345678",
-      commandId: "command_1234567890",
+      commandId,
     }
     expect(otpCommandSchema.safeParse(command).success).toBe(true)
     expect(otpCommandSchema.safeParse({ ...command, otp: "123456" }).success).toBe(false)
@@ -146,7 +224,7 @@ describe("contratos runtime de Auth", () => {
     const command = {
       cpf: "52998224725",
       password: "  senha não normalizada  ",
-      commandId: "command_1234567890",
+      commandId,
     }
     expect(loginCommandSchema.safeParse(command).success).toBe(true)
     expect(loginCommandSchema.safeParse({ ...command, assurance: "aal2" }).success).toBe(false)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { validateAndNormalizePassword } from "@/shared/auth"
+import { validateAndNormalizePassword } from "@/shared/auth/auth-password-policy"
 
 describe("política canônica de senha", () => {
   it("normaliza NFC antes de contar e preserva espaços (T31)", () => {

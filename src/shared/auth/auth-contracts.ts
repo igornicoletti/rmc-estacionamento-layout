@@ -56,11 +56,20 @@ export type Onboarding = z.infer<typeof onboardingSchema>
 export type AuthRole = z.infer<typeof authRoleSchema>
 export type AssuranceLevel = z.infer<typeof assuranceLevelSchema>
 
-export const opaqueIdSchema = z
+export const opaqueIdSchema = z.uuidv4()
+
+export const externalUnitKeySchema = z
   .string()
-  .min(16)
+  .min(1)
   .max(128)
-  .regex(/^[A-Za-z0-9_-]+$/)
+  .refine((value) => value.trim() === value, "Unit key must be canonical.")
+
+export const authScopeSchema = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("GLOBAL") }),
+  z.strictObject({ kind: z.literal("UNIT"), unitId: externalUnitKeySchema }),
+])
+
+export type AuthScope = z.infer<typeof authScopeSchema>
 
 export const isoTimestampSchema = z.iso.datetime({ offset: true })
 
@@ -70,10 +79,7 @@ export const publicSessionSchema = z.strictObject({
   identityId: opaqueIdSchema,
   displayName: z.string().trim().min(1).max(200),
   role: authRoleSchema,
-  scope: z.discriminatedUnion("kind", [
-    z.strictObject({ kind: z.literal("GLOBAL") }),
-    z.strictObject({ kind: z.literal("UNIT"), unitId: opaqueIdSchema }),
-  ]),
+  scope: authScopeSchema,
   capabilities: z.array(userCapabilitySchema).readonly(),
   assurance: assuranceLevelSchema,
   expiresAt: isoTimestampSchema,
