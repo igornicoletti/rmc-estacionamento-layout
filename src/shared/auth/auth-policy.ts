@@ -1,4 +1,7 @@
+export const AUTH_POLICY_VERSION = "auth-v1" as const
+
 export const authPolicy = Object.freeze({
+  version: AUTH_POLICY_VERSION,
   normalAbsoluteMs: 12 * 60 * 60 * 1_000,
   normalIdleMs: 30 * 60 * 1_000,
   idleWarningMs: 2 * 60 * 1_000,
@@ -23,4 +26,3 @@ export const authPolicy = Object.freeze({
   passwordMaxUtf8Bytes: 72,
   secretBits: 256,
 })
-

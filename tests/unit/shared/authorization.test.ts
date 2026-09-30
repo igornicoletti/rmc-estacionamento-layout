@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  recognizeCapability,
-  userCapabilities,
-} from "@/shared/authorization/authorization-index"
+import { recognizeCapability, userCapabilities } from "@/shared/authorization"
 
 describe("catálogo de capabilities", () => {
   it("contém as 17 capabilities Users do contrato", () => {

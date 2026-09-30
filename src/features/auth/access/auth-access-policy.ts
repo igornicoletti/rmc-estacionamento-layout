@@ -8,7 +8,6 @@ import { recognizeCapability } from "@/shared/authorization/authorization-capabi
 interface AuthenticatedRouteRequirements {
   assurance?: SessionAssurance
   capabilities?: readonly SessionCapability[]
-  fresh?: boolean
 }
 
 export type RouteAccessPolicy =
@@ -16,7 +15,6 @@ export type RouteAccessPolicy =
       authentication: "anonymous-only"
       assurance?: never
       capabilities?: never
-      fresh?: never
     }
   | ({
       authentication: "required" | "either"
@@ -38,13 +36,19 @@ const assuranceRank: Record<SessionAssurance, number> = {
 }
 
 const authenticationModes = new Set(["required", "anonymous-only", "either"])
-const assuranceLevels: ReadonlySet<string> = new Set([
-  "aal1",
-  "aal2",
+const assuranceLevels: ReadonlySet<string> = new Set(["aal1", "aal2"])
+const routeAccessPolicyKeys = new Set([
+  "authentication",
+  "assurance",
+  "capabilities",
 ])
 
 function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
-  if (typeof value !== "object" || value === null) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  if (Object.keys(value).some((key) => !routeAccessPolicyKeys.has(key))) {
     return false
   }
 
@@ -52,9 +56,8 @@ function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
     "authentication" in value ? value.authentication : undefined
   const assurance = "assurance" in value ? value.assurance : undefined
   const capabilities = "capabilities" in value ? value.capabilities : undefined
-  const fresh = "fresh" in value ? value.fresh : undefined
   const hasAuthenticatedRequirements =
-    assurance !== undefined || capabilities !== undefined || fresh !== undefined
+    assurance !== undefined || capabilities !== undefined
 
   if (
     typeof authentication !== "string" ||
@@ -70,7 +73,6 @@ function isRouteAccessPolicy(value: unknown): value is RouteAccessPolicy {
   return (
     (assurance === undefined ||
       (typeof assurance === "string" && assuranceLevels.has(assurance))) &&
-    (fresh === undefined || typeof fresh === "boolean") &&
     (capabilities === undefined ||
       (Array.isArray(capabilities) &&
         capabilities.every(
@@ -108,9 +110,7 @@ export function evaluateRouteAccess(
 
   if (snapshot.status === "anonymous") {
     const hasAuthenticatedRequirements =
-      policy.assurance !== undefined ||
-      (policy.capabilities?.length ?? 0) > 0 ||
-      policy.fresh === true
+      policy.assurance !== undefined || (policy.capabilities?.length ?? 0) > 0
 
     return hasAuthenticatedRequirements ? { kind: "deny" } : { kind: "allow" }
   }
@@ -122,14 +122,6 @@ export function evaluateRouteAccess(
     if (!actualRank || !requiredRank || actualRank < requiredRank) {
       return { kind: "deny" }
     }
-  }
-
-  if (
-    policy.fresh === true &&
-    (snapshot.session.freshUntil === null ||
-      Date.parse(snapshot.session.freshUntil) <= Date.now())
-  ) {
-    return { kind: "deny" }
   }
 
   const capabilities = new Set(snapshot.session.capabilities)
