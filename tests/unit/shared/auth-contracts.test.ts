@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, expectTypeOf, it } from "vitest"
 
 import {
   AUTH_POLICY_VERSION,
@@ -13,6 +13,7 @@ import {
   otpCommandSchema,
   restrictedSessionSchema,
   sessionSnapshotSchema,
+  type AuthorityPurpose,
 } from "@/shared/auth"
 
 const validPublicSession = {
@@ -37,6 +38,12 @@ const validSession = {
 } as const
 
 describe("contratos runtime de Auth", () => {
+  it("mantém fechado o tipo canônico de authority purpose", () => {
+    expectTypeOf<AuthorityPurpose>().toEqualTypeOf<
+      "PREAUTH" | "MFA_PENDING" | "BOOTSTRAP" | "RECOVERY" | "NORMAL"
+    >()
+  })
+
   it("aceita a projeção pública estrita e rejeita campos inesperados", () => {
     expect(authenticatedSessionSchema.parse(validSession)).toEqual(validSession)
     expect(
