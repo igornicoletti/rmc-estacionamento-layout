@@ -4,42 +4,21 @@ import { parseAuthRuntimeConfig } from "@/features/auth/config/auth-runtime-conf
 
 describe("parseAuthRuntimeConfig", () => {
   it("permanece desabilitado na ausência de configuração", () => {
-    expect(parseAuthRuntimeConfig({})).toEqual({
-      apiOrigin: null,
-      stage: "disabled",
-    })
+    expect(parseAuthRuntimeConfig({})).toEqual({ stage: "disabled" })
   })
 
-  it("aceita candidato apenas com uma origem HTTPS sem credenciais", () => {
-    const config = parseAuthRuntimeConfig({
-      VITE_AUTH_API_ORIGIN: "https://auth.example.com",
-      VITE_AUTH_STAGE: "candidate",
-    })
-
-    expect(config.stage).toBe("candidate")
-    expect(config.apiOrigin?.origin).toBe("https://auth.example.com")
+  it("aceita candidate sem habilitar upstream no browser", () => {
+    expect(
+      parseAuthRuntimeConfig({ VITE_AUTH_STAGE: "candidate" }),
+    ).toEqual({ stage: "candidate" })
   })
 
-  it.each([
-    {
-      VITE_AUTH_API_ORIGIN: "https://auth.example.com",
-      VITE_AUTH_STAGE: "disabled",
+  it.each(["validated", "enabled", "preview"])(
+    "rejeita estágio público inválido: %s",
+    (stage) => {
+      expect(() => parseAuthRuntimeConfig({ VITE_AUTH_STAGE: stage })).toThrow(
+        "AUTH_CONFIG_INVALID_STAGE",
+      )
     },
-    { VITE_AUTH_STAGE: "candidate" },
-    {
-      VITE_AUTH_API_ORIGIN: "http://auth.example.com",
-      VITE_AUTH_STAGE: "candidate",
-    },
-    {
-      VITE_AUTH_API_ORIGIN: "https://user:pass@auth.example.com",
-      VITE_AUTH_STAGE: "candidate",
-    },
-    {
-      VITE_AUTH_API_ORIGIN: "https://auth.example.com/api",
-      VITE_AUTH_STAGE: "candidate",
-    },
-    { VITE_AUTH_STAGE: "validated" },
-  ])("rejeita uma configuração permissiva ou incompleta: %#", (environment) => {
-    expect(() => parseAuthRuntimeConfig(environment)).toThrow(/^AUTH_CONFIG_/)
-  })
+  )
 })

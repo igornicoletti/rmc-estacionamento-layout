@@ -1,33 +1,28 @@
 # Autenticação
 
-Esta pasta registra a implementação incremental do contrato canônico de
-autenticação v1.0. O contrato é a fonte normativa; estes documentos apenas
-registram o estado do checkout e as decisões derivadas, sem criar uma segunda
-matriz de autorização.
+Esta pasta registra a implementação incremental do **Contrato canônico de autenticação, sessão, autorização e acesso — v1.0**. O contrato permanece a fonte normativa; estes documentos registram apenas o estado do checkout e a rastreabilidade da implementação.
 
 ## Estado atual
 
-A implementação começou na F00. A configuração candidata usa o Worker
-`https://rmc-estacionamento.igor93nicoletti.workers.dev`; o fluxo Auth continua
-desabilitado: não há banco, provider, gateway SMS ou credenciais de servidor
-configurados neste repositório. O shell e suas fixtures atuais são demonstração
-visual, não uma sessão autenticada. Nenhuma rota ou UI de autenticação real foi
-habilitada por esta fase.
+O bloco em andamento é **F00 — baseline e ameaça**. Nenhum fluxo real de autenticação foi habilitado por esta fase: não há BFF de Auth, adapter Supabase, persistência Auth, Queue/DLQ, SMS, MFA, sessão funcional ou endpoint privado implementado por este bloco.
 
-As próximas entregas seguem a ordem do contrato: F01 contratos puros, F02
-persistência e F03 fronteira BFF. A implementação visual da jornada depende
-dos adapters e dos gates correspondentes; ela não será antecipada pelo
-frontend.
+O shell e as fixtures já existentes continuam sendo demonstração visual e não representam sessão autenticada nem autorização de produção.
+
+A ordem seguinte permanece a definida pelo contrato: F01 contratos puros, F02 persistência e F03 fronteira BFF. O Worker, o roteamento `/api/*`, os adapters de provider e os contratos HTTP serão introduzidos somente nos respectivos blocos.
 
 - [Registro do contrato e baseline F00](contract-registry.md)
 
 ## Configuração pública
 
-`src/features/auth/config/auth-runtime-config.ts` valida somente valores
-públicos no build. `VITE_AUTH_STAGE` aceita `disabled` (padrão) ou `candidate`.
-Em `candidate`, `VITE_AUTH_API_ORIGIN` deve ser uma origem HTTPS, sem caminho,
-credenciais, query ou fragmento. `validated` é recusado no bundle porque exige
-manifesto e prova do target fora dele.
+`src/features/auth/config/auth-runtime-config.ts` valida apenas `VITE_AUTH_STAGE`.
 
-Nunca inclua chaves, tokens, cookies, URLs privilegiadas ou segredos em
-variáveis `VITE_*`.
+Valores aceitos:
+
+- `disabled` — padrão; nenhum fluxo Auth é habilitado;
+- `candidate` — identifica configuração candidata para auditoria; não habilita Auth nem seleciona upstream.
+
+`validated` não é aceito pelo bundle como feature stage público. Esse estado depende de manifesto e evidência das fases de prova.
+
+A aplicação futura acessará o BFF por caminhos **same-origin** (`/api/*`). Não existe `VITE_AUTH_API_ORIGIN`, nem SDK Supabase no browser, neste baseline.
+
+Nunca inclua chaves, tokens, cookies, URLs privilegiadas ou outros segredos em variáveis `VITE_*`.
