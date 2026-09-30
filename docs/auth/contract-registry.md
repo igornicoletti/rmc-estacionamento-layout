@@ -22,13 +22,13 @@ O baseline mantém Auth fechado por padrão e não inclui Worker/BFF, Supabase S
 
 | Item | Estado registrado |
 | --- | --- |
-| Node | Manifesto `^24.18.1`; registrar a versão realmente executada em cada evidência. |
-| npm | Manifesto `11.6.0`; o início da F00 observou `12.1.0`, portanto esse ambiente não deve ser tratado como prova da toolchain pinada. |
+| Node | Manifesto e `devEngines` `^24.18.1`; registrar a versão realmente executada em cada evidência. |
+| npm | Manifesto e `devEngines` `11.6.0`; comandos `install`, `ci` e `run` falham em versão divergente. O início da F00 observou `12.1.0`, que não constitui prova da toolchain pinada. |
 | React / React DOM | `19.3.0` resolvido no baseline. |
 | React Router | `8.4.0` resolvido; arquitetura Data Mode. |
-| TypeScript | `6.0.2` resolvido. |
+| TypeScript | `6.0.3` resolvido. |
 | Vite | `8.3.0` resolvido. |
-| TanStack Query | `5.103.2` resolvido. |
+| TanStack Query | `5.103.2` pinado exatamente e resolvido. |
 | Base UI | `1.8.0` resolvido. |
 | Supabase SDK/Auth | Nenhum adapter ou SDK novo é instalado em F00. Versão e package server-side serão selecionados e provados no bloco que implementar o adapter. |
 | PostgreSQL | Major/minor real, extensões e configuração hospedada ainda exigem prova antes de F02. |
