@@ -50,9 +50,12 @@ describe("fresh step-up", () => {
     { nowMs: Number.NaN },
     { verifiedAtMs: Number.POSITIVE_INFINITY },
     { currentSessionId: "" },
-    { verifiedSessionId: "" },
+    { verifiedSessionId: "   " },
     { currentIntentHash: "" },
-    { verifiedIntentHash: "" },
+    { verifiedIntentHash: "   " },
+    { verifiedAmr: [] },
+    { verifiedAmr: [" "] },
+    { requiredAmr: "" },
   ])("falha fechado para prova malformada (%s)", (change) => {
     expect(evaluateFreshness({ ...base, ...change })).toEqual({
       allowed: false,

@@ -45,6 +45,15 @@ describe("contratos runtime de Auth", () => {
         session: { ...validPublicSession, accessToken: "secret" },
       }).success,
     ).toBe(false)
+    expect(
+      authenticatedSessionSchema.safeParse({
+        ...validSession,
+        session: {
+          ...validPublicSession,
+          freshUntil: "2026-09-30T14:05:00-03:00",
+        },
+      }).success,
+    ).toBe(false)
   })
 
   it("rejeita null, shape desconhecido, capability e assurance não canônicas (T03)", () => {

@@ -33,14 +33,19 @@ const assuranceRank: Readonly<Record<AssuranceLevel, number>> = {
   aal2: 2,
 }
 
+const isBlank = (value: string) => value.trim().length === 0
+
 export function evaluateFreshness(input: FreshnessInput): FreshnessDecision {
   if (
     !Number.isFinite(input.nowMs) ||
     !Number.isFinite(input.verifiedAtMs) ||
-    input.currentSessionId.length === 0 ||
-    input.verifiedSessionId.length === 0 ||
-    input.currentIntentHash.length === 0 ||
-    input.verifiedIntentHash.length === 0
+    isBlank(input.currentSessionId) ||
+    isBlank(input.verifiedSessionId) ||
+    isBlank(input.currentIntentHash) ||
+    isBlank(input.verifiedIntentHash) ||
+    input.verifiedAmr.length === 0 ||
+    input.verifiedAmr.some(isBlank) ||
+    (input.requiredAmr !== undefined && isBlank(input.requiredAmr))
   ) {
     return { allowed: false, reason: "INVALID_PROOF" }
   }
