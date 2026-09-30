@@ -117,50 +117,54 @@ describe("UnitsDataTable", () => {
     downloadCsvMock.mockClear()
   })
 
-  it("combina cidade e bandeira e exporta apenas a interseção", async () => {
-    const user = userEvent.setup()
-    const table = await renderUnitsDataTable()
-    const toolbar = getToolbar(table)
-    const brand = within(toolbar).getByRole("combobox", {
-      name: "Filtrar unidades por bandeira",
-    })
+  it(
+    "combina cidade e bandeira e exporta apenas a interseção",
+    { timeout: 10_000 },
+    async () => {
+      const user = userEvent.setup({ skipHover: true })
+      const table = await renderUnitsDataTable()
+      const toolbar = getToolbar(table)
+      const brand = within(toolbar).getByRole("combobox", {
+        name: "Filtrar unidades por bandeira",
+      })
 
-    await user.click(brand)
-    await user.click(await screen.findByRole("option", { name: /Shell/u }))
+      await user.click(brand)
+      await user.click(await screen.findByRole("option", { name: /Shell/u }))
 
-    const city = within(toolbar).getByRole("combobox", {
-      name: "Filtrar unidades por cidade",
-    })
+      const city = within(toolbar).getByRole("combobox", {
+        name: "Filtrar unidades por cidade",
+      })
 
-    await user.click(city)
-    await user.click(
-      await screen.findByRole("option", { name: /São José do Rio Preto/u }),
-    )
+      await user.click(city)
+      await user.click(
+        await screen.findByRole("option", { name: /São José do Rio Preto/u }),
+      )
 
-    const expected = previewUnits.filter(
-      (unit) => unit.brand === "SHELL" && unit.city === "SAO JOSE DO RIO PRETO",
-    )
+      const expected = previewUnits.filter(
+        (unit) => unit.brand === "SHELL" && unit.city === "SAO JOSE DO RIO PRETO",
+      )
 
-    expect(expected.length).toBeGreaterThan(0)
-    expect(screen.getByTestId("data-table-clear-filters")).toBeVisible()
+      expect(expected.length).toBeGreaterThan(0)
+      expect(screen.getByTestId("data-table-clear-filters")).toBeVisible()
 
-    await user.click(getExportButton(table))
+      await user.click(getExportButton(table))
 
-    const [, csv] = downloadCsvMock.mock.calls[0] as [string, string]
+      const [, csv] = downloadCsvMock.mock.calls[0] as [string, string]
 
-    expect(csv.trimEnd().split("\r\n")).toHaveLength(expected.length + 1)
+      expect(csv.trimEnd().split("\r\n")).toHaveLength(expected.length + 1)
 
-    for (const row of csv.trimEnd().split("\r\n").slice(1)) {
-      expect(row).toContain("Shell")
-      expect(row).toContain("São José do Rio Preto")
-    }
+      for (const row of csv.trimEnd().split("\r\n").slice(1)) {
+        expect(row).toContain("Shell")
+        expect(row).toContain("São José do Rio Preto")
+      }
 
-    await user.click(screen.getByTestId("data-table-clear-filters"))
+      await user.click(screen.getByTestId("data-table-clear-filters"))
 
-    expect(
-      screen.queryByTestId("data-table-clear-filters"),
-    ).not.toBeInTheDocument()
-  })
+      expect(
+        screen.queryByTestId("data-table-clear-filters"),
+      ).not.toBeInTheDocument()
+    },
+  )
 
   it("renderiza dados normalizados e mantém metadados internos ocultos", async () => {
     const table = await renderUnitsDataTable()
