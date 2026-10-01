@@ -51,6 +51,8 @@ set local role service_role;
 create temporary table reservation as select * from rmc_auth_api.reserve_provider('72000000-0000-4000-8000-000000000001',1,
   '73000000-0000-4000-8000-000000000001');
 select is((select count(*)::integer from reservation),1,'service invoker grants allow reservation');
+select throws_ok($$update rmc_auth_private.provider_reservations set state='COMMITTED',confirmed_at=clock_timestamp()
+  where command_id='72000000-0000-4000-8000-000000000001'$$,'23514','AUTH_PROVISION_IMMUTABLE','privileged direct update cannot skip ownership confirmation');
 select is((rmc_auth_api.reserve_provider('72000000-0000-4000-8000-000000000001',1,
   '73000000-0000-4000-8000-000000000002')).provider_subject,(select provider_subject from reservation),'retry retains reserved UUID and owner');
 select ok(not rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000001',

@@ -181,6 +181,10 @@ begin
     or (new.lease_expires_at is distinct from old.lease_expires_at and new.fence<>old.fence+1)
     or (old.state in ('COMMITTED','ABORTED') and new is distinct from old)
     or (old.confirmed_at is not null and new.confirmed_at is distinct from old.confirmed_at)
+    or (new.state<>old.state and not (
+      (old.state='RESERVED' and new.state in ('UNKNOWN','CONFIRMED','ABORTED'))
+      or (old.state='UNKNOWN' and new.state in ('CONFIRMED','ABORTED'))
+      or (old.state='CONFIRMED' and new.state='COMMITTED')))
     or (old.state='CONFIRMED' and new.state not in ('CONFIRMED','COMMITTED')) then
     raise exception using errcode='23514',message='AUTH_PROVISION_IMMUTABLE';
   end if;
