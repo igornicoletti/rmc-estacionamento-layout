@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { formatCpfCnpj } from "@/lib/erp/tax-id"
+import { formatCpfCnpj } from "@/lib/erp/erp-tax-id"
 import {
   mapErpClient,
   mapErpClients,

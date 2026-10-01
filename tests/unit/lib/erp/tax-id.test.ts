@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { formatCnpj, formatCpfCnpj } from "@/lib/erp/tax-id"
+import { formatCnpj, formatCpfCnpj } from "@/lib/erp/erp-tax-id"
 
 describe("ERP tax IDs", () => {
   it("valida e formata CPF e CNPJ", () => {

@@ -3,7 +3,7 @@ import {
   readErpIdentifier,
   readErpOptionalText,
 } from "@/lib/erp/erp-record"
-import { formatCpfCnpj } from "@/lib/erp/tax-id"
+import { formatCpfCnpj } from "@/lib/erp/erp-tax-id"
 import type { ClientVehicle } from "@/features/clients/vehicles/contracts/vehicles-types"
 
 export function mapErpClientVehicle(input: unknown): ClientVehicle {

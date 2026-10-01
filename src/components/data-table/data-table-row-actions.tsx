@@ -3,7 +3,7 @@ import { CopyIcon, EyeIcon, MoreHorizontalIcon } from "lucide-react"
 import { dataTableContent } from "@/components/data-table/data-table-content"
 import { dataTableNotify } from "@/components/data-table/data-table-notify"
 import { notify } from "@/components/toast/toast-notify"
-import { AppIconButton } from "@/components/app/app-icon-button"
+import { AppTooltipButton } from "@/components/app/app-tooltip-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +38,7 @@ export function DataTableRowActions({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <AppIconButton
+            <AppTooltipButton
               data-testid="data-table-row-actions-trigger"
               icon={MoreHorizontalIcon}
               label={accessibleLabel}

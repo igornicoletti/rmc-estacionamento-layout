@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { copyToClipboard } from "@/lib/browser/browser-clipboard"
 
 const writeText = vi.fn<(value: string) => Promise<void>>()
 

@@ -1,7 +1,7 @@
 import {
   createRecordCsvColumns,
   type RecordSectionDefinition,
-} from "@/lib/format-record-fields"
+} from "@/lib/records/records-fields"
 import type { Client } from "@/features/clients/contracts/clients-types"
 import {
   formatCityName,

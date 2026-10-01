@@ -1,4 +1,4 @@
-import type { CsvColumn } from "@/lib/export-to-csv"
+import type { CsvColumn } from "@/lib/csv/csv-export"
 
 export type RecordValue = boolean | number | string | null | undefined
 

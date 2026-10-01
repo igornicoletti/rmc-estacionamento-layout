@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   readErpDate,
   readErpDateTime,
-} from "@/lib/erp/date-time"
+} from "@/lib/erp/erp-date-time"
 
 describe("ERP date/time readers", () => {
   it("normaliza ISO e timestamps PostgreSQL com fuso explícito", () => {

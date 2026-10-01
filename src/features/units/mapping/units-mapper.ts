@@ -1,4 +1,4 @@
-import { parseBrazilianStateCode } from "@/lib/erp/brazilian-states"
+import { parseBrazilianStateCode } from "@/lib/erp/erp-brazilian-states"
 import {
   asErpRecord,
   readErpIdentifier,
@@ -6,7 +6,7 @@ import {
   readErpNullableString,
   readErpOptionalText,
 } from "@/lib/erp/erp-record"
-import { formatCnpj } from "@/lib/erp/tax-id"
+import { formatCnpj } from "@/lib/erp/erp-tax-id"
 import type { Unit } from "@/features/units/contracts/units-types"
 
 function normalizeCoordinates(value: string | null) {

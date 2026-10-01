@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { serializeRecordForClipboard } from "@/lib/format-record-fields"
+import { serializeRecordForClipboard } from "@/lib/records/records-fields"
 import { unitErpFixture } from "@/mocks/mock-units-fixtures"
 import { mapErpUnits } from "@/features/units/mapping/units-mapper"
 import {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { formatCnpj } from "@/lib/erp/tax-id"
+import { formatCnpj } from "@/lib/erp/erp-tax-id"
 import { mapErpUnit, mapErpUnits } from "@/features/units/mapping/units-mapper"
 
 const validRecord = {

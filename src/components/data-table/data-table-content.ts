@@ -37,8 +37,6 @@ export const dataTableContent = {
     copyData: "Copiar dados",
   },
   export: {
-    empty: "Nenhum registro para exportar",
-    busy: "Aguarde o carregamento dos registros para exportar",
     trigger: "Exportar CSV",
     tooltip: "Exportar dados filtrados em CSV",
   },

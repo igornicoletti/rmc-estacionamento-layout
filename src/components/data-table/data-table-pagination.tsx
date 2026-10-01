@@ -7,7 +7,7 @@ import {
 import type { PaginationState } from "@tanstack/react-table"
 
 import { dataTableContent } from "@/components/data-table/data-table-content"
-import { AppIconButton } from "@/components/app/app-icon-button"
+import { AppTooltipButton } from "@/components/app/app-tooltip-button"
 import {
   Select,
   SelectContent,
@@ -99,7 +99,7 @@ export function DataTablePagination({
             {dataTableContent.pagination.of} {pageCount}
           </span>
           <div className="flex items-center gap-1">
-            <AppIconButton
+            <AppTooltipButton
               label={dataTableContent.pagination.first}
               data-testid="data-table-page-first"
               disabled={!table.getCanPreviousPage()}
@@ -108,7 +108,7 @@ export function DataTablePagination({
               variant="outline"
               icon={ChevronsLeftIcon}
             />
-            <AppIconButton
+            <AppTooltipButton
               label={dataTableContent.pagination.previous}
               data-testid="data-table-page-previous"
               disabled={!table.getCanPreviousPage()}
@@ -117,7 +117,7 @@ export function DataTablePagination({
               variant="outline"
               icon={ChevronLeftIcon}
             />
-            <AppIconButton
+            <AppTooltipButton
               label={dataTableContent.pagination.next}
               data-testid="data-table-page-next"
               disabled={!table.getCanNextPage()}
@@ -126,7 +126,7 @@ export function DataTablePagination({
               variant="outline"
               icon={ChevronRightIcon}
             />
-            <AppIconButton
+            <AppTooltipButton
               label={dataTableContent.pagination.last}
               data-testid="data-table-page-last"
               disabled={!table.getCanNextPage()}

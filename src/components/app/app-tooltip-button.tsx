@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import type { ComponentProps } from "react"
 import { useId, useState } from "react"
-import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -10,9 +9,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-type AppIconButtonProps = Omit<
+type AppTooltipButtonProps = Omit<
   ComponentProps<typeof Button>,
-  "aria-label" | "children" | "size" | "focusableWhenDisabled"
+  "aria-label" | "children" | "focusableWhenDisabled" | "size"
 > & {
   icon: LucideIcon
   label: string
@@ -20,8 +19,7 @@ type AppIconButtonProps = Omit<
   size?: "icon" | "icon-xs" | "icon-sm" | "icon-lg"
 }
 
-// One focus target, including disabled actions, so their explanation remains accessible.
-export function AppIconButton({
+export function AppTooltipButton({
   icon: Icon,
   label,
   tooltip = label,
@@ -30,9 +28,10 @@ export function AppIconButton({
   type = "button",
   className,
   ...props
-}: AppIconButtonProps) {
+}: AppTooltipButtonProps) {
   const tooltipId = useId()
   const [open, setOpen] = useState(false)
+
   return (
     <Tooltip open={open} onOpenChange={setOpen}>
       <TooltipTrigger
@@ -45,8 +44,7 @@ export function AppIconButton({
                 .join(" ") || undefined
             }
             aria-label={label}
-            className={cn("data-disabled:opacity-50", className)}
-            focusableWhenDisabled
+            className={className}
             size={size}
             type={type}
             variant={variant}

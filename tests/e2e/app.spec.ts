@@ -417,12 +417,7 @@ for (const path of [
     await page.getByRole("searchbox").fill("sem-resultado-estrutural-999")
     await expect(exportButton).toBeDisabled()
     await exportButton.focus()
-    await expect(
-      page.getByRole("tooltip", {
-        name: "Nenhum registro para exportar",
-        exact: true,
-      }),
-    ).toHaveText("Nenhum registro para exportar")
+    await expect(exportButton).not.toBeFocused()
   })
 }
 

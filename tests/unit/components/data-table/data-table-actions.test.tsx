@@ -3,11 +3,11 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { DataTableActions } from "@/components/data-table/data-table-actions"
-import { downloadCsv } from "@/lib/export-to-csv"
+import { downloadCsv } from "@/lib/csv/csv-export"
 import { renderWithProviders } from "@tests/support/render"
 
-vi.mock("@/lib/export-to-csv", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/export-to-csv")>()),
+vi.mock("@/lib/csv/csv-export", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/csv/csv-export")>()),
   downloadCsv: vi.fn(),
 }))
 
@@ -51,10 +51,9 @@ describe("DataTableActions", () => {
       />,
     )
     const button = screen.getByRole("button", { name: "Exportar CSV" })
+    expect(button).toBeDisabled()
     await user.tab()
-    expect(button).toHaveAccessibleDescription(
-      "Aguarde o carregamento dos registros para exportar",
-    )
+    expect(button).not.toHaveFocus()
     await user.click(button)
     expect(downloadCsv).not.toHaveBeenCalled()
   })

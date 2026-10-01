@@ -1,15 +1,15 @@
 import {
   getBrazilianStateName,
   parseBrazilianStateCode,
-} from "@/lib/erp/brazilian-states"
-import { readErpDate } from "@/lib/erp/date-time"
+} from "@/lib/erp/erp-brazilian-states"
+import { readErpDate } from "@/lib/erp/erp-date-time"
 import {
   asErpRecord,
   readErpIdentifier,
   readErpNullableInteger,
   readErpOptionalText,
 } from "@/lib/erp/erp-record"
-import { formatCpfCnpj } from "@/lib/erp/tax-id"
+import { formatCpfCnpj } from "@/lib/erp/erp-tax-id"
 import type { Client } from "@/features/clients/contracts/clients-types"
 
 export function mapErpClient(input: unknown): Client {

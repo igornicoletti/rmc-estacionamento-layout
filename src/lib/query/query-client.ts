@@ -1,6 +1,6 @@
 import { QueryClient, type QueryClientConfig } from "@tanstack/react-query"
 
-import { readHttpStatus } from "@/lib/http-status"
+import { readHttpStatus } from "@/lib/http/http-status"
 
 const SECOND = 1_000
 const MINUTE = 60 * SECOND

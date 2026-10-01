@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { XIcon } from "lucide-react"
 
 import { dataTableContent } from "@/components/data-table/data-table-content"
-import { AppIconButton } from "@/components/app/app-icon-button"
+import { AppTooltipButton } from "@/components/app/app-tooltip-button"
 
 interface DataTableToolbarProps {
   actions?: ReactNode
@@ -22,7 +22,7 @@ export function DataTableToolbar({
       <div className="flex min-w-0 flex-col gap-3 @sm/toolbar:flex-row @sm/toolbar:flex-wrap @sm/toolbar:items-center">
         {children}
         {activeFilterCount >= 2 ? (
-          <AppIconButton
+          <AppTooltipButton
             icon={XIcon}
             label={dataTableContent.empty.clearFilters}
             data-testid="data-table-clear-filters"
