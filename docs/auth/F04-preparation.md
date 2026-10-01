@@ -1,6 +1,6 @@
 # F04 — reauditoria das bases e preparação de provisioning
 
-**Natureza:** auditoria de implementação e plano condicionado. **Data:** 01/10/2026. **Baseline auditada:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`. **Fontes:** [contrato v1.0 integral](contract-v1.0.md), [dossiê v2.0 integral](audit-v2.0.md), [revisão vigente v1.1](contract-v1.1.md). **Status atual:** saneamento local implementado/provado, aceite/merge pendentes; F04 não iniciada. Auth disabled.
+**Natureza:** auditoria histórica e plano de implementação. **Data:** 01/10/2026. **Baseline auditada:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`; início F04 em `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **Fontes:** [contrato v1.0 integral](contract-v1.0.md), [dossiê v2.0 integral](audit-v2.0.md), [revisão vigente v1.1](contract-v1.1.md). **Status atual:** saneamento aprovado/integrado nos PR41/42; F04 em implementação por autorização explícita. Auth disabled.
 
 ## Sumário navegável
 
@@ -95,7 +95,11 @@ Essas são correções de prontidão introduzidas pela revisão, não reescrita 
 
 ## Plano F04 condicionado
 
-Branch futura: feat/auth-f04-provisioning, criada da main sincronizada somente após o gate acima. Um PR; parada antes de merge/F05. Somente dados sintéticos e provider local; nenhum endpoint Users de produção antes de sessão NORMAL/autorização F10.
+O responsável autorizou merge/sincronização/limpeza e início F04 em 01/10/2026. PR41/42 integrados, ambas as branches removidas local/remoto; main sincronizada 0/0 em 844ca20. Waivers específicos registrados nos PRs para jobs não iniciados por billing; sem CI verde ou autorização de release. Diagnósticos e pendências de aceite descritos nas seções anteriores são históricos da baseline, não o estado atual.
+
+Primeiro marco na branch `feat/auth-f04-provisioning`: adapter local create/read em `worker/src/auth/worker-provisioning-provider.ts`, com admission de reserva persistida obrigatória, SDK request-scoped e transporte limitado; não ligado ao entrypoint/Env. DELETE permanece não implementado no adapter até fechar revogação/fencing/compensação. PoC independente `worker/scripts/worker-provider-poc.mjs`, comando `npm run test:provider:local`, inicia somente stack próprio, usa reserva real antes de createUser, testa associação/audit e remove apenas fixture de ownership comprovado sem sessões. PoC Node não prova composição do adapter Workers, saga completa, day-zero ou ambiente target. Não criar endpoint Users nem habilitar NORMAL nesta etapa.
+
+Branch atual: feat/auth-f04-provisioning, criada da main sincronizada após aceite do saneamento. Um PR ao concluir a fase; parada antes de merge/F05. Somente dados sintéticos e provider local; nenhum endpoint Users de produção antes de sessão NORMAL/autorização F10.
 
 | Marco | Implementação/resultado | Revisão e gate |
 | --- | --- | --- |

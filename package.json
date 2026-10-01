@@ -56,6 +56,7 @@
     "check:db": "node scripts/validation/validation-run.mjs db",
     "check:full": "node scripts/validation/validation-run.mjs full",
     "test:worker": "npm test -w worker",
+    "test:provider:local": "node worker/scripts/worker-provider-poc.mjs",
     "check:worker": "node scripts/worker/worker-check.mjs",
     "test:worker:integration": "node scripts/worker/worker-integration.mjs",
     "check:bff": "node scripts/validation/validation-run.mjs bff"

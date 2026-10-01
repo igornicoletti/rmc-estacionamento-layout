@@ -1,8 +1,8 @@
 # Plano e requisitos Auth
 
 **Natureza:** referência vigente. **Escopo:** F00–F14.
-**Revisão:** 01/10/2026. **Baseline:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`.
-**Status:** F03 aprovada e integrada no PR40. [Saneamento pré-F04](evidence/pre-f04-prerequisites-local.md) verified-local, aceite/merge pendentes. F04 não iniciada: [reauditoria e pré-requisitos](F04-preparation.md#gate). Resultados não são inferidos desta referência.
+**Revisão:** 01/10/2026. **Baseline:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`.
+**Status:** F03 integrada; [saneamento pré-F04](evidence/pre-f04-prerequisites-local.md) aprovado e integrado nos PR41/42. F04 iniciada por autorização expressa, primeiro marco local: [implementação e pendências](F04-preparation.md#implementation). F05 fechada. Resultados não são inferidos desta referência.
 
 ## Sumário navegável
 

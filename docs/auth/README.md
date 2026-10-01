@@ -1,6 +1,6 @@
 # Autenticação
 
-**Natureza:** índice/registro do contrato. **Revisão:** 01/10/2026. **Baseline:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`.
+**Natureza:** índice/registro do contrato. **Revisão:** 01/10/2026. **Baseline:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`.
 **Status:** Auth disabled; evidências locais específicas, sem PASS_LOCAL/PASS_TARGET/GO.
 
 ## Sumário navegável
@@ -31,8 +31,9 @@ Mudança material exige nova versão/supersessão, justificativa/impacto/testes.
 | F02 | Corrigida bc8ab3c968ecf0e91c90d4c21934a3f70500d647; merge6daa9be PR34; [manifesto corrente](evidence/F02-reaudit-local.md) | Banco local; T24–T29 parcialmente bancários, sem BFF/provider/Queue/crypto real |
 | Manutenção | [Manifesto](evidence/pre-f03-maintenance-local.md) | Tooling/docs/dependências; não inicia nova fase |
 | F03 | 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; [manifesto](evidence/F03-local.md); PR40 integrado em 3c4b6d4343aec56c369c625b15d0a0b859cabdce | Aceite e merge autorizados em 01/10/2026 com waiver específico de billing; local, sem login ou prova hospedada |
-| Saneamento pré-F04 | [Manifesto suplementar F01/F02](evidence/pre-f04-prerequisites-local.md); código04bc12b5eb30752f2437ba63b356f428a61ede27 | Fundamentos verified-local, aceite/merge pendentes; não inicia F04 nem substitui PoC provider |
-| F04–F14 | [Plano e matriz](plan-and-requirements.md) | Não autorizadas automaticamente; release depende de F12/F13/F14 |
+| Saneamento pré-F04 | [Manifesto suplementar F01/F02](evidence/pre-f04-prerequisites-local.md); código04bc12b5eb30752f2437ba63b356f428a61ede27; PR41/42 integrados em 844ca20 | Aprovado em 01/10/2026; billing dispensado especificamente, não CI verde |
+| F04 | [Preparação e implementação](F04-preparation.md#implementation); branch feat/auth-f04-provisioning | Início autorizado; primeiro marco create/read local e PoC, saga/day-zero ainda pendentes; Auth disabled |
+| F05–F14 | [Plano e matriz](plan-and-requirements.md) | Não autorizadas automaticamente; release depende de F12/F13/F14 |
 
 Shell/fixtures são demonstração. Nenhuma evidence de outro SHA é promovida por inferência. Jobs PR40 não iniciaram por billing; waiver explícito registrado naquele PR. Não se transfere a outro PR. [Reauditoria das bases e preparação F04](F04-preparation.md) registra os gates ainda necessários antes de provisioning.
 

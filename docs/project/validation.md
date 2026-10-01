@@ -161,6 +161,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
 | `tests/scripts/docs-model.test.mjs` | Markdown parser resolves references, ids, repeated headings and code inventories; local links cannot escape the repository and external links are not fetched; Vitest discovers every unit/integration suite exactly once in node or dom |
+| `tests/scripts/auth-provider-poc.test.mjs` | PoC F04 nega URL remota/UUID não allowlisted; ownership apenas em app_metadata; telefone confirmado, prova extra e recurso alheio negados; redirect e limite de resposta |
 | `tests/scripts/shared-imports.test.mjs` | effective ESLint config denies runtime/UI/SDK/I-O imports in shared contracts |
 | `tests/scripts/validation-process.test.mjs` | Report directories isolated from Playwright cleanup; success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
 | `tests/scripts/worker-runner.test.mjs` | Workspace isolado/falha interrompe sequência; URLs remotas/probes ambíguos negados; descoberta Worker exatamente uma vez; appVitest5 e WorkerVitest4 preservados |
@@ -172,6 +173,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `worker/tests/worker-boundary.test.ts` | API404 com AcceptHTML e disabled; health/método; configuração hosted fechada; catch sanitizado/headers; 8192/8193 sem length/multibyte; MIME/encoding/JSON; stream lento/deadline; URL/Cookie limites; todas as combinações conflitantes de autoridade; Origin/Host/Fetch Metadata e subresources; desafio 401; token estável, stale e mismatch negados antes de side effect no auxiliar; vetor AES-GCM independente, codec/algorithm desconhecidos, purpose/binding/version/tamper/key separation |
 | `worker/tests/worker-upstream.test.ts` | URL somente local; SDK request-scoped/redirect negado/signal; sem Cookie browser; respostas RPC MIME/64KiB/DTO inválidos; rede indisponível sem vazamento |
 | `worker/tests/worker-cpf-crypto.test.ts` | AES-GCM/HMAC com vetor independente Node, nonce aleatório, binding/generation/tag/version adulterados negados, chaves CPF separadas, retenção/retirada de chave histórica, cancelamento e canonicalização CPF |
+| `worker/tests/worker-provisioning-provider.test.ts` | F04 create/read local request-scoped, UUID/prova/credencial interna; admission stale e command alterado sem side effect; ausência somente lookup explícito; ownership alterado, user_metadata, redirect, MIME/JSON/limite e perda de resposta sem retry |
 
 ### supabase/tests/database
 
@@ -187,6 +189,8 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 
 Pré-F04: `scripts/auth-db/auth-db-prerequisites-concurrency.mjs` disputa CPF com duas conexões, nega duplicata entre versões, disputa reserva provider e lease de reconciliação com dez conexões cada; exige um vencedor e nega fence antigo. Duas rodadas no gate; limpeza restrita aos IDs sintéticos e rollback da política mantendo generation monotônica.
+
+F04 primeiro marco: `npm run test:provider:local` executa `worker/scripts/worker-provider-poc.mjs`, com gate DB próprio (dois resets/concorrências/pgTAP) e PoC Auth real local. Reserva persistida antes de createUser, UUID/selector/ownership server-only, telefone não confirmado, associação PENDING e audit; cleanup só do recurso sintético comprovado sem sessões. Prova Node separada dos testes do adapter Workers; não comprova saga/day-zero/target. Recusa stack preexistente e URL remota; pode apagar somente o banco local de testes pertencente ao runner.
 
 <a id="c4"></a>
 

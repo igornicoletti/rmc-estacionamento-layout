@@ -1,7 +1,7 @@
 # Pesquisa oficial
 
 **Natureza:** referência vigente. **Escopo:** fontes, versões e impacto; histórico explícito.
-**Revisão:** 01/10/2026. **Baseline:** main3c4b6d4 e saneamento pré-F04 em revisão.
+**Revisão:** 01/10/2026. **Baseline:** main844ca20; F04 em implementação.
 **Status:** fontes e limites registrados; resultados por SHA nos manifestos, não inferidos desta referência.
 
 ## Sumário navegável
@@ -12,6 +12,7 @@
 - [2026-10-01 — Implementação F03](#c4)
 - [2026-10-01 — Confronto do dossiê v2.0](#c5)
 - [2026-10-01 — Saneamento pré-F04](#c6)
+- [2026-10-01 — Início F04](#c7)
 
 <a id="c1"></a>
 
@@ -122,3 +123,18 @@ Perguntas: manter unicidade CPF entre chaves; recuperar envelope após generatio
 | [Changelog PG17.11](https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes) — ltree, pgcrypto PGP legado, btree_gist float e custom operators | Sem essas utilizações no schema Auth; AES-GCM no Worker, não PGP no PostgreSQL. Runtime local17.11 confirmado, nenhum resultado target inferido |
 
 Índice Markdown do changelog obtido por HTTP após content-type recusado pelo navegador; seguido o breaking change relevante. Mantidos toolchain/pins/lockfile: o aviso Wrangler4.146.0 não autoriza atualização incidental nesta correção. A referência local da skill Workers ainda exemplifica pool antigo; prevalece a integração oficial atual pinada no projeto, sem downgrade. Ausência de PoC provider, keyring operacional e restore reais mantém esses gates futuros fechados.
+
+<a id="c7"></a>
+
+## 2026-10-01 — Início F04
+
+Perguntas: SDK/servidor preservam UUID fornecido; ownership privado pode ser consultado diretamente; criação produz sessão ou confirma telefone; falha de transporte comprova ausência? Fontes primárias, código instalado e PoC local; nenhuma prova target inferida. Changelog Markdown reconferido por HTTP, incluindo PG17.11 e Data API opt-in; sem atualização incidental de dependências.
+
+| Busca/fonte primária | Resultado e decisão |
+| --- | --- |
+| [createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser), [getUserById](https://supabase.com/docs/reference/javascript/auth-admin-getuserbyid), [deleteUser](https://supabase.com/docs/reference/javascript/auth-admin-deleteuser) | Admin somente servidor; UUID no tipo AdminUserAttributes instalado. PoC exige reserva persistida, GET direto e ownership em app_metadata; não listar/adotar por email/user_metadata |
+| [Auth v2.197.0 fixado](https://github.com/supabase/auth/tree/4eee58f296d9698a1c2c0ae14d7a0b379c7622d3) e imagem local | PoC recusa drift da imagem/digest; SDK2.117.2 mantido. Versão binária via subcomando version, não flag --version. Fonte não substitui execução |
+| SDK auth-js instalado, lib/fetch.ts e GoTrueAdminApi.ts | X-Supabase-Api-Version determina interpretação do campo code; preservar header. Apenas GET404/user_not_found prova ausência; criação perdida permanece UNKNOWN sem retry |
+| [Workers Fetch](https://developers.cloudflare.com/workers/runtime-apis/fetch/) | Manual no Worker, negar redirect antes de ler; 64KiB, timeout por fetch+body e signal propagado. Node PoC usa redirect:error; não confundir runtimes |
+
+Domínio auth.rmc.invalid é exclusivamente sintético; email técnico confirmado não confirma telefone nem autoriza NORMAL. Adapter inicial não implementa DELETE/revogação e não está ligado ao entrypoint. PoC independentemente exige ausência de sessões e ownership antes do cleanup do próprio usuário; não é compensação operacional. Skills Supabase/Workers orientaram pin, limite e verificação; referência antiga de pool não alterou a integração vigente.
