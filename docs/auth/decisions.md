@@ -1,8 +1,8 @@
 # Decisões derivadas de Auth
 
 **Natureza:** referência vigente. **Escopo:** decisões derivadas e revisão normativa explicitamente identificada.
-**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
-**Status:** decisões explícitas; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
+**Revisão:** 01/10/2026. **Baseline:** main3c4b6d4 + saneamento pré-F04 em revisão.
+**Status:** decisões explícitas; resultados por SHA nos manifestos, não inferidos desta referência.
 
 ## Sumário navegável
 
@@ -11,6 +11,7 @@
 - [Precedência e limites](#c3)
 - [ADR-003 — Transporte e runtime F03](#c4)
 - [ADR-004 — Revisão normativa v1.1](#c5)
+- [ADR-005 — Fundamentos pré-F04 e rotação CPF](#c6)
 
 <a id="c1"></a>
 
@@ -91,3 +92,23 @@ F03 altera versão dos DTOs para 1.1, explicita codec CSRF 1/A256GCM sem alterar
 Seletores técnicos, UUID provider reservado, CPF recuperável cifrado, enrollment exclusivo e step-up consumido no commit ficam nas fases responsáveis, não são funcionalidades concluídas. S/A obrigatórios antes de NORMAL é mudança normativa explícita; política adicional R/M exige decisão antes de target. Verificação JWT local não substitui revogação provider sem protocolo provado. TLS/pooler direto permanece condicional à arquitetura, não requisito do adapter HTTP.
 
 Alternativas rejeitadas: editar bytes da v1.0; copiar 125 IDs como nova autoridade duplicada; remover verificação online por otimização; criar endpoint bootstrap sem necessidade; impor JSON ao envelope binário; afirmar CSP sem exceção de styles; transformar evidências de outros SHAs em prova v1.1. Nenhum desses ajustes habilita Auth ou F04.
+
+<a id="c6"></a>
+
+## ADR-005 — Fundamentos pré-F04 e rotação CPF
+
+Implementação autorizada em 01/10/2026 após a reauditoria; gate/aceite próprios, sem iniciar F04. Migrations anteriores e fontes integrais são imutáveis. As novas RPCs são infraestrutura privada, não autorização de negócio nem endpoints HTTP. SDK provider/day-zero/compensação, scope/unit/step-up e writers públicos continuam fases futuras.
+
+CPF codec 1: A256GCM, IV aleatório de 12 bytes + CPF canônico cifrado (11 bytes) + tag de 16 bytes = 39 bytes. AAD UTF-8 JSON [1,"A256GCM","CPF",identityId,generation,keyVersion], preservando o purpose normativo v1.1. Keyring CPF próprio separa source AES e lookup HMAC; configuração deve negar reutilização de todas as chaves de outras finalidades, incluindo históricas. Adapter não é conectado a Env/rota; F04 deve injetar conjunto completo de chaves proibidas. HMAC-SHA-256 sobre UTF-8 JSON ["CPF_LOOKUP",keyVersion,CPF]. Não aplicar esse formato a hashes históricos sem comprovar sua origem. DB recebe somente hashes/envelope; não recebe CPF, senha ou OTP. Buffer/string de CPF fica transitoriamente na fronteira crypto autorizada, nunca no ledger/log/audit.
+
+Policy singleton fixa active_version e pending_version com generation monotônica. Todo writer toma lock compartilhado da policy, depois identidade/source; exige as duas versões durante rotação e CAS da revisão. Controle administrativo toma lock exclusivo, sem EXECUTE para service_role. Begin exige fontes recuperáveis para lookups existentes; backfill calcula novos hashes no boundary crypto. Finish exige cobertura integral antes de trocar current; rollback não apaga hashes nem reduz generation. Aliases staged diferem explicitamente de retired: só staged da versão pendente pode ser ativado. Retired não revive. Legacy sem hash na versão ativa é negado, não reinterpretado.
+
+Envelope só pode ser regravado por CAS, preservando hashes da pessoa. Rotação de chave AES é independente da rotação HMAC: manter versões de decrypt necessárias até reseal/backfill/restore e retenção comprovados. Retirar chave somente após inventário de envelopes/backups e drill; esta rodada não destrói chaves nem dados. Fontes antigas sem envelope exigem procedimento controlado, nunca adivinhação ou preenchimento automático. Não é possível provar no PostgreSQL que hashes de chaves diferentes pertencem ao mesmo CPF: responsabilidade do crypto boundary; política dual-write fecha a lacuna de unicidade no acesso autorizado.
+
+Generation atual da identidade é precondição para ler o envelope privado; generation persistida no envelope é o binding usado para decrypt. Alteração de lifecycle não destrói recuperabilidade: reseal controlado pode atualizar binding/revision por CAS. A leitura cifrada não concede reveal ou qualquer authority; decryption continua restrita ao boundary autorizado. Fontes de identidades DELETED não são expostas por essa RPC; retenção/purge/restore administrativos precisam de procedimento específico antes de dados reais.
+
+Reserva provider aloca UUID e ownership binding no banco, vinculados ao commandId, target e generation. Lease 30 s, fence monotônico; outcome UNKNOWN não é ABSENT. Lease expirada permite um novo claimant, não uma transação SQL mantida durante chamada externa. Associação só aceita UUID/binding reservados e proof confirmado; lifecycle permanece PENDING. Ledger, associação, audit e audit_outbox confirmam na mesma transação; falha audit desfaz tudo. Actor lifecycle é revalidado quando vinculado, mas sessão/capability/scope e exceção day-zero exigem boundary F04/F10; essa RPC não autoriza invocação por browser.
+
+Event schema v1.1 é estrito: tipos/outcomes/reasons/capabilities/purposes/deployments allowlisted, request/event IDs UUID v4, sem texto livre. Histórico audit v1.0 permanece permitido no banco; não é reemitido como evento v1.1. Resultado de command ledger só amplia o schema para identityId exato do target em PROVISION_IDENTITY COMMITTED; nenhum payload genérico. RLS permanece defesa adicional, não contenção de service_role BYPASSRLS.
+
+Fontes verificadas: [locks PostgreSQL17](https://www.postgresql.org/docs/17/explicit-locking.html), [funções Supabase](https://supabase.com/docs/guides/database/functions) e [Web Crypto Workers](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/). Runtime do projeto prevalece sobre exemplos antigos de integração Vitest da skill: manter plugin atual pinado, não retornar ao antigo pool Workers.

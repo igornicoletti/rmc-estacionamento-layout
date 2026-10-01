@@ -1,6 +1,6 @@
 # F04 — reauditoria das bases e preparação de provisioning
 
-**Natureza:** auditoria de implementação e plano condicionado. **Data:** 01/10/2026. **Baseline:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`. **Fontes:** [contrato v1.0 integral](contract-v1.0.md), [dossiê v2.0 integral](audit-v2.0.md), [revisão vigente v1.1](contract-v1.1.md). **Status:** F04 não iniciada; saneamento de pré-requisitos necessário. Auth disabled.
+**Natureza:** auditoria de implementação e plano condicionado. **Data:** 01/10/2026. **Baseline auditada:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`. **Fontes:** [contrato v1.0 integral](contract-v1.0.md), [dossiê v2.0 integral](audit-v2.0.md), [revisão vigente v1.1](contract-v1.1.md). **Status atual:** saneamento local implementado/provado, aceite/merge pendentes; F04 não iniciada. Auth disabled.
 
 ## Sumário navegável
 
@@ -26,6 +26,8 @@ Fechamento F03: PR40 merged, waiver específico para dois jobs sem runner/steps 
 
 ## Conclusão F00–F02
 
+A tabela descreve os achados na baseline, não ausência atual de código na branch corretiva. [Manifesto de saneamento](evidence/pre-f04-prerequisites-local.md) registra resolução local das portas/audit, CPF recuperável/rotação e reserva provider. A decisão seguinte continua condicionada ao aceite/merge e aos gates próprios da F04.
+
 | Escopo | Evidência de implementação | Conclusão e risco |
 | --- | --- | --- |
 | F00 stage/toolchain/browser | `src/features/auth/config/auth-runtime-config.ts`; Node24.18.1/npm11.6.0; validated rejeitado, candidate não seleciona upstream | Baseline fail-closed preservada; não há defeito crítico funcional confirmado. Não confundir decisões target ainda não provadas com ambiente validado |
@@ -43,6 +45,8 @@ Decisão: os gates antigos continuam históricos e válidos para seu escopo; nã
 ## Disposição de todos os achados
 
 IDs abaixo identificam achados da auditoria, não requisitos duplicados. Detalhes P0 e T39–T63 permanecem na [matriz vigente](plan-and-requirements.md#c5) e na [supersessão](contract-v1.1.md#audit).
+
+Disposição abaixo foi produzida na baseline. Fundamentos de P0-01/03/11 e audit foram posteriormente implementados no saneamento; provider/ownership externo, composição dos adapters e restore reais continuam pendentes. Consultar o manifesto suplementar para não confundir diagnóstico anterior com estado atual.
 
 | Achados | Disposição / responsabilidade |
 | --- | --- |
@@ -85,7 +89,7 @@ PR própria antes da branch F04, preservando todas as migrations históricas e A
 4. Testes malformed/unknown/schema/audit; pgTAP/grants; duas conexões com CPF equivalente em versões diferentes; rotação/backfill/rollback e reserva concorrente. Nenhuma createUser antes de reserva e portas prontas.
 5. Gate integral, evidência no SHA efetivamente testado, PR para revisão. Encerramento explícito do saneamento pelo responsável antes de abrir F04; nenhuma alegação PASS_LOCAL global.
 
-Essas são correções de prontidão introduzidas pela revisão, não reescrita ou invalidação das evidências históricas. Esta rodada de diagnóstico/documentação não executa o saneamento nem cria migrations.
+Essas são correções de prontidão introduzidas pela revisão, não reescrita ou invalidação das evidências históricas. A rodada documental original não criou migrations; após autorização, o saneamento separado implementou os fundamentos e realizou gates locais conforme [evidência suplementar](evidence/pre-f04-prerequisites-local.md). Aceite/merge pelo responsável ainda são necessários antes de F04.
 
 <a id="implementation"></a>
 
@@ -122,7 +126,7 @@ Revalidação executada sobre a baseline 3c4b6d4343aec56c369c625b15d0a0b859cabdc
 | unused:check, audit:security, git diff --check | Exit 0; Knip sem achados e npm audit com zero vulnerabilidades |
 | check:db | 01/10/2026 16:14:57.685Z–16:17:31.945Z, exit 0; PostgreSQL 17.11; dois resets, 156 assertions pgTAP em cinco arquivos, duas rodadas F02 e duas F03 concorrentes; lint/advisors sem achados, diff vazio; stack próprio parado |
 
-Relatório local derivado `validation-results/db.json` (não versionado), SHA-256 B0175C1EB0D8C6CAC88A4AA946C4FED900C2705FD6A2669CD6F69C91504893E6, registra SHA baseline e dirty=true. A análise de CPF entre versões e das novas portas é estática: os testes existentes não cobrem a implementação ainda ausente. Gate completo app/Worker/HTTPS da F03 permanece histórico no manifesto próprio; não foi repetido nesta auditoria documental. Resultados executados não removem lacunas sem implementação. Mantenedor deve autorizar saneamento identificado antes de retomar F04; autorização de fechamento F03 não salta esse gate.
+Relatório local derivado daquela auditoria `validation-results/db.json` (não versionado), SHA-256 B0175C1EB0D8C6CAC88A4AA946C4FED900C2705FD6A2669CD6F69C91504893E6, registra SHA baseline e dirty=true. Na rodada documental, CPF/portas eram análise estática; o gate integral não foi repetido nela. O arquivo é sobrescrito por gates novos: o [manifesto suplementar](evidence/pre-f04-prerequisites-local.md) identifica os SHAs, checksums e provas executados após autorização do saneamento. Mantenedor deve validar seu encerramento antes de retomar F04; autorização de fechamento F03 não salta esse gate.
 
 <a id="sources"></a>
 
