@@ -21,8 +21,8 @@ select ok(not exists (
   where p.oid='rmc_auth_api.claim_command(uuid,uuid,bytea,text,uuid,uuid)'::regprocedure
     and acl.grantee=0 and acl.privilege_type='EXECUTE'
 ), 'PUBLIC executes no command RPC');
-select ok(not has_function_privilege('anon', 'rmc_auth_api.consume_challenge(uuid,bigint,timestamp with time zone)', 'EXECUTE'), 'anon executes no challenge RPC');
-select ok(not has_function_privilege('authenticated', 'rmc_auth_api.acquire_refresh_lease(uuid,uuid,bigint,integer,timestamp with time zone)', 'EXECUTE'), 'authenticated executes no lease RPC');
+select ok(not has_function_privilege('anon', 'rmc_auth_api.consume_challenge(uuid,bigint)', 'EXECUTE'), 'anon executes no challenge RPC');
+select ok(not has_function_privilege('authenticated', 'rmc_auth_api.acquire_refresh_lease(uuid,uuid,bigint,integer)', 'EXECUTE'), 'authenticated executes no lease RPC');
 
 select * from finish();
 rollback;

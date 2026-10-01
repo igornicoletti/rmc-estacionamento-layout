@@ -26,9 +26,9 @@ select ok(not has_schema_privilege('authenticated', 'rmc_auth_private', 'USAGE')
 select ok(has_schema_privilege('service_role', 'rmc_auth_api', 'USAGE'), 'service role can use RPC schema');
 select ok((select rolbypassrls from pg_roles where rolname='service_role'), 'service role bypasses RLS and is not contained by it');
 select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.claim_command(uuid,uuid,bytea,text,uuid,uuid)'::regprocedure), 'claim command is invoker');
-select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.consume_challenge(uuid,bigint,timestamp with time zone)'::regprocedure), 'consume challenge is invoker');
-select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.acquire_refresh_lease(uuid,uuid,bigint,integer,timestamp with time zone)'::regprocedure), 'lease RPC is invoker');
-select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='rmc_auth_api' and p.proconfig @> array['search_path=""']), 3, 'all RPCs pin empty search_path');
+select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.consume_challenge(uuid,bigint)'::regprocedure), 'consume challenge is invoker');
+select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.acquire_refresh_lease(uuid,uuid,bigint,integer)'::regprocedure), 'lease RPC is invoker');
+select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='rmc_auth_api' and p.proconfig @> array['search_path=""']), 4, 'all RPCs pin empty search_path');
 select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='rmc_auth_api' and has_function_privilege('anon', p.oid, 'EXECUTE')), 0, 'anon executes no RPC');
 select ok(to_regclass('rmc_auth_private.assignments_one_current_manager_per_unit_idx') is not null, 'manager cardinality index exists');
 select ok(to_regclass('rmc_auth_private.sessions_one_current_normal_per_identity_idx') is not null, 'normal session cardinality index exists');

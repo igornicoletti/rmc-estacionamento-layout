@@ -1,6 +1,6 @@
 # Evidência local F02 — persistência
 
-> **Evidência corrente:** gate específico da F02 executado sobre o SHA de implementação `5add9fb1aca5279407ee9018ee719c78f837eeb6`. Não representa `PASS_LOCAL`, `PASS_TARGET`, `GO`, autorização de release ou autorização automática para F03.
+> **Evidência histórica supersedida:** esta execução corresponde a `5add9fb1aca5279407ee9018ee719c78f837eeb6`. A reauditoria encontrou lacunas nas RPCs, grants e testes; consulte `../f02-critical-audit.md` e o manifesto `F02-reaudit-local.md`. Os totais abaixo são históricos e não comprovam a implementação corrigida, rotação completa de CPF ou T24–T29 completos. Não representa `PASS_LOCAL`, `PASS_TARGET`, `GO` ou autorização de release.
 
 ## Manifesto
 

@@ -2,14 +2,19 @@ import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 
 const container = "supabase_db_rmc-estacionamento-layout";
+const ids = {
+  identity: randomUUID(), sessionIdentity: randomUUID(), unit: randomUUID(),
+  session: randomUUID(), journey: randomUUID(), challenge: randomUUID(),
+  key: randomUUID(), managers: Array.from({ length: 50 }, () => randomUUID()),
+};
 
-function query(sql) {
+function query(sql, role = "postgres") {
   return new Promise((resolve, reject) => {
-    const child = spawn(
-      "docker",
-      ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-AtX", "-v", "ON_ERROR_STOP=1", "-c", sql],
-      { windowsHide: true },
-    );
+    // Constant local container, no URL/credential input and no shell.
+    const child = spawn("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres",
+      "-AtXq", "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=verbose", "-c",
+      `begin; set local statement_timeout='15s'; set local role ${role}; ${sql}; commit;`],
+    { windowsHide: true, timeout: 30_000 });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => { stdout += chunk; });
@@ -22,82 +27,90 @@ function query(sql) {
   });
 }
 
-async function concurrent(count, operation) {
-  return Promise.allSettled(Array.from({ length: count }, (_, index) => operation(index)));
-}
-
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-await query(`
-  truncate rmc_auth_private.identities cascade;
-  insert into rmc_auth_private.identities (id, role) values
-    ('10000000-0000-4000-8000-000000000001', 'O'),
-    ('10000000-0000-4000-8000-000000000002', 'M');
-  insert into rmc_auth_private.units_state (id, source_system, external_unit_key, observed_at)
-    values ('20000000-0000-4000-8000-000000000001', 'SYNTHETIC_TEST', 'F02-CONCURRENCY', clock_timestamp());
-  insert into rmc_auth_private.functional_sessions
-    (id, identity_id, purpose, assurance, cookie_hash, key_version, generation, expires_at, idle_expires_at)
-    values ('30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001',
-      'NORMAL', 'aal2', decode(repeat('31', 32), 'hex'), 1, 1, now() + interval '1 hour', now() + interval '30 minute');
-  insert into rmc_auth_private.journey_transactions
-    (id, identity_id, purpose, binding_hash, state, expires_at)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001',
-      'PREAUTH', decode(repeat('41', 32), 'hex'), 'PENDING', now() + interval '10 minute');
-  insert into rmc_auth_private.challenges
-    (id, journey_id, identity_id, purpose, verifier_hash, ciphertext, key_version, binding_hash, generation, max_attempts, expires_at)
-    values ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001',
-      '10000000-0000-4000-8000-000000000001', 'PREAUTH', decode(repeat('51', 32), 'hex'),
-      decode(repeat('52', 48), 'hex'), 1, decode(repeat('53', 32), 'hex'), 1, 5, now() + interval '5 minute');
-`);
-
-const challengeResults = await concurrent(50, () =>
-  query("select rmc_auth_api.consume_challenge('50000000-0000-4000-8000-000000000001', 1)"),
-);
-assert(challengeResults.filter((result) => result.status === "fulfilled" && result.value === "t").length === 1,
-  "challenge CAS must have exactly one winner among 50 connections");
-
-const idempotencyKey = "60000000-0000-4000-8000-000000000001";
-const commandResults = await concurrent(50, () => {
-  const commandId = randomUUID();
-  return query(`select rmc_auth_api.claim_command('${commandId}', '${idempotencyKey}', decode(repeat('61', 32), 'hex'), 'F02_TEST')->>'commandId'`);
-});
-assert(commandResults.every((result) => result.status === "fulfilled"), "same-intent command claims must all succeed");
-const commandIds = new Set(commandResults.map((result) => result.value));
-assert(commandIds.size === 1, "same idempotency key and intent must return one durable command");
-assert(await query(`select count(*) from rmc_auth_private.command_ledger where idempotency_key='${idempotencyKey}'`) === "1",
-  "same-intent command race must persist one row");
-
-await query(`insert into rmc_auth_private.identities (id, role)
-  select ('70000000-0000-4000-8000-' || lpad(to_hex(value), 12, '0'))::uuid, 'M'
-  from generate_series(1, 50) value`);
-const assignmentResults = await concurrent(50, (index) => {
-  const suffix = (index + 1).toString(16).padStart(12, "0");
-  return query(`insert into rmc_auth_private.assignments (identity_id, unit_id, role, created_by_command_id)
-    values ('70000000-0000-4000-8000-${suffix}', '20000000-0000-4000-8000-000000000001', 'M', '${randomUUID()}')`);
-});
-assert(assignmentResults.filter((result) => result.status === "fulfilled").length === 1,
-  "manager cardinality must have exactly one winner among 50 connections");
-
-await query("update rmc_auth_private.functional_sessions set revoked_at=clock_timestamp() where identity_id='10000000-0000-4000-8000-000000000001'");
-const sessionResults = await concurrent(50, (index) => query(`
-  insert into rmc_auth_private.functional_sessions
-    (identity_id, purpose, assurance, cookie_hash, key_version, generation, expires_at, idle_expires_at)
-  values ('10000000-0000-4000-8000-000000000001', 'NORMAL', 'aal2',
-    decode(md5('${index}-a') || md5('${index}-b'), 'hex'), 1, ${index + 2}, now() + interval '1 hour', now() + interval '30 minute')
-`));
-assert(sessionResults.filter((result) => result.status === "fulfilled").length === 1,
-  "NORMAL session cardinality must have exactly one winner among 50 connections");
-
-for (const count of [2, 5, 10, 50]) {
-  await query("delete from rmc_auth_private.refresh_leases where session_id='30000000-0000-4000-8000-000000000001'");
-  const leaseResults = await concurrent(count, () => query(`
-    select acquired from rmc_auth_api.acquire_refresh_lease(
-      '30000000-0000-4000-8000-000000000001', '${randomUUID()}', 1, 10)
-  `));
-  assert(leaseResults.filter((result) => result.status === "fulfilled" && result.value === "t").length === 1,
-    `refresh lease must have exactly one winner among ${count} connections`);
+async function race(count, operation) {
+  return Promise.allSettled(Array.from({ length: count }, (_, index) => operation(index)));
 }
 
-console.log("F02 concurrency: PASS (CAS=50, command=50, manager=50, session=50, leases=2/5/10/50)");
+function booleanRace(results, label) {
+  assert(results.every((result) => result.status === "fulfilled" && ["t", "f"].includes(result.value)),
+    `${label}: every connection must finish without SQL/infrastructure error`);
+  assert(results.filter((result) => result.value === "t").length === 1, `${label}: expected exactly one winner`);
+}
+
+function uniquenessRace(results, label) {
+  assert(results.filter((result) => result.status === "fulfilled").length === 1, `${label}: expected one winner`);
+  assert(results.every((result) => result.status === "fulfilled" || /23505/.test(result.reason.message)),
+    `${label}: losing connections must fail exclusively with unique_violation (23505)`);
+}
+
+try {
+  await query(`
+    insert into rmc_auth_private.identities (id,role,lifecycle,onboarding) values
+      ('${ids.identity}','O','ACTIVE','COMPLETE'), ('${ids.sessionIdentity}','O','ACTIVE','COMPLETE'),
+      ${ids.managers.map((id) => `('${id}','M','PENDING','ACTIVATION_REQUIRED')`).join(",")};
+    insert into rmc_auth_private.units_state (id,source_system,external_unit_key,observed_at)
+      values ('${ids.unit}','SYNTHETIC_TEST','${ids.unit}',clock_timestamp());
+    insert into rmc_auth_private.functional_sessions
+      (id,identity_id,purpose,assurance,cookie_hash,key_version,generation,expires_at,idle_expires_at)
+      values ('${ids.session}','${ids.identity}','NORMAL','aal2',decode(md5('${ids.session}')||md5('${ids.identity}'),'hex'),
+        1,1,now()+interval '1 hour',now()+interval '30 minutes');
+    insert into rmc_auth_private.journey_transactions
+      (id,identity_id,purpose,binding_hash,secret_hash,key_version,state,expires_at)
+      values ('${ids.journey}','${ids.identity}','PREAUTH',decode(repeat('41',32),'hex'),
+        decode(md5('${ids.journey}')||md5('${ids.key}'),'hex'),1,'PENDING',now()+interval '10 minutes');
+    insert into rmc_auth_private.challenges
+      (id,journey_id,identity_id,purpose,verifier_hash,ciphertext,key_version,binding_hash,generation,max_attempts,expires_at)
+      values ('${ids.challenge}','${ids.journey}','${ids.identity}','PREAUTH',decode(repeat('51',32),'hex'),
+        decode(repeat('52',48),'hex'),1,decode(repeat('41',32),'hex'),1,5,now()+interval '5 minutes')
+  `);
+
+  booleanRace(await race(50, () => query(
+    `select rmc_auth_api.consume_challenge('${ids.challenge}',1)`, "service_role")), "challenge CAS 50");
+
+  const commands = await race(50, () => query(
+    `select rmc_auth_api.claim_command('${randomUUID()}','${ids.key}',decode(repeat('61',32),'hex'),'F02_TEST')->>'commandId'`,
+    "service_role"));
+  assert(commands.every((result) => result.status === "fulfilled"), "all same-intent claims must succeed");
+  assert(new Set(commands.map((result) => result.value)).size === 1, "claims must return one durable command");
+  assert(await query(`select count(*) from rmc_auth_private.command_ledger where idempotency_key='${ids.key}'`) === "1",
+    "claims must persist one row");
+
+  uniquenessRace(await race(50, (index) => query(`insert into rmc_auth_private.assignments
+    (identity_id,unit_id,role,created_by_command_id)
+    values ('${ids.managers[index]}','${ids.unit}','M','${commands[0].value}')`)), "manager 50");
+  uniquenessRace(await race(50, () => {
+    const cookie = randomUUID();
+    return query(`insert into rmc_auth_private.functional_sessions
+      (identity_id,purpose,assurance,cookie_hash,key_version,generation,expires_at,idle_expires_at)
+      values ('${ids.sessionIdentity}','NORMAL','aal2',decode(md5('${cookie}')||md5('${ids.key}'),'hex'),
+        1,1,now()+interval '1 hour',now()+interval '30 minutes')`);
+  }), "NORMAL session 50");
+
+  for (const count of [2, 5, 10, 50]) {
+    // Expire, never recreate: fencing_token must survive takeover.
+    await query(`update rmc_auth_private.refresh_leases
+      set expires_at=clock_timestamp()-interval '1 second', acquired_at=clock_timestamp()-interval '2 seconds',
+        fencing_token=fencing_token+1 where session_id='${ids.session}'`);
+    booleanRace(await race(count, () => query(
+      `select acquired from rmc_auth_api.acquire_refresh_lease('${ids.session}','${randomUUID()}',1,60)`,
+      "service_role")), `lease ${count}`);
+  }
+  console.log("F02 concurrency: PASS (CAS=50, command=50, manager=50, session=50, leases=2/5/10/50; all outcomes verified)");
+} finally {
+  // Only UUIDs created by this execution are removed, including after failure.
+  await query(`
+    delete from rmc_auth_private.refresh_leases where session_id='${ids.session}';
+    delete from rmc_auth_private.functional_sessions where identity_id in ('${ids.identity}','${ids.sessionIdentity}');
+    delete from rmc_auth_private.challenges where journey_id='${ids.journey}';
+    delete from rmc_auth_private.journey_transactions where id='${ids.journey}';
+    delete from rmc_auth_private.assignments where unit_id='${ids.unit}';
+    delete from rmc_auth_private.units_state where id='${ids.unit}';
+    delete from rmc_auth_private.command_ledger where idempotency_key='${ids.key}';
+    delete from rmc_auth_private.identities where id in ('${ids.identity}','${ids.sessionIdentity}',
+      ${ids.managers.map((id) => `'${id}'`).join(",")})
+  `);
+}

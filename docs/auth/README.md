@@ -8,7 +8,7 @@ O bloco **F00 — baseline e ameaça** foi encerrado como baseline local no merg
 
 O bloco **F01 — contratos puros** foi saneado e teve seu gate local específico verificado no commit `e1125b0ee90bff810a6365f284581d4e6477332c`. A integração foi validada explicitamente pelo responsável antes da criação da branch F02.
 
-O bloco **F02 — persistência** teve seu gate local específico verificado no commit `5add9fb1aca5279407ee9018ee719c78f837eeb6` e aguarda revisão em PR. Ele adiciona somente stack local, migrations, constraints, índices, grants/RLS, RPCs estreitas e provas de banco. Nenhum fluxo real de autenticação foi habilitado: não há BFF de Auth, adapter executável, Queue/DLQ, SMS, MFA, sessão de browser ou endpoint privado integrado à aplicação.
+O bloco **F02 — persistência** passou por reauditoria crítica e correção adicional de RPCs, grants, bindings, estados e testes. A evidência anterior foi supersedida; o gate corrente será vinculado ao commit corrigido em `evidence/F02-reaudit-local.md`. Ele adiciona stack local, migrations, constraints, índices, grants/RLS e RPCs estreitas. Auth permanece desabilitado e os fluxos BFF/provider/Queue/SMS continuam nas fases responsáveis.
 
 O shell e as fixtures já existentes continuam sendo demonstração visual e não representam sessão autenticada nem autorização de produção.
 
@@ -19,6 +19,8 @@ A ordem permanece a definida pelo contrato. A F03 não pode começar antes de a 
 - [Matriz viva de requisitos](requirements-matrix.md)
 - [Contrato de evidências](evidence/README.md)
 - [Registro de pesquisa oficial](research-log.md)
+- [Reauditoria crítica da F02](f02-critical-audit.md)
+- [ADR-002: perfil de persistência](adr-002-persistence-profile.md)
 
 ## Configuração pública
 
