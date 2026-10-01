@@ -128,4 +128,6 @@ Continuação técnica local: até oito claims lookup-only em 24 horas, backoff 
 
 Runner local: bootstrap PostgreSQL antes dos resets e API depois de schema reconstruído. Causa observada do startup anterior: PostgREST 503/SQLSTATE3F000 por schema exposto ausente no volume restaurado; não falha de internet demonstrada. Health checks não foram desabilitados e nenhum volume/outro stack foi removido.
 
+Contraprova DB adicional: ABSENT não pode tornar ABORTED uma reserva cujo dispatch já foi consumido. Mesmo se um caller invocar diretamente a RPC de outcome, trigger rejeita esse abort; apenas ausência pré-dispatch continua elegível. Compensação posterior exige protocolo próprio de fencing/revogação, não reutilização de ABSENT. Migration incremental preserva as anteriores.
+
 Fontes: [locks PostgreSQL17](https://www.postgresql.org/docs/17/explicit-locking.html), [funções Supabase](https://supabase.com/docs/guides/database/functions), [consulta administrativa por UUID](https://supabase.com/docs/reference/javascript/auth-admin-getuserbyid) e [Fetch Workers](https://developers.cloudflare.com/workers/runtime-apis/fetch/). Fontes consultadas em 01/10/2026; prova real de composição Workers/DB/provider ainda pendente.

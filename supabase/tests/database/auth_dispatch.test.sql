@@ -1,5 +1,5 @@
 begin;
-select plan(12);
+select plan(13);
 insert into rmc_auth_private.identities(id,role) values ('02000000-0000-4000-8000-000000000001','R');
 select rmc_auth_api.write_cpf_source('02000000-0000-4000-8000-000000000001',1,1,0,1,
   decode(repeat('83',39),'hex'),array[1],array[decode(repeat('84',32),'hex')]);
@@ -16,6 +16,8 @@ select ok(not dispatch_claimed,'lookup never consumes dispatch') from rmc_auth_p
 select ok(rmc_auth_api.admit_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,1,true),'first dispatch admitted') from rmc_auth_private.provider_reservations;
 select ok(not rmc_auth_api.admit_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,1,true),'second dispatch denied') from rmc_auth_private.provider_reservations;
 select throws_ok($$update rmc_auth_private.provider_reservations set dispatch_claimed=false$$,'23514','AUTH_DISPATCH_IMMUTABLE','dispatch cannot reset');
+select throws_ok($$select rmc_auth_api.record_provider_outcome(command_id,lease_owner,fence,provider_subject,ownership_binding,'ABSENT')
+  from rmc_auth_private.provider_reservations$$,'23514','AUTH_PROVISION_ABSENCE_UNPROVEN','404 cannot abort a dispatched create');
 reset role;
 update rmc_auth_private.identities set lifecycle='BLOCKED',generation=generation+1 where id='02000000-0000-4000-8000-000000000001';
 set local role service_role;
