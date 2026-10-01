@@ -28,7 +28,7 @@ Mudança material exige nova versão/supersessão, justificativa/impacto/testes.
 | F01 | Saneamento e1125b0ee90bff810a6365f284581d4e6477332c; [manifesto](evidence/F01-local.md) | Contratos puros, schemas/transições/ports; não Auth funcional |
 | F02 | Corrigida bc8ab3c968ecf0e91c90d4c21934a3f70500d647; merge6daa9be PR34; [manifesto corrente](evidence/F02-reaudit-local.md) | Banco local; T24–T29 parcialmente bancários, sem BFF/provider/Queue/crypto real |
 | Manutenção | [Manifesto](evidence/pre-f03-maintenance-local.md) | Tooling/docs/dependências; não inicia nova fase |
-| F03 | [Plano e matriz](plan-and-requirements.md); implementação nesta branch | Worker/HTTP/PREAUTH/CSRF local; sem login ou prova hospedada |
+| F03 | 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; [manifesto](evidence/F03-local.md) | verified-local para Worker/HTTP/PREAUTH/CSRF e revisão v1.1; aceite/merge pendentes, sem login ou prova hospedada |
 | F04–F14 | [Plano e matriz](plan-and-requirements.md) | Não autorizadas automaticamente; release depende de F12/F13/F14 |
 
 Shell/fixtures são demonstração. Nenhuma evidence de outro SHA é promovida por inferência. Billing não iniciou jobs históricos; waivers de merges anteriores não autorizam automaticamente esta PR. F03 requer validação explícita posterior.
@@ -50,7 +50,7 @@ Signup público, login email/social/anônimo, passkeys, rebind de telefone/reset
 ## Navegação
 
 - [Plano e matriz única](plan-and-requirements.md)
-- [ADR-001/002 e ampliação de portas](decisions.md)
+- [Decisões e revisão normativa](decisions.md)
 - [Pesquisa oficial histórica e manutenção](research.md)
 - [Reauditoria F02](F02-critical-audit.md)
 - [Formato de evidência](evidence/README.md)

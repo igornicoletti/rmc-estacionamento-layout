@@ -187,7 +187,7 @@ Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: de
 
 ## Evidência e limitações
 
-Baseline F02 comprovou 54 arquivos/227 Vitest, 126 assertions pgTAP e 19 Chromium no SHA bc8ab3c; esses totais não são prova desta branch. Manutenção permanece [histórica](../auth/evidence/pre-f03-maintenance-local.md); resultado F03 será vinculado ao SHA no manifesto da fase. Relatório runner é auxiliar: totais de casos vêm do runner real, não de parser de títulos.
+Baseline F02 comprovou 54 arquivos/227 Vitest, 126 assertions pgTAP e 19 Chromium no SHA bc8ab3c; esses totais não são prova desta branch. Manutenção permanece [histórica](../auth/evidence/pre-f03-maintenance-local.md). O [manifesto F03](../auth/evidence/F03-local.md) registra 55 arquivos/246 testes aplicação, 19 Worker, 17 tooling, 156 pgTAP e 19 E2E por navegador no SHA 4f63abf. Relatório runner é auxiliar: totais de casos vêm do runner real, não de parser de títulos.
 
 Billing hospedado é falha de infraestrutura; merge exige autorização/waiver explícito naquela PR. Firefox/WebKit/DOM não provam leitor de tela, provider, RLS target, load ou release. Nenhum snapshot ou fixture real é anexado.
 

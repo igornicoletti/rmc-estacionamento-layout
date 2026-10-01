@@ -2,7 +2,7 @@
 
 **Natureza:** referência vigente. **Escopo:** fontes, versões e impacto; histórico explícito.
 **Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
-**Status:** implementação existente descrita; resultados de execução ficam no [manifesto](evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
+**Status:** fontes e limites registrados; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
 
 ## Sumário navegável
 

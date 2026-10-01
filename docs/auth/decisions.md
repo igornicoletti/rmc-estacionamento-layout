@@ -2,7 +2,7 @@
 
 **Natureza:** referência vigente. **Escopo:** decisões derivadas e revisão normativa explicitamente identificada.
 **Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
-**Status:** implementação existente descrita; resultados de execução ficam no [manifesto](evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
+**Status:** decisões explícitas; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
 
 ## Sumário navegável
 
@@ -77,6 +77,8 @@ F03 habilita somente PREAUTH local com Auth disabled, origem fixa HTTPS localhos
 Segredos de 256 bits base64url canônico; cookie e CSRF usam domínios/chaves distintos. AES-256-GCM nonce aleatório 96 bits/tag 128 bits; AAD JSON canônico [purpose,binding,keyVersion], onde binding é JSON [1,contextId,purpose,generation]. Binding hash corresponde ao binding UTF-8; comparação timing-safe no runtime. Material não gira em GET. Preparação de vínculo session não habilita NORMAL; promoção/expiração/logout completos exigem fases posteriores.
 
 Headers HTML mantêm hashes originais e style-src-attr unsafe-inline por posicionamento Base UI. HSTS includeSubDomains anteriormente estático foi removido até prova do domínio/subdomínios; sem preload. Integração HTTPS não equivale a deploy, PASS_LOCAL global ou PASS_TARGET.
+
+`worker/worker-env.d.ts` preserva a saída integral de Wrangler/workerd 1.20260930.2, incluindo cinco espaços finais emitidos pelo gerador. `.gitattributes` dispensa somente blank-at-eol nesse arquivo gerado; demais regras e arquivos escritos manualmente permanecem estritos. O diff completo da branch é revisado além do working diff, e `types --check` continua comparando o output nativo sem normalização manual.
 
 <a id="c5"></a>
 

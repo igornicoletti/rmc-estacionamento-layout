@@ -44,6 +44,8 @@ App routing/shell/navigation/errors/access/session/query/theme estão no [catál
 
 F00/F01/F02 são evidências locais históricas. F03 tem runtime próprio, não integra o scaffold ao Auth real. [Estado Auth](../auth/README.md).
 
+Contrato vigente [v1.1](../auth/contract-v1.1.md); prova local F03 no [manifesto](../auth/evidence/F03-local.md). Codec 1/A256GCM é explícito e o gate valida conflitos de cookies, URL/Host, subresources e challenge 401. Isso não implementa as novas obrigações das jornadas futuras.
+
 ### Fronteira F03
 
 `worker/src/worker-entry.ts` despacha `/api` e `/api/*` antes dos assets. API desconhecida/desabilitada retorna Problem Details 404 mesmo com Accept HTML. Somente health público e contexto PREAUTH local são habilitáveis; ambientes hospedados mantêm contexto fechado.
