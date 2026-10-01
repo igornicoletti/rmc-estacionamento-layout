@@ -36,9 +36,9 @@ Shell/fixtures são demonstração. Nenhuma evidence de outro SHA é promovida p
 
 ## Configuração e limites
 
-`src/features/auth/config/auth-runtime-config.ts` valida somente VITE_AUTH_STAGE: disabled é padrão; candidate não habilita Auth ou upstream; validated é rejeitado no bundle. Ambientes são LOCAL/LOCAL_PRODUCTION_LIKE/STAGING-TARGET_HOSTED/PRODUCTION, não feature stages.
+`src/features/auth/config/auth-runtime-config.ts` valida somente VITE_AUTH_STAGE: disabled é padrão; candidate não habilita Auth ou upstream; validated é rejeitado no bundle. Ambientes são LOCAL, LOCAL_PRODUCTION_LIKE, STAGING/TARGET_HOSTED e PRODUCTION, não feature stages.
 
-Browser futuro usa same-origin /api/*; nenhum VITE_AUTH_API_ORIGIN ou SDK Supabase no browser. SDK2.117.2 instalado server-side para adapter futuro, explicitamente reservado no Knip. Worker/Queues/Provider e cookies funcionais ainda não implementados. Sessão opaca/provider tokens ficam no servidor nas fases responsáveis.
+Browser futuro usa same-origin /api/*; nenhum VITE_AUTH_API_ORIGIN ou SDK Supabase no browser. SDK2.117.2 é dependência instalada reservada ao futuro adapter servidor, sem imports runtime e com exceção explícita no Knip. Worker/Queues/Provider e cookies funcionais ainda não implementados. Sessão opaca/provider tokens ficam no servidor nas fases responsáveis.
 
 Domínio definitivo, plano/quota/versões hospedadas, signing/JWKS, Queue/DLQ/jobs, SMS/idempotência/delivery físico, identidade ERP, keyring, observabilidade/capacidade/retenção são gates externos pendentes. Origem workers.dev observada na F00 foi somente candidata; não domínio canônico validado.
 
