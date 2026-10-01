@@ -29,17 +29,16 @@ própria do projeto `igornicoletti/rmc-estacionamento`.
 
 | Problema no baseline                                                                                                             | Correção                                                                                                   | Consumidores                                                 |
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Exportar e Gerenciar colunas montavam tooltip/trigger de formas diferentes; exportação desabilitada dependia de um span sem foco | `AppIconButton` centraliza um único botão, nome acessível, tooltip associado e estado desabilitado focável | Exportar e Gerenciar colunas                                 |
-| Ações de ícone sem explicação consistente                                                                                        | Uso do mesmo `AppIconButton`                                                                               | Limpar filtros, paginação, ações de linha e cópia de e-mails |
+| Exportar e Gerenciar colunas montavam tooltip/trigger de formas diferentes | `AppTooltipButton` centraliza um único botão, nome acessível, tooltip e `disabled` nativo | Exportar e Gerenciar colunas                                 |
+| Ações de ícone sem explicação consistente                                  | Uso do mesmo `AppTooltipButton`                                                    | Limpar filtros, paginação, ações de linha e cópia de e-mails |
 | Três tabelas repetiam montagem e processamento da exportação                                                                     | `DataTableActions` recebe tabela, nome do arquivo e colunas CSV                                            | Clientes, Unidades e Veículos                                |
 | Exportação podia usar registros antigos durante refetch e não apresentava falha de geração                                       | Bloqueio durante carregamento/atualização; toast de erro na falha síncrona                                 | As três tabelas                                              |
 | Cópia de e-mails ficava em HoverCard baseado em PreviewCard, inadequado para controles interativos                               | Popover acionável por clique/teclado; título associado, foco inicial no painel e retorno ao trigger        | Célula de e-mail de Clientes                                 |
 | Inventário App atribuía uso em sessão/upload a componentes hoje usados apenas na prévia                                          | Inventário corrigido a partir dos imports atuais                                                           | `docs/app/README.md`                                         |
 
-`AppIconButton` declara `role="tooltip"` e associa o texto ao botão por
-`aria-describedby` enquanto aberto. A descrição externa também é preservada.
-O primitive Button bloqueia ativação desabilitada; a aplicação mantém o foco
-para permitir consultar a explicação. Não há span intermediário ou botão aninhado.
+`AppTooltipButton` compõe `TooltipTrigger` e `Button` pelo `render` do Base UI,
+mantendo um único botão com `aria-label`. O estado desabilitado usa o atributo
+nativo e as classes já fornecidas pelo primitive shadcn.
 
 `DataTableActions` exporta todo o modelo anterior à paginação, mantendo filtros
 e ordenação atuais. Ocultar colunas da tela não modifica o contrato CSV definido
@@ -51,7 +50,7 @@ exigirá um contrato próprio quando existir.
 | Composição                                                                     | Compartilhamento e fronteira                                                                                                                          |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DataTableComboboxFilter → AppCombobox → ui/combobox`                          | Clientes e Unidades compartilham pesquisa, limpeza, grupos e contagens; o domínio fornece itens e facetas                                             |
-| `DataTableActions → DataTableExport/DataTableViewOptions → AppIconButton → ui` | Mesmos contratos para Clientes, Unidades e Veículos                                                                                                   |
+| `DataTableActions → DataTableExport/DataTableViewOptions → AppTooltipButton → ui` | Mesmos contratos para Clientes, Unidades e Veículos                                                                                                |
 | `DataTableRowActions`                                                          | Cópia com feedback compartilhado; navegação para detalhes é fornecida por callback do domínio                                                         |
 | `DataTableEmpty → AppEmpty`                                                    | Estado vazio compartilhado com conteúdo e limpeza definidos pelo consumidor                                                                           |
 | `DataTableError`, `DataTableUpdating`, `DataTablePagination`                   | Estados e controles compartilhados; query e retry pertencem à feature                                                                                 |

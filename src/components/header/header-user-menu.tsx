@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/hooks/use-theme"
-import { getUserInitials } from "@/lib/user-initials"
+import { getUserInitials } from "@/lib/user/user-initials"
 
 function getUserAvatarAlt(name: string) {
   return `Foto de perfil de ${name}`

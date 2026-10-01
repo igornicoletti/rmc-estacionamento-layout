@@ -4,14 +4,14 @@ import { CopyIcon } from "lucide-react"
 import { notify } from "@/components/toast/toast-notify"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { AppIconButton } from "@/components/app/app-icon-button"
+import { AppTooltipButton } from "@/components/app/app-tooltip-button"
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { copyToClipboard } from "@/lib/copy-to-clipboard"
+import { copyToClipboard } from "@/lib/browser/browser-clipboard"
 import { clientsNotify } from "@/features/clients/notifications/clients-notify"
 import {
   formatOptionalText,
@@ -80,7 +80,7 @@ export function ClientsEmailCell({ value }: ClientsEmailCellProps) {
                   <span className="min-w-0 flex-1 select-text break-all text-sm">
                     {email}
                   </span>
-                  <AppIconButton
+                  <AppTooltipButton
                     icon={CopyIcon}
                     label={`Copiar ${email}`}
                     onClick={() => void copyEmail(email)}

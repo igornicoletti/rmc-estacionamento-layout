@@ -1,10 +1,13 @@
 import { DataTableExport } from "@/components/data-table/data-table-export"
-import { dataTableContent } from "@/components/data-table/data-table-content"
 import {
   DataTableViewOptions,
   type DataTableViewOptionsProps,
 } from "@/components/data-table/data-table-view-options"
-import { downloadCsv, serializeCsv, type CsvColumn } from "@/lib/export-to-csv"
+import {
+  downloadCsv,
+  serializeCsv,
+  type CsvColumn,
+} from "@/lib/csv/csv-export"
 
 interface DataTableActionsProps<TRow> {
   csvColumns: readonly CsvColumn<TRow>[]
@@ -27,9 +30,6 @@ export function DataTableActions<TRow>({
     <>
       <DataTableExport
         disabled={isBusy || rows.length === 0}
-        disabledReason={
-          isBusy ? dataTableContent.export.busy : dataTableContent.export.empty
-        }
         onExport={() =>
           downloadCsv(
             filename,

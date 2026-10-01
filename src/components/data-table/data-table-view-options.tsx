@@ -2,7 +2,7 @@ import { Columns3Icon } from "lucide-react"
 
 import { dataTableContent } from "@/components/data-table/data-table-content"
 import type { DataTableColumnMeta } from "@/components/data-table/data-table-features"
-import { AppIconButton } from "@/components/app/app-icon-button"
+import { AppTooltipButton } from "@/components/app/app-tooltip-button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -36,7 +36,7 @@ export function DataTableViewOptions({ table }: DataTableViewOptionsProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <AppIconButton
+          <AppTooltipButton
             icon={Columns3Icon}
             label={dataTableContent.columns.trigger}
             tooltip={dataTableContent.columns.tooltip}

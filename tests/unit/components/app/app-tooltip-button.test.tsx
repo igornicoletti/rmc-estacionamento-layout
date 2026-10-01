@@ -3,19 +3,19 @@ import userEvent from "@testing-library/user-event"
 import { DownloadIcon } from "lucide-react"
 import { describe, expect, it, vi } from "vitest"
 
-import { AppIconButton } from "@/components/app/app-icon-button"
+import { AppTooltipButton } from "@/components/app/app-tooltip-button"
 import { DataTableExport } from "@/components/data-table/data-table-export"
 import { notify } from "@/components/toast/toast-notify"
 import { renderWithProviders } from "@tests/support/render"
 
 vi.mock("@/components/toast/toast-notify", () => ({ notify: vi.fn() }))
 
-describe("AppIconButton", () => {
-  it("explica uma ação desabilitada pelo foco sem executá-la", async () => {
+describe("AppTooltipButton", () => {
+  it("preserva o disabled nativo do Button sem executar a ação", async () => {
     const user = userEvent.setup()
     const onClick = vi.fn()
     renderWithProviders(
-      <AppIconButton
+      <AppTooltipButton
         disabled
         icon={DownloadIcon}
         label="Exportar"
@@ -24,12 +24,9 @@ describe("AppIconButton", () => {
       />,
     )
     const button = screen.getByRole("button", { name: "Exportar" })
+    expect(button).toBeDisabled()
     await user.tab()
-    expect(button).toHaveFocus()
-    expect(button).toHaveAttribute("aria-disabled", "true")
-    expect(await screen.findByRole("tooltip")).toHaveTextContent(
-      "Aguarde os registros",
-    )
+    expect(button).not.toHaveFocus()
     await user.keyboard("{Enter} ")
     await user.click(button)
     expect(onClick).not.toHaveBeenCalled()
@@ -39,7 +36,7 @@ describe("AppIconButton", () => {
     const user = userEvent.setup()
     const onClick = vi.fn()
     renderWithProviders(
-      <AppIconButton
+      <AppTooltipButton
         icon={DownloadIcon}
         label="Exportar"
         tooltip="Exportar registros filtrados"

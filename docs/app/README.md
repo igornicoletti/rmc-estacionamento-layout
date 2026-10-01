@@ -10,7 +10,7 @@
 | `AppCombobox`    | Seleção simples pesquisável, limpeza e grupos                     | Filtro da DataTable        |
 | `AppBadge`       | Tons semânticos e ícone opcional                                  | Prévia `/rmc`              |
 | `AppCalendar`    | Fuso local como padrão, com override                              | Prévia `/rmc`              |
-| `AppIconButton`  | Nome acessível, tooltip e explicação de ação desabilitada focável | Tabelas e cópia de e-mails |
+| `AppTooltipButton` | Botão de ícone com nome acessível e tooltip compartilhada       | Tabelas e cópia de e-mails |
 | `AppSheet`       | Corpo rolável e `SheetClose` configurável no rodapé               | Prévia `/rmc`              |
 
 Use `ui/*` diretamente quando não houver decisão compartilhada, como o `Badge` de contagem da DataTable. A rota `/rmc` permite inspecionar todos os `App*` visualmente, mas uma prévia não equivale a um fluxo funcional de produto.

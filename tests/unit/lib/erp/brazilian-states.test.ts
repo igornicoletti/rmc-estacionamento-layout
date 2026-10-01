@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   getBrazilianStateName,
   parseBrazilianStateCode,
-} from "@/lib/erp/brazilian-states"
+} from "@/lib/erp/erp-brazilian-states"
 
 describe("Brazilian states", () => {
   it("resolve nomes canônicos das 27 UFs por sigla", () => {

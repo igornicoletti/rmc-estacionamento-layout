@@ -16,8 +16,8 @@ const { downloadCsvMock } = vi.hoisted(() => ({
   downloadCsvMock: vi.fn(),
 }))
 
-vi.mock("@/lib/export-to-csv", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/export-to-csv")>()
+vi.mock("@/lib/csv/csv-export", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/csv/csv-export")>()
 
   return {
     ...actual,

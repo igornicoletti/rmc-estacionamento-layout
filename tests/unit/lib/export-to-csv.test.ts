@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { serializeCsv } from "@/lib/export-to-csv"
+import { serializeCsv } from "@/lib/csv/csv-export"
 
 describe("serializeCsv", () => {
   it("serializa cabeçalho, CRLF e campos que exigem aspas", () => {

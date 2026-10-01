@@ -1,7 +1,7 @@
 import {
   createRecordCsvColumns,
   type RecordSectionDefinition,
-} from "@/lib/format-record-fields"
+} from "@/lib/records/records-fields"
 import type { ClientVehicle } from "@/features/clients/vehicles/contracts/vehicles-types"
 import { formatErpName } from "@/features/clients/presentation/clients-format"
 import {

@@ -16,7 +16,7 @@ O diretório simples `app` identifica composições próprias da aplicação. Os
 
 ## Decisões que os tipos protegem
 
-- `AppIconButton` exige ícone e nome acessível, associa tooltip ao foco/hover e preserva a explicação de ações desabilitadas sem permitir sua execução. Pode compor triggers por `render`, preservando props e ref no único botão.
+- `AppTooltipButton` exige ícone e nome acessível e associa uma tooltip ao foco/hover. Compõe o trigger Base UI por `render`, preservando o único botão e sua semântica nativa de `disabled`.
 
 - `AppDialog`, `AppAlertDialog` e `AppSheet` exigem `open`, `onOpenChange` e título. Os fechamentos de Dialog e Sheet usam os primitives nativos e aceitam outro texto ou `null` para omissão.
 - `AppAlertDialog` exige descrição e ação. O cancelamento nativo usa “Cancelar” por padrão e pode ser omitido com `cancelLabel={null}`.
@@ -32,4 +32,6 @@ Um novo `AppX` precisa registrar aqui a decisão que centraliza e ter um consumi
 - [Dialog](https://ui.shadcn.com/docs/components/base/dialog)
 - [Empty](https://ui.shadcn.com/docs/components/base/empty)
 - [Sheet](https://ui.shadcn.com/docs/components/base/sheet)
+- [Button](https://ui.shadcn.com/docs/components/base/button)
+- [Tooltip](https://ui.shadcn.com/docs/components/base/tooltip)
 - [Base UI](https://base-ui.com/react/overview/quick-start)
