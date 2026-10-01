@@ -1,6 +1,8 @@
 import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
+export const validationReportDirectory = "validation-results"
+
 export function runProcess(command, args, {
   capture = false, timeout = 120_000, signal, cwd = process.cwd(), allowedExitCodes = [0], maxOutputBytes = 8 * 1024 * 1024,
 } = {}) {

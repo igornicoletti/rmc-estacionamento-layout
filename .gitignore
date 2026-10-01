@@ -13,6 +13,7 @@ dist-ssr
 coverage
 playwright-report
 test-results
+validation-results
 *.local
 .env
 .env.*

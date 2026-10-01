@@ -53,6 +53,7 @@ export default tseslint.config(
       "coverage",
       "playwright-report",
       "test-results",
+      "validation-results",
       "src/components/ui",
     ],
   },

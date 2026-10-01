@@ -41,7 +41,7 @@ jobs:
         with:
           name: application-validation
           path: |
-            test-results/validation/
+            validation-results/
             playwright-report/
           retention-days: 7
 
@@ -66,5 +66,5 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: database-validation
-          path: test-results/validation/
+          path: validation-results/
           retention-days: 7

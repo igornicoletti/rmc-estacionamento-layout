@@ -37,7 +37,7 @@
 | db:reset | Destrutivo, local e sem seed; usar gate para guardrails |
 | db:test / db:test:concurrency / db:lint / db:advisors | Diagnóstico local individual, stack já iniciado explicitamente |
 
-Runners usam processo Node e argumentos sem shell; falha para sequência imediatamente. SIGINT/TERM/timeout encerram árvore de processos, cleanup do stack próprio usa sinal independente. Captura tem limite de 8 MiB. Banco usa lock exclusivo local e recusa stack preexistente; após interrupção forçada, conferir processos antes de remover supabase/.temp/validation-gate.lock. Relatório por profile em test-results/validation registra SHA, dirty, horários/exit e versões efetivas; não publica stdout sensível. Build:assets evita repetir typecheck já feito; build público continua autossuficiente.
+Runners usam processo Node e argumentos sem shell; falha para sequência imediatamente. SIGINT/TERM/timeout encerram árvore de processos, cleanup do stack próprio usa sinal independente. Captura tem limite de 8 MiB. Banco usa lock exclusivo local e recusa stack preexistente; após interrupção forçada, conferir processos antes de remover supabase/.temp/validation-gate.lock. Relatório por profile em validation-results registra SHA, dirty, horários/exit e versões efetivas; não publica stdout sensível. Build:assets evita repetir typecheck já feito; build público continua autossuficiente.
 
 <a id="c2"></a>
 
@@ -154,7 +154,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | --- | --- |
 | `tests/scripts/docs-model.test.mjs` | Markdown parser resolves references, ids, repeated headings and code inventories; local links cannot escape the repository and external links are not fetched; Vitest discovers every unit/integration suite exactly once in node or dom |
 | `tests/scripts/shared-imports.test.mjs` | effective ESLint config denies runtime/UI/SDK/I-O imports in shared contracts |
-| `tests/scripts/validation-process.test.mjs` | Success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
+| `tests/scripts/validation-process.test.mjs` | Report directories isolated from Playwright cleanup; success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
 
 ### supabase/tests/database
 

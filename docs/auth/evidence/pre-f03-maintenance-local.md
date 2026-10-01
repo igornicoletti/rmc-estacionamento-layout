@@ -24,7 +24,7 @@ registrado no [mapa](../../documentation-standard.md#migration).
 
 SHA, horários, versões, comandos/exit codes, totais e checksums serão registrados após
 gate no commit de implementação. Checks em árvore dirty são preliminares. Relatórios
-sanitizados em test-results/validation não incluem payloads secretos.
+sanitizados em validation-results não incluem payloads secretos.
 
 <a id="limits"></a>
 

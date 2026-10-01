@@ -35,7 +35,7 @@ Linux pode exigir `--with-deps`.
 | `npm run deps:status` | Atualizações informativas |
 
 Gate DB recusa stack já iniciado para não apagar/interromper trabalho de outro processo.
-Relatórios sanitizados: test-results/validation (ignorado). CI billing não é aprovação.
+Relatórios sanitizados: validation-results (ignorado). CI billing não é aprovação.
 
 ## Documentação
 

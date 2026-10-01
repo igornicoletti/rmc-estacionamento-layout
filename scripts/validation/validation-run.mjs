@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { databaseGate } from "../auth-db/auth-db-gate.mjs"
-import { npmScript, runProcess, runSteps } from "./validation-process.mjs"
+import { npmScript, runProcess, runSteps, validationReportDirectory } from "./validation-process.mjs"
 
 const profile = process.argv[2]
 const profiles = {
@@ -36,8 +36,8 @@ try {
   const changes = await runProcess("git", ["status", "--porcelain"], { capture: true })
   const pkg = JSON.parse(await readFile("package.json", "utf8"))
   const lock = JSON.parse(await readFile("package-lock.json", "utf8"))
-  await mkdir("test-results/validation", { recursive: true })
-  await writeFile(`test-results/validation/${profile}.json`, JSON.stringify({
+  await mkdir(validationReportDirectory, { recursive: true })
+  await writeFile(`${validationReportDirectory}/${profile}.json`, JSON.stringify({
     schemaVersion: 1, profile, environment: "LOCAL", sha: head.stdout.trim(),
     dirty: changes.stdout.trim() !== "", startedAt, finishedAt: new Date().toISOString(), exitCode,
     versions: { node: process.version, npm: process.env.npm_config_user_agent?.match(/npm\/([^ ]+)/)?.[1] ?? "unknown",

@@ -1,7 +1,15 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { runProcess, runSteps } from "../../scripts/validation/validation-process.mjs"
+import { runProcess, runSteps, validationReportDirectory } from "../../scripts/validation/validation-process.mjs"
+import { relative, resolve } from "node:path"
 import { assertEmptyDiff, databaseGate, container } from "../../scripts/auth-db/auth-db-gate.mjs"
+
+test("validation reports are outside directories reset by Playwright", () => {
+  for (const directory of ["test-results", "playwright-report"]) {
+    assert.ok(relative(resolve(directory), resolve(validationReportDirectory)).startsWith(".."))
+    assert.ok(relative(resolve(validationReportDirectory), resolve(directory)).startsWith(".."))
+  }
+})
 
 test("process runner captures success and never exposes captured failure payload", async () => {
   const result = await runProcess(process.execPath, ["-e", "console.log('synthetic-output')"], { capture: true })
