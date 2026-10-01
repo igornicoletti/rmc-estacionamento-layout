@@ -50,6 +50,8 @@ async function ownedDatabaseGate(execute, results, afterReady) {
       step("db:test:concurrency"), step("db:test:concurrency"),
       { label: "F03 DB concurrency 1", command: process.execPath, args: ["scripts/auth-db/auth-db-context-concurrency.mjs"] },
       { label: "F03 DB concurrency 2", command: process.execPath, args: ["scripts/auth-db/auth-db-context-concurrency.mjs"] },
+      { label: "Pre-F04 DB concurrency 1", command: process.execPath, args: ["scripts/auth-db/auth-db-prerequisites-concurrency.mjs"] },
+      { label: "Pre-F04 DB concurrency 2", command: process.execPath, args: ["scripts/auth-db/auth-db-prerequisites-concurrency.mjs"] },
       step("db:lint"), step("db:advisors")], execute, results)
     const server = await execute("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-AtX", "-c", "show server_version"], { capture: true })
     if (!/^17\.\d+(?:\s.*)?$/.test(server.stdout.trim())) throw new Error("Unexpected PostgreSQL major")

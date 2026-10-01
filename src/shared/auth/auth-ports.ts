@@ -4,6 +4,7 @@ import type {
   Onboarding,
   SessionSnapshot,
 } from "./auth-contracts"
+import type { AuditEvent } from "./auth-audit"
 
 export type Abortable = { signal: AbortSignal }
 export type CommandContext = Abortable & { commandId: string; requestId: string }
@@ -30,35 +31,6 @@ export type QueueEnvelope = {
   purpose: string
   generation: number
   envelope: EncryptedEnvelope
-}
-export const auditEventTypes = [
-  "AUTH_LOGIN_OUTCOME",
-  "MFA_OUTCOME",
-  "SESSION_REVOKED",
-  "SESSION_REFRESH_OUTCOME",
-  "CHALLENGE_REQUESTED",
-  "CHALLENGE_VERIFIED",
-  "RECOVERY_OUTCOME",
-  "ADMIN_COMMAND_OUTCOME",
-  "DELIVERY_OUTCOME",
-  "RECONCILIATION_REQUIRED",
-  "RECONCILIATION_RESOLVED",
-] as const
-export type AuditEventType = (typeof auditEventTypes)[number]
-export type AuditEvent = {
-  eventId: string
-  requestId: string
-  commandId?: string
-  identityId?: string
-  eventType: AuditEventType
-  purpose?: string
-  generation?: number
-  capability?: string
-  outcome: string
-  reasonCode?: string
-  occurredAt: string
-  deployment: string
-  contractVersion: "1.1"
 }
 
 export interface Clock {

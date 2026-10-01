@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest"
 
-import { auditEventTypes } from "@/shared/auth/auth-ports"
+import { auditEventTypes } from "@/shared/auth/auth-audit"
 
 import type {
   AuthenticatedSession,

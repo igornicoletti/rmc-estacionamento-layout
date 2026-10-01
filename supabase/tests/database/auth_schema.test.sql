@@ -20,7 +20,7 @@ select has_table('rmc_auth_private', 'rate_limit_buckets', 'rate limiter exists'
 select has_table('rmc_auth_private', 'refresh_leases', 'refresh leases exist');
 select has_table('rmc_auth_private', 'reconciliation_jobs', 'reconciliation exists');
 select is((select count(*)::integer from information_schema.tables where table_schema = 'rmc_auth_api'), 0, 'api schema exposes no tables');
-select is((select count(*)::integer from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='rmc_auth_private' and c.relkind='r' and c.relrowsecurity), 16, 'all private tables enable RLS');
+select is((select count(*)::integer from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='rmc_auth_private' and c.relkind='r' and not c.relrowsecurity), 0, 'all private tables enable RLS');
 select ok(not has_schema_privilege('anon', 'rmc_auth_private', 'USAGE'), 'anon lacks private usage');
 select ok(not has_schema_privilege('authenticated', 'rmc_auth_private', 'USAGE'), 'authenticated lacks private usage');
 select ok(has_schema_privilege('service_role', 'rmc_auth_api', 'USAGE'), 'service role can use RPC schema');
@@ -28,7 +28,7 @@ select ok((select rolbypassrls from pg_roles where rolname='service_role'), 'ser
 select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.claim_command(uuid,uuid,bytea,text,uuid,uuid)'::regprocedure), 'claim command is invoker');
 select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.consume_challenge(uuid,bigint)'::regprocedure), 'consume challenge is invoker');
 select ok(not (select prosecdef from pg_proc where oid='rmc_auth_api.acquire_refresh_lease(uuid,uuid,bigint,integer)'::regprocedure), 'lease RPC is invoker');
-select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='rmc_auth_api' and p.proconfig @> array['search_path=""']), 9, 'all RPCs pin empty search_path');
+select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='rmc_auth_api' and not coalesce(p.proconfig @> array['search_path=""'],false)), 0, 'all RPCs pin empty search_path');
 select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='rmc_auth_api' and has_function_privilege('anon', p.oid, 'EXECUTE')), 0, 'anon executes no RPC');
 select ok(to_regclass('rmc_auth_private.assignments_one_current_manager_per_unit_idx') is not null, 'manager cardinality index exists');
 select ok(to_regclass('rmc_auth_private.sessions_one_current_normal_per_identity_idx') is not null, 'normal session cardinality index exists');
