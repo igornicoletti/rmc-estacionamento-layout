@@ -1,7 +1,7 @@
 # Arquitetura da aplicação
 
 **Natureza:** referência vigente. **Escopo:** composição, rotas, cache e scaffold.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
 **Status:** implementação existente descrita; resultados de execução ficam no [manifesto](../auth/evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
 
 ## Sumário navegável
@@ -42,7 +42,21 @@ AuthProvider provisório distingue bootstrap/anonymous/authenticated/unavailable
 
 App routing/shell/navigation/errors/access/session/query/theme estão no [catálogo](../project/validation.md#catalog). Testes preservam cancelamento, cache seletivo, falha de sign-out, redirects query/hash, títulos e classificação. Não provam RLS/provider/BFF/MFA ou gate hospedado.
 
-F00/F01/F02 são evidências locais históricas; manutenção suplementa ferramentas, sem iniciar F03. [Estado Auth](../auth/README.md).
+F00/F01/F02 são evidências locais históricas. F03 tem runtime próprio, não integra o scaffold ao Auth real. [Estado Auth](../auth/README.md).
+
+Contrato vigente [v1.1](../auth/contract-v1.1.md); prova local F03 no [manifesto](../auth/evidence/F03-local.md). Codec 1/A256GCM é explícito e o gate valida conflitos de cookies, URL/Host, subresources e challenge 401. Isso não implementa as novas obrigações das jornadas futuras.
+
+### Fronteira F03
+
+`worker/src/worker-entry.ts` despacha `/api` e `/api/*` antes dos assets. API desconhecida/desabilitada retorna Problem Details 404 mesmo com Accept HTML. Somente health público e contexto PREAUTH local são habilitáveis; ambientes hospedados mantêm contexto fechado.
+
+Pipeline: roteamento → configuração → Origin/Fetch Metadata/cookie → leitura limitada → schema → RPC estreita → schema de saída → headers. Body: 8 KiB reais; URL: 2.048 bytes; Cookie: 4.096 bytes. Worker tem 12 s, upstream 5 s incluindo resposta; resposta pública 16 KiB e RPC 64 KiB são ADR, não limites normativos. Cancelamento não prova rollback.
+
+Contexto usa jornada PREAUTH, cookie opaco HttpOnly e CSRF persistido hash+ciphertext AES-GCM; reentrega não renova TTL de 30 min. Criação/limiter são transacionais. Chaves distintas Cookie/CSRF/rate; AAD inclui versão, finalidade, contexto e generation. Sessões NORMAL e outras jornadas não são rebaixadas para PREAUTH. Protection helper valida Origin exato, cookie, CSRF e authority atual antes do handler; mutations futuras continuam 404.
+
+API aplica no-store/nosniff/CSP e request ID inclusive no catch. HTML/assets usam `public/_headers`; hashes de estilos existentes são preservados. Scripts não permitem unsafe-inline/eval; style-src-attr unsafe-inline é exceção necessária ao posicionamento Base UI. HSTS/preload dependem do domínio hospedado validado. Logs têm apenas operação allowlisted, duração, status e request ID.
+
+Teste HTTPS usa origem fixa `https://localhost:8787`, Supabase loopback 55321, chaves sintéticas efêmeras e certificado aceito somente pelo runner/browser de teste. Nenhuma confiança do sistema ou recurso remoto é alterado. Prova operacional hospedada continua F13.
 
 <a id="c5"></a>
 

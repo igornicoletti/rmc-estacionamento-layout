@@ -1,0 +1,22 @@
+{
+  "name": "@rmc/auth-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "types": "wrangler types worker-env.d.ts --strict-vars=false",
+    "types:check": "wrangler types worker-env.d.ts --strict-vars=false --check",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --maxWorkers=1",
+    "dry-run": "wrangler deploy --dry-run --outdir ../validation-results/worker-bundle"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.2",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.3.4",
+    "vitest": "4.1.11",
+    "wrangler": "4.145.0"
+  }
+}

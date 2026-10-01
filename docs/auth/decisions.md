@@ -1,14 +1,16 @@
 # Decisões derivadas de Auth
 
-**Natureza:** referência vigente. **Escopo:** ADRs aceitas, sem alteração normativa.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
-**Status:** implementação existente descrita; resultados de execução ficam no [manifesto](evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
+**Natureza:** referência vigente. **Escopo:** decisões derivadas e revisão normativa explicitamente identificada.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
+**Status:** decisões explícitas; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
 
 ## Sumário navegável
 
 - [ADR-001 — Identificadores opacos](#c1)
 - [ADR-002 — Perfil de persistência](#c2)
 - [Precedência e limites](#c3)
+- [ADR-003 — Transporte e runtime F03](#c4)
+- [ADR-004 — Revisão normativa v1.1](#c5)
 
 <a id="c1"></a>
 
@@ -59,3 +61,33 @@ Referências: [Web Crypto](https://www.w3.org/TR/WebCryptoAPI/), [CHECK/FK Postg
 ## Precedência e limites
 
 Obrigação aplicável/decisão explícita posterior → contrato vigente → decisão derivada → implementação/evidência. Mudança material exige versão/supersessão; código não altera contrato. Crypto/Queue/Audit são ampliação deliberada do plano mestre como portas puras: não são adapters ou prova operacional. [Contrato](contract-v1.0.md#c01), [matriz](plan-and-requirements.md#c5).
+
+<a id="c4"></a>
+
+## ADR-003 — Transporte e runtime F03
+
+Aceito conforme plano aprovado em 01/10/2026; não altera contrato v1.0. Respostas Auth limitadas a 16 KiB e RPC a 64 KiB incluindo erro. Budget browser total 30 s, tentativa 15 s, jitter 100–500 ms; Worker 12 s, upstream 5 s são parâmetros canônicos. POST nunca repete automaticamente; GET no máximo uma repetição elegível. Retry-After superior ao budget é informado, nunca truncado.
+
+Workspace npm privado worker compartilha lockfile raiz; Vitest app 5.0.3 e Worker 4.1.11 coexistem porque plugin 1.3.4 exige ^4.1.0. Wrangler 4.145.0 gera Env/runtime com compatibility_date 2026-10-01. Não usar force/legacy-peer-deps ou downgrade global.
+
+Adapter Worker usa redirect manual e rejeita todo 3xx, pois runtime não implementa error; nenhuma Location é seguida ou repassada. Browser usa redirect error nativo. A diferença mantém a mesma política de negar redirects, comprovada no runtime e no HTTPS real.
+
+F03 habilita somente PREAUTH local com Auth disabled, origem fixa HTTPS localhost:8787, banco 127.0.0.1:55321 e listener loopback. Rate local: 60 criações/min por chave HMAC loopback confiável e 600/min global; headers IP do caller não são autoridade. Reentrega não conta criação. Falha de limiter retorna indisponibilidade. Limpeza limitada a lotes de 100 por tabela em RPC durante criação; scheduler e capacidade target continuam pendentes.
+
+Segredos de 256 bits base64url canônico; cookie e CSRF usam domínios/chaves distintos. AES-256-GCM nonce aleatório 96 bits/tag 128 bits; AAD JSON canônico [purpose,binding,keyVersion], onde binding é JSON [1,contextId,purpose,generation]. Binding hash corresponde ao binding UTF-8; comparação timing-safe no runtime. Material não gira em GET. Preparação de vínculo session não habilita NORMAL; promoção/expiração/logout completos exigem fases posteriores.
+
+Headers HTML mantêm hashes originais e style-src-attr unsafe-inline por posicionamento Base UI. HSTS includeSubDomains anteriormente estático foi removido até prova do domínio/subdomínios; sem preload. Integração HTTPS não equivale a deploy, PASS_LOCAL global ou PASS_TARGET.
+
+`worker/worker-env.d.ts` preserva a saída integral de Wrangler/workerd 1.20260930.2, incluindo cinco espaços finais emitidos pelo gerador. `.gitattributes` dispensa somente blank-at-eol nesse arquivo gerado; demais regras e arquivos escritos manualmente permanecem estritos. O diff completo da branch é revisado além do working diff, e `types --check` continua comparando o output nativo sem normalização manual.
+
+<a id="c5"></a>
+
+## ADR-004 — Revisão normativa v1.1
+
+Aceita como revisão solicitada pelo responsável após confronto do dossiê v2.0; não é mera derivação da v1.0. [Texto vigente](contract-v1.1.md) identifica substituições, matriz de cookies e fases responsáveis. A base, snapshots e evidências históricas permanecem intactos.
+
+F03 altera versão dos DTOs para 1.1, explicita codec CSRF 1/A256GCM sem alterar ciphertext/AAD e adiciona migration incremental que preserva audit 1.0. Validação HTTP nega Host/URL divergentes e subresource/navigation de contexto; problemas 401 incluem desafio específico RMCSession. Vetor criptográfico independente e contraprovas runtime/SQL/HTTPS sustentam esses ajustes.
+
+Seletores técnicos, UUID provider reservado, CPF recuperável cifrado, enrollment exclusivo e step-up consumido no commit ficam nas fases responsáveis, não são funcionalidades concluídas. S/A obrigatórios antes de NORMAL é mudança normativa explícita; política adicional R/M exige decisão antes de target. Verificação JWT local não substitui revogação provider sem protocolo provado. TLS/pooler direto permanece condicional à arquitetura, não requisito do adapter HTTP.
+
+Alternativas rejeitadas: editar bytes da v1.0; copiar 125 IDs como nova autoridade duplicada; remover verificação online por otimização; criar endpoint bootstrap sem necessidade; impor JSON ao envelope binário; afirmar CSP sem exceção de styles; transformar evidências de outros SHAs em prova v1.1. Nenhum desses ajustes habilita Auth ou F04.

@@ -46,9 +46,9 @@ jobs:
           retention-days: 7
 
   auth-db:
-    name: Auth DB rebuild, pgTAP, concurrency and advisors
+    name: Workers, Auth DB rebuild and HTTPS integration
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -60,11 +60,12 @@ jobs:
           node-version-file: ".node-version"
           package-manager-cache: false
       - run: npm ci --no-audit
-      - run: npm run check:db
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check:bff
       - name: Upload sanitized validation report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: database-validation
-          path: validation-results/
+          name: bff-validation
+          path: validation-results/bff.json
           retention-days: 7

@@ -3,6 +3,16 @@ import assert from "node:assert/strict"
 import { runProcess, runSteps, validationReportDirectory } from "../../scripts/validation/validation-process.mjs"
 import { relative, resolve } from "node:path"
 import { assertEmptyDiff, databaseGate, container } from "../../scripts/auth-db/auth-db-gate.mjs"
+import { mkdtemp, rm } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { pathToFileURL } from "node:url"
+import { join } from "node:path"
+
+async function isolatedGate(run) {
+  const directory = await mkdtemp(join(tmpdir(), "rmc-gate-test-"))
+  try { return await run((execute, results, afterReady) => databaseGate(execute, results, afterReady, pathToFileURL(directory + "/"))) }
+  finally { await rm(directory, { recursive: true, force: true }) }
+}
 
 test("validation reports are outside directories reset by Playwright", () => {
   for (const directory of ["test-results", "playwright-report"]) {
@@ -46,20 +56,22 @@ test("schema diff rejects nonempty SQL even with successful CLI exit", () => {
 })
 
 test("database gate excludes concurrent invocations and releases its lock", async () => {
-  await assert.rejects(databaseGate(async () => {
-    await assert.rejects(databaseGate(), /locked/)
+  await isolatedGate(async (gate) => {
+  await assert.rejects(gate(async () => {
+    await assert.rejects(gate(), /locked/)
     throw new Error("synthetic stop before startup")
   }), /synthetic stop/)
   // The next invocation must reach Docker rather than fail on a leaked lock.
-  await assert.rejects(databaseGate(async () => { throw new Error("lock released") }), /lock released/)
+  await assert.rejects(gate(async () => { throw new Error("lock released") }), /lock released/)
+  })
 })
 
 test("database gate refuses a preexisting stack without stopping or resetting it", async () => {
   const calls = []
-  await assert.rejects(databaseGate(async (_command, args) => {
+  await isolatedGate(async (gate) => { await assert.rejects(gate(async (_command, args) => {
     calls.push(args)
     return { stdout: args[0] === "ps" ? `${container}\n` : "", stderr: "", exitCode: 0 }
-  }), /already running/)
+  }), /already running/) })
   assert.equal(calls.length, 2)
 })
 
@@ -68,11 +80,28 @@ test("database gate cleans up owned startup on failure", async () => {
   process.env.npm_execpath = "synthetic-npm-cli"
   const calls = []
   try {
-    await assert.rejects(databaseGate(async (_command, args) => {
+    await isolatedGate(async (gate) => { await assert.rejects(gate(async (_command, args) => {
       calls.push(args)
       if (args.includes("db:reset")) throw new Error("synthetic failure")
       return { stdout: "", stderr: "", exitCode: 0 }
-    }), /db:reset/)
+    }), /db:reset/) })
+    assert.ok(calls.at(-1).includes("db:stop"))
+  } finally {
+    if (prior === undefined) delete process.env.npm_execpath
+    else process.env.npm_execpath = prior
+  }
+})
+
+test("database gate cleans up its stack when the shared integration callback fails", async () => {
+  const prior = process.env.npm_execpath
+  process.env.npm_execpath = "synthetic-npm-cli"
+  const calls = []
+  try {
+    await isolatedGate(async (gate) => { await assert.rejects(gate(async (_command, args) => {
+      calls.push(args)
+      const sql = args.at(-1)
+      return { stdout: sql === "show server_version" ? "17.6" : typeof sql === "string" && sql.startsWith("select (select count(*)") ? "0" : "", stderr: "", exitCode: 0 }
+    }, [], async () => { throw new Error("integration failure") }), /integration failure/) })
     assert.ok(calls.at(-1).includes("db:stop"))
   } finally {
     if (prior === undefined) delete process.env.npm_execpath

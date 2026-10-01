@@ -1,14 +1,16 @@
 # Pesquisa oficial
 
 **Natureza:** referência vigente. **Escopo:** fontes, versões e impacto; histórico explícito.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
-**Status:** implementação existente descrita; resultados de execução ficam no [manifesto](evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
+**Status:** fontes e limites registrados; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
 
 ## Sumário navegável
 
 - [2026-09-30 — execução local da F02](#c1)
 - [2026-10-01 — reauditoria crítica da F02](#c2)
 - [2026-10-01 — Manutenção pré-F03](#c3)
+- [2026-10-01 — Implementação F03](#c4)
+- [2026-10-01 — Confronto do dossiê v2.0](#c5)
 
 <a id="c1"></a>
 
@@ -66,3 +68,41 @@ Busca dirigida: npm lockfile/peers, Vitest projects, shadcn source updates, GitH
 | [shadcn CLI](https://ui.shadcn.com/docs/cli), [Base UI](https://base-ui.com/react/overview/quick-start) | info confirmou base-luma, 27 primitives, cn package; nenhum overwrite de source |
 
 Fontes consultadas em 01/10/2026; nomes/versões capturam a consulta, não representam atualização contínua automática. Critérios SQL antigos permanecem históricos. Ações remotas/segredos/deploy não fizeram parte desta pesquisa.
+
+<a id="c4"></a>
+
+## 2026-10-01 — Implementação F03
+
+Perguntas: como impedir fallback SPA para API; provar streaming/deadlines no runtime; separar versões Vitest; vincular CSRF sem sessão SSR; restringir RPC e registrar limites de prova. Busca dirigida por Workers Static Assets run_worker_first, Vitest plugin peerDependencies, Wrangler types HTTPS, synchronizer CSRF same-origin, Supabase request scoped custom schemas e RFC9457. Incluídas somente docs/changelogs/metadata dos mantenedores, IETF e OWASP; exemplos antigos de pool e grants amplos foram rejeitados. Contrato confrontado antes das fontes externas. Sem dados humanos, serviços remotos ou inferência de capacidade target.
+
+| Fonte oficial consultada em 01/10 | Decisão/impacto |
+| --- | --- |
+| [Worker-first](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/) | /api e /api/* antes da SPA; desconhecida jamais usa assets |
+| [Headers](https://developers.cloudflare.com/workers/static-assets/headers/) | _headers só assets; respostas Worker recebem proteção centralizada |
+| [Vitest Workers](https://developers.cloudflare.com/workers/testing/vitest-integration/write-your-first-test/) | cloudflareTest e cloudflare:workers; plugin1.3.4 peer ^4.1.0, Vitest4.1.11 isolado do app5.0.3 |
+| [Wrangler](https://developers.cloudflare.com/workers/wrangler/commands/workers/) | 4.145.0 pinado; types --check, HTTPS local e dry-run sem publicação |
+| [Web Crypto](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/) | HMAC-SHA-256, AES-GCM, timingSafeEqual; chaves/domínios distintos |
+| [Request runtime](https://developers.cloudflare.com/workers/runtime-apis/request/) | HTTPS real mostrou que Workers não implementa redirect:error; usar manual e negar todo 3xx antes de body/schema. Browser permanece redirect:error. CLI dev também não aceita infer-origin-from-routes como flag nesta versão; sem routes/host externos, origem local preservada e comprovada |
+| [SDK](https://supabase.com/docs/guides/auth/choosing-a-server-package), [schemas](https://supabase.com/docs/guides/api/using-custom-schemas) | SDK2.117.2 request-scoped no Worker; nenhuma sessão SSR; grants mínimos em vez de GRANT ALL dos exemplos |
+| [RFC9457](https://www.rfc-editor.org/rfc/rfc9457.html) | about:blank usa título do status, código fechado/request ID, sem detalhes internos |
+| [OWASP CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) | synchronizer persistido; same-site é negado; mutation requer Origin exato + CSRF |
+| [Supabase changelog](https://supabase.com/changelog?types=breaking-change) | PG17.11 hospedado não presume minor local; registrar show server_version; Data API opt-in, schemas internos não utilizados |
+
+Registry engines/peers/advisories foram conferidos antes da instalação. Um lockfile raiz; sem instalação forçada. Testes runtime não substituem HTTPS+PostgreSQL reais, e ambos não substituem prova hosted da F13.
+
+<a id="c5"></a>
+
+## 2026-10-01 — Confronto do dossiê v2.0
+
+Objetivo: distinguir obrigação existente, correção normativa, detalhe de implementação e prova ausente. Método: leitura integral do dossiê e v1.0, confronto dos 18 P0 e T39–T63 com implementação e fontes primárias; excluir blogs, exemplos permissivos de grants e comportamento interno não fixado. Resultado/matriz e hashes em [v1.1](contract-v1.1.md#audit). Consulta: 01/10/2026; nenhuma versão hospedada certificada.
+
+| Busca/fonte primária | Evidência e limite | Decisão |
+| --- | --- | --- |
+| Supabase admin createUser/password; fonte Auth `ce9a8eee0cc042be8c7a42981a7ddae631e41d91` | UUID fornecido e credencial interna aleatória suportados; API de login email/phone, não CPF; comportamento target exige PoC | Adapter técnico e ownership reservado F04; sem senha entregue, não ausência literal de credencial |
+| Supabase sessions/signing keys | JWT válido pode sobreviver à sessão provider; JWKS tem cache upstream/SDK | Não remover verificação online sem protocolo de revogação/fence |
+| PostgREST transactions/PostgreSQL RLS | RPC transacional; READ COMMITTED não é snapshot único entre statements; service_role BYPASSRLS | Isolamento por comando; grants separados de RLS |
+| RFC 9110 §15.5.2/RFC 9457 | WWW-Authenticate obrigatório em 401; about:blank usa título do status | Desafio RMCSession específico da aplicação; sem exigir Bearer |
+| OWASP CSRF/transaction authorization; NIST 800-63B | Proteção vinculada a contexto/efeito; TOTP não phishing-resistant | Cookies determinísticos, prova one-time; não alegar conformidade NIST integral |
+| Workers Web Crypto/Static Assets headers | Codec precisa ser inequívoco; headers combinados requerem detach para cache immutable | Codec 1 explícito, vetor independente, style exception separada de script |
+
+URLs reproduzíveis e commit fixado estão nas [fontes da revisão](contract-v1.1.md#sources). A base possui 160 IDs, não 157; o dossiê tem 125 IDs próprios e 25 testes adicionais. Esses inventários não equivalem a provas de segurança nem certificação de auditoria independente.

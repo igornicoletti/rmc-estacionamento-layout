@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": ["worker"],
   "packageManager": "npm@11.6.0",
   "engines": {
     "node": "^24.18.1",
@@ -53,7 +54,11 @@
     "check": "node scripts/validation/validation-run.mjs quick",
     "check:app": "node scripts/validation/validation-run.mjs app",
     "check:db": "node scripts/validation/validation-run.mjs db",
-    "check:full": "node scripts/validation/validation-run.mjs full"
+    "check:full": "node scripts/validation/validation-run.mjs full",
+    "test:worker": "npm test -w worker",
+    "check:worker": "node scripts/worker/worker-check.mjs",
+    "test:worker:integration": "node scripts/worker/worker-integration.mjs",
+    "check:bff": "node scripts/validation/validation-run.mjs bff"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -85,12 +90,12 @@
     "unified": "11.0.5",
     "vite": "^8.3.1",
     "vitest": "^5.0.3",
-    "yaml": "2.9.1"
+    "yaml": "2.9.1",
+    "wrangler": "4.145.0"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@fontsource-variable/inter": "^5.3.0",
-    "@supabase/supabase-js": "2.117.2",
     "@tanstack/react-query": "5.104.0",
     "@tanstack/react-table": "^9.2.4",
     "class-variance-authority": "^0.7.1",

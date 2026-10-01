@@ -1,7 +1,7 @@
 # Features e utilitários
 
 **Natureza:** referência vigente. **Escopo:** src/features, src/lib, src/shared e mocks.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
 **Status:** implementação existente descrita; resultados de execução ficam no [manifesto](../auth/evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
 
 ## Sumário navegável
@@ -29,7 +29,7 @@ Query keys/readers loadDemo e fixtures em mocks são demonstração usada no run
 | browser | Clipboard API e propagação de falha |
 | csv | Serialização CRLF/escaping e download |
 | erp | Readers defensivos, CPF/CNPJ, UF, data/fuso e formatação ERP |
-| http | Leitura defensiva de status |
+| http | Status, streaming limitado, deadlines e HttpClient same-origin; schemas em shared |
 | query | Fábrica de client e política de retry |
 | records | Campos, cópia e projeção CSV |
 | user | Iniciais de apresentação |
@@ -43,6 +43,8 @@ AppTooltipButton centraliza tooltip/nome/disabled; DataTableActions/RowActions c
 ## Shared e escopo Auth
 
 F01 em `src/shared/auth` e `src/shared/authorization` é puro: schemas/estados/ports/evaluator parcial sem React/SDK/I-O. ESLint corrigido e contraprovas impedem import proibido ser sobrescrito por regra genérica. Migrations F02 permanecem fonte evolutiva; snapshots somente derivados. [Plano/matriz](../auth/plan-and-requirements.md).
+
+F03 acrescenta DTO/porta de contexto e registro canônico de endpoints em shared, sem I/O. `src/lib/http/http-stream.ts` é runtime isomórfico (Fetch/Web Streams), reutilizado pelo Worker; não é contrato puro. `src/lib/http/http-client.ts` guarda CSRF somente em memória, não seleciona SDK, controller ou autoridade. SDK e adapters ficam no workspace `worker/`; imports browser desses módulos são proibidos pelo ESLint.
 
 <a id="c4"></a>
 

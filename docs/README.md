@@ -1,6 +1,6 @@
 # Documentação do projeto
 
-**Natureza:** índice vigente. **Revisão:** 01/10/2026. **Baseline:** main 6daa9be + manutenção pré-F03.
+**Natureza:** índice vigente. **Revisão:** 01/10/2026. **Baseline:** main 74c7b24 + F03/revisão Auth v1.1; SHAs executados nas evidências.
 **Status:** referências por responsabilidade; histórico não é prova do checkout atual.
 
 ## Sumário navegável
