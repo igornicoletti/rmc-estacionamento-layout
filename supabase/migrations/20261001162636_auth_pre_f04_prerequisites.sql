@@ -334,7 +334,13 @@ grant execute on function rmc_auth_api.read_cpf_policy(),rmc_auth_api.read_cpf_s
 revoke all on rmc_auth_private.cpf_lookup_policy,rmc_auth_private.cpf_sources,rmc_auth_private.provider_reservations from public,anon,authenticated;
 grant select on rmc_auth_private.cpf_lookup_policy to service_role;
 grant update(id) on rmc_auth_private.cpf_lookup_policy to service_role;
-grant select,insert,update on rmc_auth_private.cpf_sources,rmc_auth_private.provider_reservations to service_role;
+grant select,insert on rmc_auth_private.cpf_sources to service_role;
+grant update(identity_generation,revision,key_version,ciphertext,updated_at) on rmc_auth_private.cpf_sources to service_role;
+grant select on rmc_auth_private.provider_reservations to service_role;
+grant insert(command_id,identity_id,identity_generation,lease_owner,lease_expires_at)
+  on rmc_auth_private.provider_reservations to service_role;
+grant update(fence,lease_owner,lease_expires_at,state,confirmed_at)
+  on rmc_auth_private.provider_reservations to service_role;
 grant execute on function rmc_auth_private.guard_provider_reservation(),rmc_auth_private.guard_lookup_rotation(),
   rmc_auth_private.guard_cpf_source() to service_role;
 grant select,insert on rmc_auth_private.identity_lookups to service_role;

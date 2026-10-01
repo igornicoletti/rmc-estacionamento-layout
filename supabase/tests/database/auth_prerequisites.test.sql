@@ -11,6 +11,9 @@ select ok(not has_table_privilege('anon','rmc_auth_private.cpf_sources','SELECT'
 select ok(not has_table_privilege('authenticated','rmc_auth_private.provider_reservations','SELECT'),'browser cannot read ownership');
 select ok(not has_function_privilege('service_role','rmc_auth_api.begin_cpf_rotation(bigint,integer)','EXECUTE'),'rotation is administrative only');
 select ok(not has_function_privilege('anon','rmc_auth_api.reserve_provider(uuid,bigint,uuid)','EXECUTE'),'anon cannot reserve');
+select ok(not has_column_privilege('service_role','rmc_auth_private.provider_reservations','provider_subject','INSERT'),'BFF cannot inject provider UUID at insert');
+select ok(not has_column_privilege('service_role','rmc_auth_private.provider_reservations','ownership_binding','UPDATE'),'BFF cannot rewrite ownership binding');
+select ok(not has_column_privilege('service_role','rmc_auth_private.provider_reservations','state','INSERT'),'BFF cannot insert a precommitted reservation');
 select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace
   where n.nspname='rmc_auth_api' and p.prosecdef),0,'no definer exception added');
 
