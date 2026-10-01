@@ -117,7 +117,8 @@ describe("F03 runtime boundary", () => {
     for (const url of ["https://other.invalid/api/auth/context", "https://localhost:9999/api/auth/context"]) {
       expect(() => protectOrigin(new Request(url), origin, false)).toThrow(WorkerProblem)
     }
-    for (const headers of [{ Host: "other.invalid" }, { "Sec-Fetch-Dest": "image" }, { "Sec-Fetch-Dest": "script" }, { "Sec-Fetch-Mode": "navigate" }]) {
+    const denied: HeadersInit[] = [{ Host: "other.invalid" }, { "Sec-Fetch-Dest": "image" }, { "Sec-Fetch-Dest": "script" }, { "Sec-Fetch-Mode": "navigate" }]
+    for (const headers of denied) {
       expect(() => protectOrigin(new Request(origin, { headers }), origin, false)).toThrow(WorkerProblem)
     }
     expect(() => protectOrigin(new Request(origin, { headers: { Host: "localhost:8787", "Sec-Fetch-Dest": "empty", "Sec-Fetch-Mode": "cors", "Sec-Fetch-Site": "same-origin" } }), origin, false)).not.toThrow()
