@@ -1,0 +1,40 @@
+# Reauditoria crítica da F02
+
+Revisão de `c34dc6087c0b013657b857d8705ae2fa4eedd4d8`, em 01/10/2026, contra o contrato v1.0 recebido (SHA-256 `74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148`), plano mestre e ADR-001. O anexo foi usado como fonte normativa para comparação; suas instruções documentais não foram executadas autonomamente.
+
+As correções estão em uma migration adicional, sem reescrever o histórico das quatro migrations anteriores. O banco ainda é exclusivamente local e reconstruído vazio: a coluna obrigatória de segredo da jornada não recebe backfill inventado em base populada.
+
+| Achado confirmado no SHA auditado | Requisito | Correção | Contraprova |
+| --- | --- | --- | --- |
+| Lease aceitava sessão revogada, expirada, restrita, com generation divergente ou identidade bloqueada | SEC-05/08, SES-01, REF-01 | locks identity → session → lease; revalidação após locks; fence de identidade separado da generation da sessão | revogação, idle/absolute expiry, propósito restrito, geração divergente e concorrência 2/5/10/50 |
+| RPCs aceitavam timestamps públicos, permitindo simular passado/futuro | IDLE-02, DB-04/05 | remoção dos overloads com clock; `clock_timestamp()` depois da aquisição dos locks | ausência do overload; challenge expirado negado |
+| Consumo de challenge ignorava jornada cancelada, binding, identidade, budget e fence | SEC-07/15/19, DB-05 | validação sob locks identity → journey → challenge; contexto corrente, budget e expiry revalidados | cancelamento, identidade bloqueada/fenced, orçamento esgotado e mismatch de generation |
+| Consumo/revogação podiam ser desfeitos; ledger permitia regressão e alteração da intenção | DB-05, PRV-02, cap. 20.2 | triggers de imutabilidade, estados terminais, transições e fencing monotônico | tentativa de reabrir challenge/session/journey; alteração de actor/target/intenção; salto de estado |
+| Grants abrangiam todas as tabelas e mutations sem RPC implementada | DB-01–04 | grants por relação/ação usados pelas quatro RPCs invoker; `UPDATE(id)` apenas para permitir row locks e bloqueado por triggers quando altera a chave | `SET ROLE` real para anon/authenticated/service_role; alteração de role, audit, sessão e delete de lease negados |
+| Hashes/envelopes aceitavam bytes vazios; refresh não tinha metadados completos; jornada não tinha secret hash/key version | SEC-15, SES-04, KEY-01/02 | perfil persistente versionado no ADR-002; SHA-256 com 32 bytes; envelope com purpose/binding/key version; segredo da jornada; constraint UUID v4 | bytes inválidos, contexto incompleto e UUID não-v4 negados |
+| Challenge e outbox existiam sem operação persistente atômica e permitiam bindings divergentes | cap. 20.3, DB-05, T28/T29 | RPC `create_delivery_challenge`; FKs compostas e triggers para identidade, inclusive NULL de decoy | outbox inválida desfaz também challenge; binding/purpose/generation protegidos |
+| Units misturava elegibilidade da fonte com override local | cap. 5.3, T26 | `source_is_active` e `local_is_enabled` separados; elegibilidade gerada pela conjunção | sync da fonte preserva override local fechado |
+| Role e assignment podiam divergir e histórico encerrado podia reabrir; máximo de superadmins não era restringido | cap. 5.3, DB-05 | role corrente compatível sob lock; histórico imutável; dois slots únicos para superadmin ACTIVE | divergência e reabertura negadas; terceira identidade S ACTIVE negada; mínimo recuperável fica no procedimento F04/F10 |
+| Atribuição de histórico/audit não referenciava o ledger; resultado e reason aceitavam corpo livre | PRV-02, cap. 23.1 | FKs de comandos; resultado genérico fechado; reason/capability allowlisted; metadados bounded | credential sintética no resultado/reason é rejeitada; troca de manager preserva histórico |
+| Testes concorrentes podiam passar com erros escondidos, operavam como postgres e apagavam dados de todo o schema | cap. 25.4, T27 | RPCs executadas como service_role; todos os outcomes inspecionados; perdedores de cardinalidade somente SQLSTATE 23505; IDs por execução e cleanup em finally | repetição do script sem reset; nenhuma fixture residual; roles reais |
+| Workflow não executava o gate de banco; startup do CLI imprimia chaves locais | cap. 25.4, SEC-01 | job de banco com CLI pinada, resets/testes/advisors/diff; wrapper suprime a saída sensível de startup | gate equivalente executado localmente; billing continua limitando prova hosted |
+| Evidência anterior superestimava rotação de CPF e parcelas T24–T29 | KEY-03, cap. 25.4 | escopo da evidência corrigido; índices protegem pares versão/hash e claims anteriores, mas não comparam plaintext entre HMACs diferentes | prova completa de backfill/rotação fica F04/F12; nenhum PASS global |
+
+## Pesquisa oficial e decisão
+
+- [Constraints PostgreSQL 17](https://www.postgresql.org/docs/17/ddl-constraints.html): CHECK pode aceitar NULL; relações entre tabelas precisam de FK/unique/trigger. Por isso há validação explícita dos argumentos e FKs compostas, além de triggers para bindings nullable.
+- [Locks PostgreSQL 17](https://www.postgresql.org/docs/17/explicit-locking.html) e [isolamento transacional](https://www.postgresql.org/docs/17/transaction-iso.html): locks vivem somente na transação; decisões são revalidadas depois do bloqueio. Nenhuma chamada externa ocorre nas RPCs.
+- [SELECT PostgreSQL 17](https://www.postgresql.org/docs/17/sql-select.html): `FOR UPDATE` requer UPDATE em pelo menos uma coluna da relação. O grant por coluna em `id` é necessário para as RPCs invoker, e os triggers impedem a alteração desses IDs.
+- [Funções Supabase](https://supabase.com/docs/guides/database/functions) e [CREATE FUNCTION PostgreSQL 17](https://www.postgresql.org/docs/17/sql-createfunction.html): invoker, search_path vazio e EXECUTE restrito; os overloads inseguros foram removidos, preservando nomes únicos na Data API.
+- [Schemas Supabase](https://supabase.com/docs/guides/api/using-custom-schemas) e [RLS PostgreSQL 17](https://www.postgresql.org/docs/17/ddl-rowsecurity.html): schema exposto e privilégios são decisões separadas. A fronteira exposta contém somente RPCs; service_role continua tendo BYPASSRLS.
+- [Changelog Supabase](https://supabase.com/changelog): pins aprovados continuam CLI 2.118.0 e SDK 2.117.2; a minor PostgreSQL observada localmente não é inferida como configuração hospedada.
+
+## Limites contratuais da F02
+
+As RPCs são primitivas de persistência, não endpoints de autenticação ou autorização. `claim_command` reserva a intenção; autorização de actor/capability/scope e efeito externo ficam F04/F10. `consume_challenge` consome um contexto válido; prova da credencial, comparação de OTP, contabilização de falhas e promoção ficam F06/F07. O lease não executa refresh, não prova o critério nominal completo de T14 e não implementa o commit de tokens de F08.
+
+O banco prova tamanho/estrutura do envelope, nunca autenticidade AES-GCM, aleatoriedade do IV, domínio HMAC, conteúdo de CPF/telefone ou posse da identidade. Essas provas precisam dos adapters, keyring e jornadas. Claims de lookup são retidos e únicos por versão/hash; unicidade lógica entre versões de HMAC diferentes exige backfill ou escrita suspensa conforme o contrato. Não existe prova criptográfica de igualdade somente comparando digests de chaves distintas.
+
+T24 exige mutations com autorização de ator/alvo e BFF e permanece pendente em F04/F10. T25 tem cardinalidade e histórico provados aqui; T26 prova separação de override, ficando a fonte ERP para F10. T27 cobre banco e roles reais, ficando BFF para F03/F10. T28 cobre commit/rollback local de challenge/outbox, ficando crash de send/mark/ack para F05. T29 cobre metadados/bindings persistentes, ficando Queue/DLQ, keyring e ciphertext real para F05/F12/F13.
+
+Grants adicionais, novas RPCs e schemas de resultados específicos exigem migration e contraprovas na fase que os consumir. Auth permanece `disabled`; domínio, ERP, provider, SMS, Queue e target continuam sujeitos aos gates do plano.
