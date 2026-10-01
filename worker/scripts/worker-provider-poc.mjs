@@ -30,7 +30,7 @@ async function query(sql) {
     "-AtXq", "-v", "ON_ERROR_STOP=1", "-c", sql], { capture: true, timeout: 30_000 })
   return result.stdout.trim()
 }
-export function providerPocClient(url, key, allowedIds, transport = fetch) {
+export function providerPocClient(url, key, allowedIds, transport = fetch, parentSignal) {
   assertLocalProvider(url)
   if (!key) throw new Error("Local provider key missing")
   return createClient(url, key, {
@@ -45,7 +45,9 @@ export function providerPocClient(url, key, allowedIds, transport = fetch) {
         throw new Error("Provider PoC transport target denied")
       }
       if (method === "POST" && !allowedIds.includes(JSON.parse(init.body).id)) throw new Error("Provider PoC reserved UUID denied")
-      const signal = AbortSignal.timeout(5000)
+      const timeout = AbortSignal.timeout(5000)
+      const signal = parentSignal ? AbortSignal.any([timeout, parentSignal]) : timeout
+      signal.throwIfAborted()
       const response = await transport(input, { ...init, redirect: "error", signal })
       if (response.status >= 300 && response.status < 400
         || response.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !== "application/json") {
@@ -80,7 +82,8 @@ export function providerPocClient(url, key, allowedIds, transport = fetch) {
   })
 }
 
-export async function providerPoc() {
+export async function providerPoc(signal) {
+  signal?.throwIfAborted()
   const [cli, prefix] = nodeCli("supabase/dist/supabase.js")
   const status = await runProcess(cli, [...prefix, "status", "--output", "json"], { capture: true })
   const config = JSON.parse(status.stdout)
@@ -115,13 +118,14 @@ export async function providerPoc() {
     assert.equal(reservation.identity_id, identityId)
     for (const value of [reservation.provider_subject, reservation.ownership_binding]) assert.match(value, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
     assert.equal(reservation.state, "RESERVED")
-    client = providerPocClient(config.API_URL, config.SERVICE_ROLE_KEY, [reservation.provider_subject])
+    client = providerPocClient(config.API_URL, config.SERVICE_ROLE_KEY, [reservation.provider_subject], fetch, signal)
     stage = "direct absence lookup"
     const before = await client.auth.admin.getUserById(reservation.provider_subject)
     assert.equal(before.error?.status, 404)
     assert.equal(before.error?.code, "user_not_found")
     const proof = { purpose: "PROVISION_IDENTITY", contractVersion: "1.1", commandId, identityId,
       ownershipBinding: reservation.ownership_binding, identityGeneration: 1 }
+    signal?.throwIfAborted()
     stage = "reserved UUID creation and ownership"
     providerMayExist = true; providerAbsent = false
     const created = await client.auth.admin.createUser({ id: reservation.provider_subject,
@@ -133,8 +137,10 @@ export async function providerPoc() {
     const read = await client.auth.admin.getUserById(reservation.provider_subject)
     assert.equal(read.error, null)
     assert.ok(hasOwnedUser(read.data.user, reservation))
+    signal?.throwIfAborted()
     stage = "ownership confirmation and audited commit"
     assert.equal(await query(`set role service_role; select rmc_auth_api.record_provider_outcome('${commandId}','${owner}',1,'${reservation.provider_subject}','${reservation.ownership_binding}','OWNED')`), "t")
+    signal?.throwIfAborted()
     assert.equal(await query(`set role service_role; select rmc_auth_api.commit_provider_reservation('${commandId}','${owner}',1,'${randomUUID()}','LOCAL')`), "t")
     assert.equal(await query(`select lifecycle||':'||onboarding from rmc_auth_private.identities where id='${identityId}'`), "PENDING:ACTIVATION_REQUIRED")
     assert.equal(await query(`select count(*) from rmc_auth_private.audit_events where command_id='${commandId}'`), "1")
@@ -144,6 +150,8 @@ export async function providerPoc() {
     throw new Error("Provider PoC failed")
   } finally {
     if (providerMayExist && client && reservation) {
+      // Cleanup must remain bounded but cannot inherit cancellation of the test.
+      client = providerPocClient(config.API_URL, config.SERVICE_ROLE_KEY, [reservation.provider_subject])
       const read = await client.auth.admin.getUserById(reservation.provider_subject)
       if (read.error?.status === 404 && read.error?.code === "user_not_found") providerAbsent = true
       else {
@@ -177,6 +185,25 @@ export async function providerPoc() {
   return { authVersion: "v2.197.0", authImage: expectedAuthImage, sdkVersion: "2.117.2", cleanupConfirmed: true }
 }
 
+export async function providerPocGate(execute = runProcess, runGate = databaseGate, runPoc = providerPoc, results = []) {
+  const abort = new AbortController()
+  const cancel = () => abort.abort()
+  process.once("SIGINT", cancel); process.once("SIGTERM", cancel)
+  try {
+    let provider
+    const ownedExecute = (command, args, options) => execute(command, args, {
+      ...options, signal: args.includes("db:stop") ? undefined : abort.signal,
+    })
+    await runGate(ownedExecute, results, async () => {
+      abort.signal.throwIfAborted()
+      provider = await runPoc(abort.signal)
+    })
+    return provider
+  } finally {
+    process.removeListener("SIGINT", cancel); process.removeListener("SIGTERM", cancel)
+  }
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const startedAt = new Date().toISOString()
   const sha = (await runProcess("git", ["rev-parse", "HEAD"], { capture: true })).stdout.trim()
@@ -184,7 +211,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const results = []
   let provider
   let exitCode = 0
-  try { await databaseGate(runProcess, results, async () => { provider = await providerPoc() }) }
+  try { provider = await providerPocGate(runProcess, databaseGate, providerPoc, results) }
   catch { console.error("F04 local provider PoC failed; details/keys suppressed, no foreign user deletion permitted"); exitCode = 1 }
   finally {
     await mkdir("validation-results", { recursive: true })

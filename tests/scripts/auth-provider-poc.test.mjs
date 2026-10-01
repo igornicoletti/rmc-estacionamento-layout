@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { assertLocalProvider, hasOwnedUser, providerPocClient } from "../../worker/scripts/worker-provider-poc.mjs"
+import { assertLocalProvider, hasOwnedUser, providerPocClient, providerPocGate } from "../../worker/scripts/worker-provider-poc.mjs"
 
 test("F04 provider PoC admits only exact local project and private ownership", () => {
   assert.doesNotThrow(() => assertLocalProvider("http://127.0.0.1:55321"))
@@ -27,4 +27,23 @@ test("F04 provider PoC transport forbids arbitrary UUID, redirects and large res
   assert.ok((await client.auth.admin.getUserById(id)).error)
   assert.ok((await client.auth.admin.getUserById("01000000-0000-4000-8000-000000000002")).error)
   assert.equal(calls, 1)
+})
+
+test("F04 provider PoC cancellation keeps owned stack cleanup runnable and removes listeners", async () => {
+  const before = process.listenerCount("SIGINT")
+  const observed = []
+  await assert.rejects(providerPocGate(async (_command, args, options) => {
+    observed.push({ args, signal: options.signal })
+  }, async (execute, _results, callback) => {
+    try { process.emit("SIGINT"); await callback() }
+    finally { await execute("synthetic", ["run", "db:stop"], {}) }
+  }, () => { throw new Error("Provider must not start after cancellation") }))
+  assert.equal(observed.length, 1)
+  assert.equal(observed[0].signal, undefined)
+  assert.equal(process.listenerCount("SIGINT"), before)
+  let calls = 0
+  const client = providerPocClient("http://127.0.0.1:55321", "synthetic-key", ["01000000-0000-4000-8000-000000000001"],
+    () => { calls++; throw new Error("must not call") }, AbortSignal.abort())
+  assert.ok((await client.auth.admin.getUserById("01000000-0000-4000-8000-000000000001")).error)
+  assert.equal(calls, 0)
 })
