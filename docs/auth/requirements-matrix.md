@@ -14,7 +14,7 @@
 | Estados, DTOs, schemas, erros, clocks e portas | F01 | `src/shared/auth`; schemas estritos; transições runtime totais; scope público; portas Auth/DB/SMS e ampliação deliberada Crypto/Queue/Audit somente como contratos puros | T03, parcelas puras de T10/T21/T31, malformed/unknown e fatos ausentes | `evidence/F01-local.md`; SHA testado `e1125b0ee90bff810a6365f284581d4e6477332c` | verified-local |
 | Catálogo fechado de capabilities e reconhecimento puro | F01 | `src/shared/authorization`; capability desconhecida falha fechado; imports diretos e prefixados | capability desconhecida e imports proibidos | `evidence/F01-local.md`; SHA testado `e1125b0ee90bff810a6365f284581d4e6477332c` | verified-local |
 | Hierarquia, scope, target e evaluator/enforcement completo | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
-| Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; hashes versionados; constraints e índices parciais; RLS/grants; ledger/outbox; RPCs invoker para claim, CAS e lease | parcelas bancárias de T24–T29; rebuild; pgTAP; diff; lint e concorrência 2/5/10/50 | manifesto pendente do SHA final de implementação | implemented |
+| Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; hashes versionados; constraints e índices parciais; RLS/grants; ledger/outbox; RPCs invoker para claim, CAS e lease | parcelas bancárias de T24–T29; rebuild; 63 pgTAP; diff; lint e concorrência 2/5/10/50 | `evidence/F02-local.md`; SHA testado `5add9fb1aca5279407ee9018ee719c78f837eeb6` | verified-local |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker/BFF e transporte same-origin | T02, T03, T18, T21, T35 | pendente | planned |
 | Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais | pendente | planned |
 | Outbox, Queue, SMS e DLQ | F05 | dispatcher, consumer e adapter de gateway | T28–T30 | gateway não selecionado | blocked |
@@ -30,6 +30,6 @@
 
 A política de acesso existente em `src/features/auth` continua sendo scaffold de UX do layout; ela não é o evaluator autoritativo de F10. Fresh step-up não é modelado como flag global dessa policy: a prova final permanece vinculada à sessão e à intenção no servidor.
 
-A F01 está `verified-local` no SHA de implementação registrado na evidência. A F02 foi autorizada explicitamente e permanece `implemented` até seu gate e manifesto serem concluídos. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de Worker, provider, staging ou target.
+F01 e F02 estão `verified-local` nos SHAs de implementação registrados em suas evidências. A F02 permanece aguardando revisão e integração; a F03 continua bloqueada até nova validação explícita do responsável. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de Worker, provider, staging ou target.
 
 Atualizar esta matriz no mesmo PR que altera implementação ou evidência. Um teste contado sem vínculo ao requisito não muda status, e evidência de outro SHA não é transportada por inferência.
