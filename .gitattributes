@@ -1,5 +1,6 @@
 # Preserve the received normative artifact byte-for-byte, including line endings.
 docs/auth/contract-v1.0.md -text whitespace=-blank-at-eol
+docs/auth/audit-v2.0.md -text whitespace=-blank-at-eol
 
 # Preserve Wrangler-generated runtime types byte-for-byte for `types --check`.
 # workerd 1.20260930.2 emits five trailing spaces; handwritten files stay strict.

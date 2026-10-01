@@ -1,8 +1,8 @@
 # Plano e requisitos Auth
 
 **Natureza:** referência vigente. **Escopo:** F00–F14.
-**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
-**Status:** F03 verified-local no [manifesto](evidence/F03-local.md); aceite/merge pendentes. Resultados não são inferidos desta referência.
+**Revisão:** 01/10/2026. **Baseline:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`.
+**Status:** F03 aprovada e integrada no PR40; verified-local no [manifesto](evidence/F03-local.md). F04 não iniciada: [reauditoria e pré-requisitos](F04-preparation.md#gate). Resultados não são inferidos desta referência.
 
 ## Sumário navegável
 
@@ -64,7 +64,7 @@ No início de cada fase, revisar documentação e changelogs oficiais aplicávei
 
 Billing ou runner indisponível é limitação externa. Não equivale a CI verde e exige waiver explícito do responsável para merge quando o check obrigatório não iniciar.
 
-F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção integrada em main74c7b24. F03 foi autorizada pelo plano aprovado; F04 exige nova validação expressa.
+F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção integrada em main74c7b24. F03 integrada no PR40 com autorização do responsável e waiver específico de billing; main sincronizada e branch removida. O [dossiê integral](audit-v2.0.md) abrange todas as fases: sua disposição completa e o plano condicionado de F04 estão na [reauditoria](F04-preparation.md). Saneamento identificado exige gate próprio antes de F04.
 
 <a id="c5"></a>
 
@@ -86,7 +86,8 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção 
 | Hierarquia, scope, target e evaluator/enforcement completo | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; perfil ADR-002; grants mínimos; estado/binding/fence; RPCs invoker para claim, CAS, lease e challenge/outbox atômicos | contraprovas de persistência; cardinalidade/histórico T25; override T26; banco/roles T27; commit/rollback T28 e binding T29; T24 autoritativo fica F04/F10 | `evidence/F02-reaudit-local.md`; SHA testado `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`; 126 assertions e duas rodadas concorrentes | verified-local |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker ESM, HttpClient, limites reais/deadlines, context PREAUTH/CSRF por RPC, headers e Crypto/codec explícito | T02/T03/T21; parcelas F03 T06/T07/T18/T27/T35/T37/T38; runtime/SQL/HTTPS real | `evidence/F03-local.md`; SHA 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; sem prova hosted | verified-local |
-| Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais | pendente | planned |
+| Prontidão v1.1: portas de escrita, CPF recuperável/rotação e reserva ownership | F01/F02, antes de F04 | ampliações incrementais ainda não implementadas; não invalida os gates históricos | unknown/audit estrito, CPF equivalente entre versões, backfill/rollback e reserva concorrente | `F04-preparation.md`; diagnóstico estático e regressão, não prova dos novos writers | blocked |
+| Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais; parcelas T39/T40/T49/T61 | plano condicionado em `F04-preparation.md`; pré-requisitos pendentes | blocked |
 | Outbox, Queue, SMS e DLQ | F05 | dispatcher, consumer e adapter de gateway | T28–T30 | gateway não selecionado | blocked |
 | Ativação e senha inicial | F06 | challenge, BOOTSTRAP e promoção | T01, T04, T11, T31 | pendente | planned |
 | Login, TOTP e step-up | F07 | MFA_PENDING, enrollment e binding | T08–T10 | pendente | planned |
@@ -100,7 +101,7 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção 
 
 A política de acesso existente em `src/features/auth` continua sendo scaffold de UX do layout; ela não é o evaluator autoritativo de F10. Fresh step-up não é modelado como flag global dessa policy: a prova final permanece vinculada à sessão e à intenção no servidor.
 
-A F01, F02 e F03 estão `verified-local` nos SHAs explicitamente registrados. A evidência anterior da F02 foi supersedida após a reauditoria. F03 recebeu esse status após o gate integral registrado; aceite/merge/F04 dependem do responsável. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de provider, staging ou target.
+A F01, F02 e F03 estão `verified-local` nos SHAs explicitamente registrados. A evidência anterior da F02 foi supersedida após a reauditoria. F03 recebeu esse status após o gate integral registrado e foi aprovada/integrada pelo responsável. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de provider, staging ou target. A aprovação não encerra as novas obrigações v1.1 de F01/F02 identificadas antes de F04.
 
 Atualizar esta matriz no mesmo PR que altera implementação ou evidência. Um teste contado sem vínculo ao requisito não muda status, e evidência de outro SHA não é transportada por inferência.
 
