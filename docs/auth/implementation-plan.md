@@ -33,6 +33,8 @@ Auth permanece desabilitado até que o gate da fase responsável esteja comprova
 - `@supabase/supabase-js` será usado somente no servidor, request-scoped, sem persistência ou auto-refresh independente.
 - Cloudflare Queue é at-least-once; generation e idempotency key são persistentes.
 - `shared/auth` e `shared/authorization` não importam React, Worker, SDK ou I/O.
+- O contrato normativo resume as fronteiras F01 em Auth/DB/SMS. O plano mestre amplia deliberadamente os contratos puros com `CryptoProvider`, `QueuePublisher` e `AuditSink` para impedir acoplamento futuro; nesta fase isso não inclui adapters, I/O ou prova operacional de F03–F10.
+- IDs internos, contextuais, de comando e de challenge seguem o ADR-001 (UUID v4 opaco). Chaves externas de Units permanecem texto opaco associado ao sistema de origem; segredos aleatórios não são IDs.
 - `components/ui` contém primitives shadcn/Base UI; `components/app` contém apenas composições com contrato compartilhado.
 - Gateway SMS, domínio final, projeto/plano Supabase e identidade ERP de Units são gates externos. Ausência de prova mantém o fluxo dependente desabilitado.
 
@@ -41,3 +43,5 @@ Auth permanece desabilitado até que o gate da fase responsável esteja comprova
 No início de cada fase, revisar documentação e changelogs oficiais aplicáveis e registrar a consulta na evidência. Mudança material de requisito exige versão, justificativa, impacto, testes e supersessão explícita; código não modifica o contrato silenciosamente.
 
 Billing ou runner indisponível é limitação externa. Não equivale a CI verde e exige waiver explícito do responsável para merge quando o check obrigatório não iniciar.
+
+O gate corretivo F00/F01 deve ser integrado e validado explicitamente pelo responsável antes da criação da branch F02. Preparação documental e pesquisa não constituem início da fase.

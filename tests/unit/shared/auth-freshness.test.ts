@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { authPolicy, evaluateFreshness } from "@/shared/auth"
+import { evaluateFreshness } from "@/shared/auth/auth-freshness"
+import { authPolicy } from "@/shared/auth/auth-policy"
 
 const nowMs = Date.parse("2026-09-30T17:00:00Z")
 const base = {
