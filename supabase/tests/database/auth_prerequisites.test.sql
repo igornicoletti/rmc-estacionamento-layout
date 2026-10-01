@@ -97,6 +97,10 @@ select is((select state from rmc_auth_private.provider_reservations where comman
 select is((select state::text from rmc_auth_private.command_ledger where command_id='72000000-0000-4000-8000-000000000003'),'EFFECT_CONFIRMED','failed audit leaves ledger uncommitted');
 drop trigger synthetic_audit_failure on rmc_auth_private.audit_events;
 update rmc_auth_private.identities set generation=2 where id='71000000-0000-4000-8000-000000000002';
+select is((rmc_auth_api.read_cpf_source('71000000-0000-4000-8000-000000000002',2)).identity_generation,
+  1::bigint,'current identity fence can retrieve historical crypto binding for controlled reseal');
+select ok((rmc_auth_api.read_cpf_source('71000000-0000-4000-8000-000000000002',1)).identity_id is null,
+  'old identity fence cannot retrieve source after generation changes');
 select ok(not rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000003',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL'),'changed identity generation cannot commit');
 

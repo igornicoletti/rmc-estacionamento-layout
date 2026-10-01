@@ -315,7 +315,9 @@ $$;
 create function rmc_auth_api.read_cpf_source(p_identity uuid,p_generation bigint)
 returns rmc_auth_private.cpf_sources language sql stable security invoker set search_path='' as $$
   select s from rmc_auth_private.cpf_sources s join rmc_auth_private.identities i on i.id=s.identity_id
-    where s.identity_id=p_identity and s.identity_generation=p_generation and i.generation=p_generation and i.lifecycle<>'DELETED';
+    -- Current identity fence authorizes retrieval; persisted generation remains the crypto binding.
+    -- Changing lifecycle/generation must not make controlled rotation/reseal impossible.
+    where s.identity_id=p_identity and i.generation=p_generation and i.lifecycle<>'DELETED';
 $$;
 create function rmc_auth_api.read_provider_reservation(p_command uuid)
 returns rmc_auth_private.provider_reservations language sql stable security invoker set search_path='' as $$
