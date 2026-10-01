@@ -16,7 +16,7 @@
 
 ## Regra de execução
 
-O Contrato canônico de autenticação, sessão, autorização e acesso v1.0 é a fonte normativa. Cada fase F01–F14 usa branch e PR próprios, atualiza a matriz de requisitos e produz evidência vinculada ao SHA testado. Uma fase não transforma automaticamente a seguinte em autorizada.
+O [contrato v1.1](contract-v1.1.md) é a fonte normativa vigente, composto pela base v1.0 imutável e suas substituições explícitas. Cada fase F01–F14 usa branch e PR próprios, atualiza a matriz de requisitos e produz evidência vinculada ao SHA testado. Uma fase não transforma automaticamente a seguinte em autorizada.
 
 Auth permanece desabilitado até que o gate da fase responsável esteja comprovado. `candidate` e `validated` são estágios do fluxo; `LOCAL`, `LOCAL_PRODUCTION_LIKE`, `STAGING/TARGET_HOSTED` e `PRODUCTION` são ambientes; `PASS_LOCAL` e `PASS_TARGET` são resultados de evidência.
 
@@ -103,3 +103,30 @@ A política de acesso existente em `src/features/auth` continua sendo scaffold d
 A F01 e a F02 estão `verified-local` nos SHAs explicitamente registrados. A evidência anterior da F02 foi supersedida após a reauditoria. F03 só recebe verified-local após o gate do SHA registrado; merge/F04 dependem do responsável. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de provider, staging ou target.
 
 Atualizar esta matriz no mesmo PR que altera implementação ou evidência. Um teste contado sem vínculo ao requisito não muda status, e evidência de outro SHA não é transportada por inferência.
+
+### Revisão v1.1 e testes adicionais
+
+F00–F02 continuam históricos nos SHAs registrados; não comprovam retroativamente v1.1. F03 está em revalidação após correções. Novas obrigações de provisioning/CPF/MFA/revogação são gates das fases responsáveis e devem ser encerradas antes de habilitar o fluxo dependente. [Supersessão P0 e invariantes](contract-v1.1.md#audit).
+
+| Testes propostos no dossiê | Requisito/escopo | Fase e evidência esperada | Estado nesta F03 |
+| --- | --- | --- | --- |
+| T39/T40/T61 | Credencial interna, UUID, ownership, resposta perdida | F04 provider+ledger, não promover PENDING | Pendente |
+| T41 | Cookies por endpoint e transições | F03 conflitos; F06–F09 promoção/cancel/logout | Parcela runtime/HTTPS em revalidação |
+| T42/T43 | JWT/JWKS e revogação/indisponibilidade | F07/F08, caminho escolhido e cache explicitados | Pendente; T43 não pressupõe remoção de verificação online |
+| T44/T45 | Enrollment exclusivo e step-up one-time | F07/F10 provider, concorrência e commit | Pendente |
+| T46 | Bytes/NFC/blocklist por escrita | F06/F09; limites puros F01 históricos | Jornada pendente |
+| T47 | HTTP erros/cache/autoridade | F03 desafio/no-store; F11 controller/cache | Parcela HTTP em revalidação |
+| T48 | Streaming/encoding/upstream excessivo | F03 Worker e client; não alegar wire comprimido medido após decoding Fetch | Parcela runtime em revalidação |
+| T49 | Atomicidade/crash por comando | F02 constraints históricos; F04–F10 comandos reais | Pendente fora do contexto F03 |
+| T50 | Transaction pooler/driver | Somente se arquitetura SQL direta aprovada; RPC HTTP atual não usa driver | Não aplicável à arquitetura atual |
+| T51 | CSP/rotas/componentes | F03 HTTPS; F11 browser; exceção styles explicitada | Parcela HTTPS em revalidação |
+| T52 | SBOM/secrets/proveniência/artefato | F12–F14, gate de artefato e ambiente | Pendente |
+| T53/T54/T55 | Outbox, anti-enumeração, hooks | F05/F06–F09/F12 fault injection e provider | Pendente; hook não adotado por inferência |
+| T56 | Rotação/Queue/DLQ/restore | F05/F08/F13, codec/keyring/restore em voo | Pendente; somente codec CSRF agora |
+| T57 | S/A MFA obrigatório | F07/F10 policy/provedor; exceção administrativa não cria endpoint permanente | Pendente, NORMAL fechado |
+| T58 | Snapshot/CSRF/Set-Cookie/abas | F03 reentrega; F08/F11 promoção e fencing | Parcela PREAUTH em revalidação |
+| T59 | CPF HMAC/ciphertext/backfill | F02/F04, unicidade entre versões e rollback | Pendente antes de dados reais |
+| T60/T62 | Subresources/Host/origem/upstream | F03 runtime/HTTPS; F13 edge/DNS/TLS target | Parcela local em revalidação |
+| T63 | Recuperação administrativa/dual control | F09/F14 drill e revogação | Pendente |
+
+Os cenários originais são propostas de teste, não autoridade normativa independente; v1.1 corrige resultados incompatíveis, incluindo T39, T43, T50 e T51. Nenhum grupo é declarado completo por mocks ou testes locais parciais.

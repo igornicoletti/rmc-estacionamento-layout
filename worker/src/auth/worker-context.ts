@@ -61,7 +61,8 @@ export async function getAuthContext(request: Request, origin: string, adapter: 
     cookie = `__Host-rmc-preauth=${encodeSecret(secret)}; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age=${Math.floor(remaining / 1000)}`
   }
   if (!crypto.subtle.timingSafeEqual(await bindingHash(context), unhex(context.bindingHash))) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
-  const token = await adapter.open({ purpose: "CSRF", binding: contextBinding(context.contextId, context.purpose, context.generation),
+  const token = await adapter.open({ codecVersion: context.codecVersion, algorithm: context.algorithm,
+    purpose: "CSRF", binding: contextBinding(context.contextId, context.purpose, context.generation),
     keyVersion: context.keyVersion, ciphertext: unhex(context.ciphertext) })
   if (!crypto.subtle.timingSafeEqual(await adapter.hmac("CSRF", token, context.keyVersion), unhex(context.csrfHash))) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
   const body = authContextResponseSchema.parse({

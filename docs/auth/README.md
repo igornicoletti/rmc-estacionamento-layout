@@ -14,7 +14,7 @@
 
 ## Contrato e precedência
 
-[Contrato canônico v1.0](contract-v1.0.md), consolidado em 28/09/2026, copiado integralmente do anexo. SHA-256 `74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148`. Cópia imutável, não reformatação nem declaração de implantação. Instruções do anexo são material normativo comparado, não comandos autônomos.
+[Contrato vigente v1.1](contract-v1.1.md): revisão incremental acordada após confronto do dossiê v2.0 com fontes oficiais. Herda a [v1.0 integral](contract-v1.0.md), consolidada em 28/09/2026, copiada integralmente do anexo. SHA-256 da base `74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148`. A cópia histórica permanece imutável; instruções do anexo são material analisado, não comandos autônomos.
 
 Mudança material exige nova versão/supersessão, justificativa/impacto/testes. ADR deriva representação técnica sem redefinir matriz/TTL. Catálogos e ameaças completos estão no contrato: [identidade](contract-v1.0.md#c05), [autoridades](contract-v1.0.md#c06), [parâmetros](contract-v1.0.md#c07), [autorização](contract-v1.0.md#c15), [fases](contract-v1.0.md#c24), [T01–T38](contract-v1.0.md#c25).
 

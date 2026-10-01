@@ -1,6 +1,6 @@
 # Decisões derivadas de Auth
 
-**Natureza:** referência vigente. **Escopo:** ADRs aceitas, sem alteração normativa.
+**Natureza:** referência vigente. **Escopo:** decisões derivadas e revisão normativa explicitamente identificada.
 **Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
 **Status:** implementação existente descrita; resultados de execução ficam no [manifesto](evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
 
@@ -10,6 +10,7 @@
 - [ADR-002 — Perfil de persistência](#c2)
 - [Precedência e limites](#c3)
 - [ADR-003 — Transporte e runtime F03](#c4)
+- [ADR-004 — Revisão normativa v1.1](#c5)
 
 <a id="c1"></a>
 
@@ -76,3 +77,15 @@ F03 habilita somente PREAUTH local com Auth disabled, origem fixa HTTPS localhos
 Segredos de 256 bits base64url canônico; cookie e CSRF usam domínios/chaves distintos. AES-256-GCM nonce aleatório 96 bits/tag 128 bits; AAD JSON canônico [purpose,binding,keyVersion], onde binding é JSON [1,contextId,purpose,generation]. Binding hash corresponde ao binding UTF-8; comparação timing-safe no runtime. Material não gira em GET. Preparação de vínculo session não habilita NORMAL; promoção/expiração/logout completos exigem fases posteriores.
 
 Headers HTML mantêm hashes originais e style-src-attr unsafe-inline por posicionamento Base UI. HSTS includeSubDomains anteriormente estático foi removido até prova do domínio/subdomínios; sem preload. Integração HTTPS não equivale a deploy, PASS_LOCAL global ou PASS_TARGET.
+
+<a id="c5"></a>
+
+## ADR-004 — Revisão normativa v1.1
+
+Aceita como revisão solicitada pelo responsável após confronto do dossiê v2.0; não é mera derivação da v1.0. [Texto vigente](contract-v1.1.md) identifica substituições, matriz de cookies e fases responsáveis. A base, snapshots e evidências históricas permanecem intactos.
+
+F03 altera versão dos DTOs para 1.1, explicita codec CSRF 1/A256GCM sem alterar ciphertext/AAD e adiciona migration incremental que preserva audit 1.0. Validação HTTP nega Host/URL divergentes e subresource/navigation de contexto; problemas 401 incluem desafio específico RMCSession. Vetor criptográfico independente e contraprovas runtime/SQL/HTTPS sustentam esses ajustes.
+
+Seletores técnicos, UUID provider reservado, CPF recuperável cifrado, enrollment exclusivo e step-up consumido no commit ficam nas fases responsáveis, não são funcionalidades concluídas. S/A obrigatórios antes de NORMAL é mudança normativa explícita; política adicional R/M exige decisão antes de target. Verificação JWT local não substitui revogação provider sem protocolo provado. TLS/pooler direto permanece condicional à arquitetura, não requisito do adapter HTTP.
+
+Alternativas rejeitadas: editar bytes da v1.0; copiar 125 IDs como nova autoridade duplicada; remover verificação online por otimização; criar endpoint bootstrap sem necessidade; impor JSON ao envelope binário; afirmar CSP sem exceção de styles; transformar evidências de outros SHAs em prova v1.1. Nenhum desses ajustes habilita Auth ou F04.

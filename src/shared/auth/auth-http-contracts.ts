@@ -28,6 +28,8 @@ export const authEndpoints = Object.freeze({
 } as const)
 
 export interface PersistedAuthContext {
+  codecVersion: 1
+  algorithm: "A256GCM"
   contextId: string
   purpose: "PREAUTH"
   generation: number

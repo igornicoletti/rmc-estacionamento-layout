@@ -43,6 +43,13 @@ const catalog = documents.get(resolve("docs/project/validation.md")).codes
 if (JSON.stringify(catalog) !== JSON.stringify(suites)) throw new Error("Test catalog is incomplete, duplicated or stale")
 const contractHash = createHash("sha256").update(await readFile("docs/auth/contract-v1.0.md")).digest("hex").toUpperCase()
 if (contractHash !== "74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148") throw new Error("Normative contract integrity failure")
+const baseline = await readFile("docs/auth/contract-v1.0.md", "utf8")
+const requirements = [...baseline.matchAll(/^\*\*([A-Z][A-Z0-9-]*-\d{2}):\*\*/gm)].map((match) => match[1])
+if (requirements.length !== 160 || new Set(requirements).size !== 160) throw new Error("Historical requirement inventory drift")
+const revision = await readFile("docs/auth/contract-v1.1.md", "utf8")
+const contracts = await readFile("src/shared/auth/auth-contracts.ts", "utf8")
+if (!contracts.includes('AUTH_CONTRACT_VERSION = "1.1"') || !revision.includes('contractVersion: "1.1"')
+  || !revision.includes(contractHash)) throw new Error("Active contract version or provenance drift")
 for (const [path, expected] of Object.entries({
   "docs/auth/evidence/F02-api-schema.sql": "B390239361D8FEE724581470FD48D3D60181DE04904621F4D837219044C05562",
   "docs/auth/evidence/F02-private-schema.sql": "CBAD363B81B9E453F959AF528F53E4F1F9A7DB3BD027919CEAD52E0ACDE6FB44",

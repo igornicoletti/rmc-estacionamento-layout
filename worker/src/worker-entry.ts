@@ -24,11 +24,12 @@ export default {
         operation = "context"
         if (request.method !== "GET") throw new WorkerProblem("AUTH_INVALID_REQUEST")
         if (env.ENVIRONMENT !== "LOCAL_PRODUCTION_LIKE" || env.AUTH_STAGE !== "disabled"
-          || env.CANONICAL_ORIGIN !== "https://localhost:8787" || new URL(request.url).origin !== env.CANONICAL_ORIGIN) {
+          || env.CANONICAL_ORIGIN !== "https://localhost:8787") {
           throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
         }
         const { body, cookie } = await getAuthContext(request, env.CANONICAL_ORIGIN,
           new WorkerCrypto(env.AUTH_KEYRING), createContextStore(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY), deadline.signal)
+        deadline.signal.throwIfAborted()
         response = jsonResponse(body, requestId, cookie)
       } else throw new WorkerProblem("RESOURCE_NOT_FOUND")
     } catch (error) {

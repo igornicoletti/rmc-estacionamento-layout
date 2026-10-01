@@ -8,6 +8,12 @@ const ringSchema = z.strictObject({
   currentVersion: z.number().int().positive(),
   versions: z.record(z.string().regex(/^[1-9]\d{0,8}$/), keysSchema),
 })
+const envelopeSchema = z.strictObject({
+  codecVersion: z.literal(1), algorithm: z.literal("A256GCM"),
+  purpose: z.literal("CSRF"), binding: z.string().min(1).max(512),
+  keyVersion: z.number().int().positive(),
+  ciphertext: z.instanceof(Uint8Array).refine((value) => value.length === 60),
+})
 export function encodeSecret(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "")
 }
@@ -51,7 +57,7 @@ export class WorkerCrypto implements CryptoProvider {
     return new Uint8Array(await crypto.subtle.sign("HMAC", key, value))
   }
   async seal(purpose: string, plaintext: Uint8Array, binding: string): Promise<EncryptedEnvelope> {
-    if (purpose !== "CSRF") throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
+    if (purpose !== "CSRF" || plaintext.length !== 32 || binding.length < 1 || binding.length > 512) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
     const keyVersion = this.ring.currentVersion
     const key = await crypto.subtle.importKey("raw", this.key(purpose, keyVersion), "AES-GCM", false, ["encrypt"])
     const iv = this.randomBytes(12)
@@ -60,12 +66,15 @@ export class WorkerCrypto implements CryptoProvider {
     }, key, plaintext))
     const ciphertext = new Uint8Array(iv.length + encrypted.length)
     ciphertext.set(iv); ciphertext.set(encrypted, iv.length)
-    return { purpose, binding, keyVersion, ciphertext }
+    return { codecVersion: 1, algorithm: "A256GCM", purpose, binding, keyVersion, ciphertext }
   }
-  async open(envelope: EncryptedEnvelope): Promise<Uint8Array> {
-    if (envelope.purpose !== "CSRF" || envelope.ciphertext.length !== 60) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
-    const key = await crypto.subtle.importKey("raw", this.key(envelope.purpose, envelope.keyVersion), "AES-GCM", false, ["decrypt"])
-    try { return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: envelope.ciphertext.slice(0, 12), tagLength: 128,
+  async open(input: unknown): Promise<Uint8Array> {
+    const parsed = envelopeSchema.safeParse(input)
+    if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+    const envelope = parsed.data
+    try {
+      const key = await crypto.subtle.importKey("raw", this.key(envelope.purpose, envelope.keyVersion), "AES-GCM", false, ["decrypt"])
+      return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: envelope.ciphertext.slice(0, 12), tagLength: 128,
       additionalData: new TextEncoder().encode(JSON.stringify([envelope.purpose, envelope.binding, envelope.keyVersion])),
     }, key, envelope.ciphertext.slice(12))) }
     catch { throw new WorkerProblem("AUTH_PROVIDER_FAILURE") }

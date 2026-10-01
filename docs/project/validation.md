@@ -168,7 +168,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
-| `worker/tests/worker-boundary.test.ts` | API404 com AcceptHTML e disabled; health/método; configuração hosted fechada; catch sanitizado/headers; 8192/8193 sem length/multibyte; MIME/encoding/JSON; stream lento/deadline; URL/Cookie limites; duplicidade/autoridade desconhecida; Origin/Fetch Metadata; token estável, stale e mismatch negados antes de side effect no auxiliar; GCM purpose/binding/version/tamper/key separation |
+| `worker/tests/worker-boundary.test.ts` | API404 com AcceptHTML e disabled; health/método; configuração hosted fechada; catch sanitizado/headers; 8192/8193 sem length/multibyte; MIME/encoding/JSON; stream lento/deadline; URL/Cookie limites; todas as combinações conflitantes de autoridade; Origin/Host/Fetch Metadata e subresources; desafio 401; token estável, stale e mismatch negados antes de side effect no auxiliar; vetor AES-GCM independente, codec/algorithm desconhecidos, purpose/binding/version/tamper/key separation |
 | `worker/tests/worker-upstream.test.ts` | URL somente local; SDK request-scoped/redirect negado/signal; sem Cookie browser; respostas RPC MIME/64KiB/DTO inválidos; rede indisponível sem vazamento |
 
 ### supabase/tests/database
@@ -179,7 +179,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `supabase/tests/database/auth_invariants.test.sql` | Cardinalidade, CAS one-time, intenção idempotente/conflito e leases. |
 | `supabase/tests/database/auth_roles.test.sql` | PUBLIC/anon/authenticated/service_role reais, grants/RLS/invoker e acesso direto/RPC. |
 | `supabase/tests/database/auth_schema.test.sql` | Objetos/colunas/constraints/índices, schemas privados, RLS e propriedades das funções. |
-| `supabase/tests/database/auth_csrf.test.sql` | Material exclusivo/imutável; grants/roles/invoker; PREAUTH+CSRF atômico; hash estável; stale generation/token errado/invalidation/expiry; binding adulterado; limpeza limitada; limite IP/global e chaves IP não criadas após bloqueio global |
+| `supabase/tests/database/auth_csrf.test.sql` | Material exclusivo/imutável; grants/roles/invoker; PREAUTH+CSRF atômico; hash/codec/algorithm explícitos e desconhecidos negados; stale generation/token errado/invalidation/expiry; binding adulterado; limpeza limitada; limite IP/global e chaves IP não criadas após bloqueio global |
 
 Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 

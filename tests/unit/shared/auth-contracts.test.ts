@@ -29,7 +29,7 @@ const commandId = "33333333-3333-4333-8333-333333333333"
 const challengeId = "44444444-4444-4444-8444-444444444444"
 
 const validPublicSession = {
-  contractVersion: "1.0",
+  contractVersion: "1.1",
   contextId,
   identityId,
   displayName: "Usuária",
@@ -98,7 +98,7 @@ describe("contratos runtime de Auth", () => {
   it("fecha as etapas restricted por jornada e rejeita combinações cruzadas", () => {
     const base = {
       kind: "restricted",
-      contractVersion: "1.0",
+      contractVersion: "1.1",
       contextId,
       expiresAt: "2026-09-30T14:30:00-03:00",
       serverTime: "2026-09-30T14:00:00-03:00",

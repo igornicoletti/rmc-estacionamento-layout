@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { env, exports } from "cloudflare:workers"
 import worker from "../src/worker-entry"
-import { WorkerCrypto, encodeSecret } from "../src/auth/worker-crypto"
+import { WorkerCrypto, encodeSecret, hex } from "../src/auth/worker-crypto"
 import { getAuthContext, preauthCookie } from "../src/auth/worker-context"
 import { auxiliaryWorker } from "./fixtures/worker-auxiliary"
 import { problemResponse, protectOrigin, requestJson, validatePath, WorkerProblem } from "../src/http/worker-http"
@@ -21,7 +21,7 @@ function storeFixture() {
   let valid = true
   const store: AuthContextStore = {
     create(input) {
-      const value: PersistedAuthContext = { ...input, purpose: "PREAUTH", generation: 1,
+      const value: PersistedAuthContext = { ...input, codecVersion: 1, algorithm: "A256GCM", purpose: "PREAUTH", generation: 1,
         expiresAt: new Date(Date.now() + 1_800_000).toISOString(), serverTime: new Date().toISOString() }
       contexts.set(input.cookieHash, value)
       return Promise.resolve(value)
@@ -103,6 +103,44 @@ describe("F03 runtime boundary", () => {
       expect(() => protectOrigin(new Request(origin, { headers }), origin, true)).toThrow(WorkerProblem)
     }
     for (const site of [undefined, "none", "same-origin"]) expect(() => protectOrigin(new Request(origin, { headers: { Origin: origin, ...(site ? { "Sec-Fetch-Site": site } : {}) } }), origin, true)).not.toThrow()
+  })
+  it("denies every competing authority pair, including three cookies", () => {
+    const token = encodeSecret(new Uint8Array(32))
+    const names = ["__Host-rmc-preauth", "__Host-rmc-journey", "__Host-rmc-session"]
+    for (const selected of [[0, 1], [0, 2], [1, 2], [0, 1, 2]]) {
+      expect(() => preauthCookie(new Request(origin, { headers: { Cookie: selected.map((i) => `${names[i]}=${token}`).join("; ") } }))).toThrow(WorkerProblem)
+    }
+    expect(() => preauthCookie(new Request(origin, { headers: { Cookie: `__Host-rmc-journey=${token}` } }))).toThrow("AUTH_DEPENDENCY_UNAVAILABLE")
+    expect(preauthCookie(new Request(origin, { headers: { Cookie: "theme=dark" } }))).toBeNull()
+  })
+  it("rejects URL/Host mismatches and subresource/navigation context reads", () => {
+    for (const url of ["https://other.invalid/api/auth/context", "https://localhost:9999/api/auth/context"]) {
+      expect(() => protectOrigin(new Request(url), origin, false)).toThrow(WorkerProblem)
+    }
+    for (const headers of [{ Host: "other.invalid" }, { "Sec-Fetch-Dest": "image" }, { "Sec-Fetch-Dest": "script" }, { "Sec-Fetch-Mode": "navigate" }]) {
+      expect(() => protectOrigin(new Request(origin, { headers }), origin, false)).toThrow(WorkerProblem)
+    }
+    expect(() => protectOrigin(new Request(origin, { headers: { Host: "localhost:8787", "Sec-Fetch-Dest": "empty", "Sec-Fetch-Mode": "cors", "Sec-Fetch-Site": "same-origin" } }), origin, false)).not.toThrow()
+  })
+  it("401 carries a cookie-session challenge without claiming Bearer authentication", () => {
+    const response = problemResponse(new WorkerProblem("AUTH_SESSION_INVALID"), crypto.randomUUID())
+    expect(response.status).toBe(401)
+    expect(response.headers.get("WWW-Authenticate")).toBe('RMCSession realm="rmc"')
+    expect(response.headers.get("Cache-Control")).toBe("no-store")
+  })
+  it("codec 1 matches an independently generated AES-GCM known-answer vector", async () => {
+    const adapter = new WorkerCrypto(JSON.stringify({ currentVersion: 1, versions: { 1: {
+      cookie: encodeSecret(new Uint8Array(32).fill(1)), csrf: encodeSecret(new Uint8Array(32).fill(2)), rate: encodeSecret(new Uint8Array(32).fill(3)),
+    } } }))
+    const random = vi.spyOn(adapter, "randomBytes").mockReturnValue(new Uint8Array(12).fill(4))
+    try {
+      const envelope = await adapter.seal("CSRF", new Uint8Array(32).fill(5), "expected-context")
+      expect(hex(envelope.ciphertext)).toBe("0404040404040404040404040149d40bfb4e955f985bd2e5b3461ca31eb7dccc872e9e7ebbc73ddccebe0cdce50faddd8f083c6d20a254791b9bfc32")
+      expect(await adapter.open(envelope)).toEqual(new Uint8Array(32).fill(5))
+      for (const changed of [{ codecVersion: 2 }, { algorithm: "unknown" }, { extra: true }, { ciphertext: new Uint8Array(59) }, { keyVersion: 9 }]) {
+        await expect(adapter.open({ ...envelope, ...changed })).rejects.toMatchObject({ code: "AUTH_PROVIDER_FAILURE" })
+      }
+    } finally { random.mockRestore() }
   })
   it("re-delivers synchronizer token; mismatch/stale denied before auxiliary effect", async () => {
     const adapter = cryptoAdapter()

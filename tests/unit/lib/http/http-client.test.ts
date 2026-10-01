@@ -11,10 +11,10 @@ const problem = (status = 503, code = "AUTH_DEPENDENCY_UNAVAILABLE", retry?: str
 
 describe("F03 HTTP client", () => {
   it("context rejects unknown policy/purpose, expiry and unexpected authority properties", () => {
-    const value = { contractVersion: "1.0", policyVersion: "auth-v1", serverTime: "2026-10-01T00:00:00Z",
+    const value = { contractVersion: "1.1", policyVersion: "auth-v1", serverTime: "2026-10-01T00:00:00Z",
       contextId: "10000000-0000-4000-8000-000000000003", authority: { purpose: "PREAUTH", generation: 1, expiresAt: "2026-10-01T00:30:00Z" }, csrfToken: "A".repeat(43) }
     expect(authContextResponseSchema.safeParse(value).success).toBe(true)
-    for (const changed of [{ policyVersion: "unknown" }, { authority: { ...value.authority, purpose: "UNKNOWN" } },
+    for (const changed of [{ contractVersion: "1.0" }, { contractVersion: "unknown" }, { policyVersion: "unknown" }, { authority: { ...value.authority, purpose: "UNKNOWN" } },
       { authority: { ...value.authority, expiresAt: value.serverTime } }, { authority: { ...value.authority, secret: "unexpected" } }]) {
       expect(authContextResponseSchema.safeParse({ ...value, ...changed }).success).toBe(false)
     }

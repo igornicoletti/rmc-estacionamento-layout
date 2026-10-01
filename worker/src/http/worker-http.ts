@@ -29,6 +29,7 @@ export function problemResponse(error: unknown, requestId: string): Response {
   const body = authProblemSchema.parse({ type: "about:blank", title: titles[status], status, code, requestId })
   return secureResponse(Response.json(body, { status, headers: {
     "Content-Type": "application/problem+json",
+    ...(status === 401 ? { "WWW-Authenticate": 'RMCSession realm="rmc"' } : {}),
     ...(status === 429 ? { "Retry-After": "60" } : {}),
   } }), requestId)
 }
@@ -46,10 +47,17 @@ export function validatePath(request: Request): string {
   return url.pathname
 }
 export function protectOrigin(request: Request, origin: string, mutation: boolean): void {
+  const expected = new URL(origin)
+  const target = new URL(request.url)
+  const host = request.headers.get("Host")
+  if (target.origin !== expected.origin || target.username || target.password
+    || (host !== null && host.toLowerCase() !== expected.host.toLowerCase())) throw new WorkerProblem("AUTH_ORIGIN_DENIED")
   const supplied = request.headers.get("Origin")
   const site = request.headers.get("Sec-Fetch-Site")
   if ((supplied !== null && supplied !== origin) || (mutation && supplied !== origin)
-    || (site !== null && !["same-origin", "none"].includes(site))) throw new WorkerProblem("AUTH_ORIGIN_DENIED")
+    || (site !== null && !["same-origin", "none"].includes(site))
+    || (!mutation && request.headers.has("Sec-Fetch-Dest") && request.headers.get("Sec-Fetch-Dest") !== "empty")
+    || (!mutation && request.headers.has("Sec-Fetch-Mode") && !["same-origin", "cors"].includes(request.headers.get("Sec-Fetch-Mode")!))) throw new WorkerProblem("AUTH_ORIGIN_DENIED")
 }
 export async function requestJson(request: Request, signal: AbortSignal): Promise<unknown> {
   const length = request.headers.get("Content-Length")

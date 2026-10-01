@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { userCapabilitySchema } from "@/shared/authorization/authorization"
 
-export const AUTH_CONTRACT_VERSION = "1.0" as const
+export const AUTH_CONTRACT_VERSION = "1.1" as const
 
 export const authorityPurposes = [
   "PREAUTH",

@@ -99,6 +99,7 @@ export async function workerIntegration(execute = runProcess, results = [], sign
     const first = await httpsProbe("/api/auth/context", { "Sec-Fetch-Site": "same-origin" })
     assert.equal(first.status, 200, "Real local PREAUTH bootstrap must succeed")
     const context = JSON.parse(first.body)
+    assert.equal(context.contractVersion, "1.1")
     assert.match(context.contextId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
     ids.push(context.contextId)
     assert.equal(context.authority.purpose, "PREAUTH")
@@ -118,6 +119,9 @@ export async function workerIntegration(execute = runProcess, results = [], sign
     assert.equal((await httpsProbe("/api/auth/context", { Cookie: `${cookie}; ${cookie}` })).status, 403)
     assert.equal((await httpsProbe("/api/auth/context", { Cookie: cookie, Origin: "https://other.invalid" })).status, 403)
     for (const site of ["same-site", "cross-site"]) assert.equal((await httpsProbe("/api/auth/context", { Cookie: cookie, "Sec-Fetch-Site": site })).status, 403)
+    for (const headers of [{ "Sec-Fetch-Dest": "image" }, { "Sec-Fetch-Dest": "script" }, { "Sec-Fetch-Mode": "navigate" }, { Host: "other.invalid" }]) {
+      assert.equal((await httpsProbe("/api/auth/context", { Cookie: cookie, ...headers })).status, 403)
+    }
     // Chromium proves cookie storage and JavaScript HttpOnly isolation over HTTPS.
     const { chromium } = await import("@playwright/test")
     const browser = await chromium.launch()

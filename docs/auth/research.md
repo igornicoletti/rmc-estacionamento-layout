@@ -10,6 +10,7 @@
 - [2026-10-01 — reauditoria crítica da F02](#c2)
 - [2026-10-01 — Manutenção pré-F03](#c3)
 - [2026-10-01 — Implementação F03](#c4)
+- [2026-10-01 — Confronto do dossiê v2.0](#c5)
 
 <a id="c1"></a>
 
@@ -88,3 +89,20 @@ Perguntas: como impedir fallback SPA para API; provar streaming/deadlines no run
 | [Supabase changelog](https://supabase.com/changelog?types=breaking-change) | PG17.11 hospedado não presume minor local; registrar show server_version; Data API opt-in, schemas internos não utilizados |
 
 Registry engines/peers/advisories foram conferidos antes da instalação. Um lockfile raiz; sem instalação forçada. Testes runtime não substituem HTTPS+PostgreSQL reais, e ambos não substituem prova hosted da F13.
+
+<a id="c5"></a>
+
+## 2026-10-01 — Confronto do dossiê v2.0
+
+Objetivo: distinguir obrigação existente, correção normativa, detalhe de implementação e prova ausente. Método: leitura integral do dossiê e v1.0, confronto dos 18 P0 e T39–T63 com implementação e fontes primárias; excluir blogs, exemplos permissivos de grants e comportamento interno não fixado. Resultado/matriz e hashes em [v1.1](contract-v1.1.md#audit). Consulta: 01/10/2026; nenhuma versão hospedada certificada.
+
+| Busca/fonte primária | Evidência e limite | Decisão |
+| --- | --- | --- |
+| Supabase admin createUser/password; fonte Auth `ce9a8eee0cc042be8c7a42981a7ddae631e41d91` | UUID fornecido e credencial interna aleatória suportados; API de login email/phone, não CPF; comportamento target exige PoC | Adapter técnico e ownership reservado F04; sem senha entregue, não ausência literal de credencial |
+| Supabase sessions/signing keys | JWT válido pode sobreviver à sessão provider; JWKS tem cache upstream/SDK | Não remover verificação online sem protocolo de revogação/fence |
+| PostgREST transactions/PostgreSQL RLS | RPC transacional; READ COMMITTED não é snapshot único entre statements; service_role BYPASSRLS | Isolamento por comando; grants separados de RLS |
+| RFC 9110 §15.5.2/RFC 9457 | WWW-Authenticate obrigatório em 401; about:blank usa título do status | Desafio RMCSession específico da aplicação; sem exigir Bearer |
+| OWASP CSRF/transaction authorization; NIST 800-63B | Proteção vinculada a contexto/efeito; TOTP não phishing-resistant | Cookies determinísticos, prova one-time; não alegar conformidade NIST integral |
+| Workers Web Crypto/Static Assets headers | Codec precisa ser inequívoco; headers combinados requerem detach para cache immutable | Codec 1 explícito, vetor independente, style exception separada de script |
+
+URLs reproduzíveis e commit fixado estão nas [fontes da revisão](contract-v1.1.md#sources). A base possui 160 IDs, não 157; o dossiê tem 125 IDs próprios e 25 testes adicionais. Esses inventários não equivalem a provas de segurança nem certificação de auditoria independente.

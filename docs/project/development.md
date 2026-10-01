@@ -51,7 +51,7 @@ Secrets não entram em VITE_*, logs, fixtures ou docs. .env.example contém apen
 
 Gate destrutivo de teste, projeto fixo rmc-estacionamento-layout/portas 55320–55329. Recusa DB já iniciado; se estiver trabalhando nele, finalize explicitamente antes do gate. Inicia stack mínimo, reset duas vezes, provas, cleanup e stop preservando backup; não afeta outro projeto.
 
-Minor PostgreSQL é consultada, não inferida de db.major_version=17 ou CLI. A evidência pré-F03 registra 17.11; a revalidação F03 observou 17.6, registrada sem promover a imagem local a prova target. Aviso PG17.11/pgcrypto/ltree/btree_gist/operators exige análise; ausência dessas APIs nas migrations Auth não certifica todo engine. Auth segue disabled e prova target pendente.
+Minor PostgreSQL é consultada, não inferida de db.major_version=17 ou CLI. A evidência pré-F03 registra 17.11; uma execução preliminar F03 observou 17.6. O gate integral de 01/10/2026 sobre 0ae8ca3 consultou 17.11; esses resultados são históricos, não prova target. Aviso PG17.11/pgcrypto/ltree/btree_gist/operators exige análise; ausência dessas APIs nas migrations Auth não certifica todo engine. Auth segue disabled e prova target pendente.
 
 F03 usa workspace worker privado, lockfile único; SDK servidor2.117.2, Wrangler4.145.0, plugin1.3.4/Vitest4.1.11, appVitest5.0.3. `npm run test:worker:integration` é autossuficiente: build, dois resets, testes de banco e HTTPS loopback 8787. Recusa stack preexistente/porta ocupada. Chaves efêmeras só no ambiente do processo filho, saída startup suprimida; nenhum secret precisa ser criado manualmente. Não iniciar serviços remotos.
 

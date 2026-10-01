@@ -1,6 +1,6 @@
 begin;
 set local search_path=extensions,public;
-select plan(26);
+select plan(30);
 select has_table('rmc_auth_private','csrf_material','CSRF is private persistence');
 select ok((select relrowsecurity and relforcerowsecurity from pg_class where oid='rmc_auth_private.csrf_material'::regclass),'CSRF RLS defense in depth');
 select ok(not has_table_privilege('anon','rmc_auth_private.csrf_material','SELECT'),'anon cannot read CSRF');
@@ -13,6 +13,8 @@ set local role service_role;
 select lives_ok($$select rmc_auth_api.create_preauth_context('10000000-0000-4000-8000-000000000003',decode(repeat('11',32),'hex'),decode(repeat('22',32),'hex'),decode(repeat('33',60),'hex'),decode(repeat('44',32),'hex'),1,decode(repeat('55',32),'hex'))$$,'service role creates PREAUTH atomically');
 select is((rmc_auth_api.read_preauth_context(decode(repeat('11',32),'hex'))->>'purpose'),'PREAUTH','context is not NORMAL');
 select is((rmc_auth_api.read_preauth_context(decode(repeat('11',32),'hex'))->>'csrfHash'),repeat('22',32),'stored hash re-delivered unchanged');
+select is((rmc_auth_api.read_preauth_context(decode(repeat('11',32),'hex'))->>'codecVersion'),'1','codec version is explicit');
+select is((rmc_auth_api.read_preauth_context(decode(repeat('11',32),'hex'))->>'algorithm'),'A256GCM','algorithm is explicit');
 select ok(rmc_auth_api.validate_preauth_csrf('10000000-0000-4000-8000-000000000003',1,decode(repeat('22',32),'hex')),'current token valid');
 select ok(not rmc_auth_api.validate_preauth_csrf('10000000-0000-4000-8000-000000000003',2,decode(repeat('22',32),'hex')),'stale generation denied');
 select ok(not rmc_auth_api.validate_preauth_csrf('10000000-0000-4000-8000-000000000003',1,decode(repeat('66',32),'hex')),'different token denied');
@@ -20,6 +22,8 @@ select ok(rmc_auth_api.invalidate_preauth_csrf('10000000-0000-4000-8000-00000000
 select ok(not rmc_auth_api.validate_preauth_csrf('10000000-0000-4000-8000-000000000003',1,decode(repeat('22',32),'hex')),'invalidated token denied');
 select is(rmc_auth_api.read_preauth_context(decode(repeat('11',32),'hex')),null::jsonb,'invalidated context never falls back to existing anonymous');
 reset role;
+select throws_ok($$update rmc_auth_private.csrf_material set codec_version=2 where journey_id='10000000-0000-4000-8000-000000000003'$$,'23514',null,'unknown codec rejected');
+select throws_ok($$update rmc_auth_private.csrf_material set algorithm='unknown' where journey_id='10000000-0000-4000-8000-000000000003'$$,'23514',null,'unknown algorithm rejected');
 select throws_ok($$update rmc_auth_private.csrf_material set token_hash=decode(repeat('77',32),'hex') where journey_id='10000000-0000-4000-8000-000000000003'$$,'23514',null,'token material cannot be replaced in place');
 insert into rmc_auth_private.journey_transactions(id,purpose,binding_hash,state,created_at,expires_at,secret_hash,key_version)
 values('10000000-0000-4000-8000-000000000004','PREAUTH',decode(repeat('44',32),'hex'),'PENDING',clock_timestamp()-interval '31 minutes',clock_timestamp()-interval '1 minute',decode(repeat('88',32),'hex'),1);

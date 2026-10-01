@@ -17,6 +17,8 @@ export type IdentityState = {
   onboarding: Onboarding
 }
 export type EncryptedEnvelope = {
+  codecVersion: 1
+  algorithm: "A256GCM"
   ciphertext: Uint8Array
   keyVersion: number
   purpose: string
@@ -56,7 +58,7 @@ export type AuditEvent = {
   reasonCode?: string
   occurredAt: string
   deployment: string
-  contractVersion: "1.0"
+  contractVersion: "1.1"
 }
 
 export interface Clock {

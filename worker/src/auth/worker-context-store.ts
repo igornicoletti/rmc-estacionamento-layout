@@ -9,6 +9,7 @@ import { WorkerProblem } from "../http/worker-http"
 
 const hash = z.string().regex(/^[0-9a-f]{64}$/)
 const recordSchema = z.strictObject({
+  codecVersion: z.literal(1), algorithm: z.literal("A256GCM"),
   contextId: opaqueIdSchema, purpose: z.literal("PREAUTH"),
   generation: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   expiresAt: isoTimestampSchema, serverTime: isoTimestampSchema,
