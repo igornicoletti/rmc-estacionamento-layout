@@ -7,7 +7,8 @@ React Router Data Mode, TanStack Query e Table v9. Sem Next.js/RSC.
 
 Clientes, veículos e Unidades têm tabelas de demonstração. Demais telas são placeholders.
 Auth **disabled**: F00/F01/F02 têm evidências locais específicas; não há login,
-Worker/BFF, SDK Supabase no browser ou autorização de produção. F03 não iniciada.
+BFF funcional de login ou autorização de produção. F03 introduz Worker/HTTP e
+PREAUTH/CSRF exclusivamente local; nenhum SDK Supabase está no browser.
 Build e preview não são release. [Estado e contrato](docs/auth/README.md).
 
 ## Começar
@@ -29,7 +30,10 @@ Linux pode exigir `--with-deps`.
 | `npm run check` | Diff, lint, tipos, docs, tooling e testes |
 | `npm run check:app` | Aplicação: audit/Knip, cobertura, build e Chromium |
 | `npm run check:db` | Exclusivamente local e destrutivo: dois resets e provas DB |
-| `npm run check:full` | Aplicação e banco, sem repetir build/suíte |
+| `npm run check:full` | Aplicação, Worker, banco e HTTPS local; build/reset compartilhados |
+| `npm run check:bff` | Worker, dois resets, banco e integração HTTPS/Chromium local |
+| `npm run check:worker` | Tipos gerados, TypeScript Worker, runtime e dry-run; exige build |
+| `npm run test:worker:integration` | Build, banco exclusivo e HTTPS local; sem deploy |
 | `npm run test:e2e` | Build e Chromium/Firefox/WebKit |
 | `npm run docs:check` | Links, anchors, inventários, integridade e Markdown |
 | `npm run deps:status` | Atualizações informativas |

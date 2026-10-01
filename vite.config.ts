@@ -30,7 +30,16 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), {
+    name: "browser-server-boundary",
+    generateBundle() {
+      for (const id of this.getModuleIds()) {
+        if (/[/\\]node_modules[/\\]@supabase[/\\]|[/\\]worker[/\\]src[/\\]/.test(id)) {
+          this.error("Server-only module reached the browser bundle")
+        }
+      }
+    },
+  }],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),

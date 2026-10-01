@@ -1,13 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { databaseGate } from "../auth-db/auth-db-gate.mjs"
 import { npmScript, runProcess, runSteps, validationReportDirectory } from "./validation-process.mjs"
+import { checkWorker } from "../worker/worker-check.mjs"
+import { workerIntegration } from "../worker/worker-integration.mjs"
 
 const profile = process.argv[2]
 const profiles = {
   quick: ["lint", "typecheck", "docs:check", "test:scripts", "test"],
   app: ["unused:check", "audit:security", "lint", "typecheck", "docs:check", "test:scripts", "test:coverage", "build:assets", "test:e2e:built"],
 }
-if (!["quick", "app", "db", "full"].includes(profile)) throw new Error("Unknown validation profile")
+if (!["quick", "app", "db", "full", "bff"].includes(profile)) throw new Error("Unknown validation profile")
 const results = []
 const startedAt = new Date().toISOString()
 const abort = new AbortController()
@@ -21,13 +23,17 @@ let exitCode = 0
 try {
   await runSteps([{ label: "git diff --check", command: "git", args: ["diff", "--check"] },
     { label: "git diff --cached --check", command: "git", args: ["diff", "--cached", "--check"] }], execute, results)
-  if (profile !== "db") {
+  if (!["db", "bff"].includes(profile)) {
     await runSteps(profiles[profile === "full" ? "app" : profile].map((label) => {
       const [command, args] = npmScript(label)
       return { label, command, args, options: { timeout: 1_200_000 } }
     }), execute, results)
   }
-  if (["db", "full"].includes(profile)) await databaseGate(execute, results)
+  if (["full", "bff"].includes(profile)) {
+    if (profile === "bff") await runSteps([{ label: "build:assets", command: npmScript("build:assets")[0], args: npmScript("build:assets")[1] }], execute, results)
+    await checkWorker(execute, results)
+    await databaseGate(execute, results, (run, report) => workerIntegration(run, report, abort.signal))
+  } else if (profile === "db") await databaseGate(execute, results)
 } catch (error) {
   console.error(error.message)
   exitCode = 1

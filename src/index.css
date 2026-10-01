@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+/* Worker-generated runtime declarations are not UI class sources. */
+@source not "../worker";
+@source not "../validation-results";
 
 @custom-variant dark (&:is(.dark *));
 

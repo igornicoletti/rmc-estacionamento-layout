@@ -1,7 +1,7 @@
 # Plano e requisitos Auth
 
 **Natureza:** referência vigente. **Escopo:** F00–F14.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
 **Status:** implementação existente descrita; resultados de execução ficam no [manifesto](evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
 
 ## Sumário navegável
@@ -64,7 +64,7 @@ No início de cada fase, revisar documentação e changelogs oficiais aplicávei
 
 Billing ou runner indisponível é limitação externa. Não equivale a CI verde e exige waiver explícito do responsável para merge quando o check obrigatório não iniciar.
 
-F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. A manutenção pré-F03 não inicia nem autoriza F03; nova fase exige validação explícita.
+F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção integrada em main74c7b24. F03 foi autorizada pelo plano aprovado; F04 exige nova validação expressa.
 
 <a id="c5"></a>
 
@@ -85,7 +85,7 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. A manutençã
 | Catálogo fechado de capabilities e reconhecimento puro | F01 | `src/shared/authorization`; capability desconhecida falha fechado; imports diretos e prefixados | capability desconhecida e imports proibidos | `evidence/F01-local.md`; SHA testado `e1125b0ee90bff810a6365f284581d4e6477332c` | verified-local |
 | Hierarquia, scope, target e evaluator/enforcement completo | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; perfil ADR-002; grants mínimos; estado/binding/fence; RPCs invoker para claim, CAS, lease e challenge/outbox atômicos | contraprovas de persistência; cardinalidade/histórico T25; override T26; banco/roles T27; commit/rollback T28 e binding T29; T24 autoritativo fica F04/F10 | `evidence/F02-reaudit-local.md`; SHA testado `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`; 126 assertions e duas rodadas concorrentes | verified-local |
-| HTTP, body, cookies, CSRF, headers e erros | F03 | Worker/BFF e transporte same-origin | T02, T03, T18, T21, T35 | pendente | planned |
+| HTTP, body, cookies, CSRF, headers e erros | F03 | Worker ESM, HttpClient, limites reais/deadlines, context PREAUTH/CSRF por RPC, headers e Crypto | T02/T03/T21; parcelas F03 T06/T07/T18/T27/T35/T37/T38; runtime/SQL/HTTPS real | gate final em execução nesta branch; sem prova hosted | implemented |
 | Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais | pendente | planned |
 | Outbox, Queue, SMS e DLQ | F05 | dispatcher, consumer e adapter de gateway | T28–T30 | gateway não selecionado | blocked |
 | Ativação e senha inicial | F06 | challenge, BOOTSTRAP e promoção | T01, T04, T11, T31 | pendente | planned |
@@ -100,6 +100,6 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. A manutençã
 
 A política de acesso existente em `src/features/auth` continua sendo scaffold de UX do layout; ela não é o evaluator autoritativo de F10. Fresh step-up não é modelado como flag global dessa policy: a prova final permanece vinculada à sessão e à intenção no servidor.
 
-A F01 e a F02 estão `verified-local` nos SHAs explicitamente registrados. A evidência anterior da F02 foi supersedida após a reauditoria. A F03 continua bloqueada até nova validação explícita do responsável. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de Worker, provider, staging ou target.
+A F01 e a F02 estão `verified-local` nos SHAs explicitamente registrados. A evidência anterior da F02 foi supersedida após a reauditoria. F03 só recebe verified-local após o gate do SHA registrado; merge/F04 dependem do responsável. Isso não antecipa F12, não converte a branch em `PASS_LOCAL` global e não substitui provas de provider, staging ou target.
 
 Atualizar esta matriz no mesmo PR que altera implementação ou evidência. Um teste contado sem vínculo ao requisito não muda status, e evidência de outro SHA não é transportada por inferência.

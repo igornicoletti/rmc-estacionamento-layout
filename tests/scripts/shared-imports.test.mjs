@@ -9,3 +9,12 @@ test("effective ESLint config denies runtime/UI/SDK/I-O imports in shared contra
     assert.ok(result.messages.some((message) => message.ruleId === "no-restricted-imports"), target)
   }
 })
+
+test("browser imports cannot reach Worker or server SDK", async () => {
+  const eslint = new ESLint()
+  for (const filePath of ["src/lib/http/http-client.ts", "src/app/app-providers.tsx", "src/components/toast/toast-notify.ts", "src/shared/auth/auth-contracts.ts"])
+  for (const target of ["@supabase/supabase-js", "../../../worker/src/worker-entry"]) {
+    const [result] = await eslint.lintText(`import "${target}"\n`, { filePath })
+    assert.ok(result.messages.some((message) => message.ruleId === "no-restricted-imports"), target)
+  }
+})

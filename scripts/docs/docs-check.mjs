@@ -30,16 +30,16 @@ for (const [path, document] of documents) {
     const source = await readFile(path, "utf8")
     if (path.includes(`${resolve("docs")}`) && !source.includes("Sumário")) throw new Error(`Missing navigable summary: ${path}`)
     for (const code of document.codes) {
-      if (/^(src|tests|scripts|supabase)\/[\w./-]+$/.test(code)) {
+      if (/^(src|tests|scripts|supabase|worker)\/[\w./-]+$/.test(code)) {
         await stat(resolve(code)).catch(() => { throw new Error(`Missing declared path in ${path}: ${code}`) })
       }
     }
   }
 }
-const suites = [...await files("tests"), ...await files("supabase/tests/database")]
+const suites = [...await files("tests"), ...await files("supabase/tests/database"), ...await files("worker/tests")]
   .filter((path) => /\.(test|spec)\.(ts|tsx|mjs|sql)$/.test(path)).sort()
 const catalog = documents.get(resolve("docs/project/validation.md")).codes
-  .filter((value) => /^(tests|supabase\/tests)\/.*\.(test|spec)\.(ts|tsx|mjs|sql)$/.test(value)).sort()
+  .filter((value) => /^(tests|supabase\/tests|worker\/tests)\/.*\.(test|spec)\.(ts|tsx|mjs|sql)$/.test(value)).sort()
 if (JSON.stringify(catalog) !== JSON.stringify(suites)) throw new Error("Test catalog is incomplete, duplicated or stale")
 const contractHash = createHash("sha256").update(await readFile("docs/auth/contract-v1.0.md")).digest("hex").toUpperCase()
 if (contractHash !== "74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148") throw new Error("Normative contract integrity failure")
@@ -54,7 +54,7 @@ if (workflow.permissions?.contents !== "read") throw new Error("Unexpected workf
 for (const job of Object.values(workflow.jobs)) {
   for (const step of job.steps) if (step.uses && !/@[a-f0-9]{40}$/.test(step.uses)) throw new Error("Action must be pinned by full SHA")
 }
-for (const [job, command] of Object.entries({ validate: "npm run check:app", "auth-db": "npm run check:db" })) {
+for (const [job, command] of Object.entries({ validate: "npm run check:app", "auth-db": "npm run check:bff" })) {
   if (!workflow.jobs[job].steps.some((step) => step.run === command)) throw new Error("Workflow diverges from local gates")
 }
 const [command, prefix] = npmScript("docs:lint")

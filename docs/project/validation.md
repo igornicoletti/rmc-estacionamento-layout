@@ -1,7 +1,7 @@
 # Validação e catálogo de testes
 
 **Natureza:** referência vigente. **Escopo:** gates de aplicação/banco/tooling e suites existentes.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03; SHA testado no manifesto da fase.
 **Status:** implementação existente descrita; resultados de execução ficam no [manifesto](../auth/evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
 
 ## Sumário navegável
@@ -21,7 +21,11 @@
 | check | Diff staged/unstaged, lint, tipos, docs, tests scripts e Vitest; sem Docker |
 | check:app | Knip/audit/lint/tipos/docs/scripts/cobertura serial, assets/budget e Chromium sobre build atual |
 | check:db | Docker; projeto fixo; recusa stack existente; dois resets, pgTAP, concurrency duas vezes, lint/advisors/diff vazio/cleanup/stop |
-| check:full | app seguido de db, sem reexecutar Vitest/build |
+| check:full | app, Worker e banco+HTTPS local, sem reexecutar Vitest/build/reset |
+| check:bff | Build, Worker e banco+HTTPS local; sem app Vitest |
+| check:worker | Env --check, tipos Worker, runtime e deploy dry-run; exige dist atual |
+| test:worker | Runtime Workers isolado; Vitest4.1.11/plugin1.3.4 |
+| test:worker:integration | Build e gate DB exclusivo; HTTPS e Chromium real, sem deploy |
 | test / test:watch | Vitest completo único / watch |
 | test:unit / test:integration | Seleção por camada |
 | test:serial | Diagnóstico com maxWorkers=1 |
@@ -44,6 +48,8 @@ Runners usam processo Node e argumentos sem shell; falha para sequência imediat
 ## Ambientes e política de testes
 
 Vitest node: testes unit .ts puros; dom: .tsx e clipboard browser + integração, setup React/matchMedia/cleanup exclusivo. Isolamento por arquivo mantido. Node native testa runners/parser/ESLint. Cada arquivo deve executar uma vez; novas dependências DOM exigem classificação explícita, não cair silenciosamente em ambiente errado.
+
+Worker usa workspace e Vitest próprios, não pertence à descoberta app. Env/runtime são gerados por Wrangler (sem tipos manuais duplicados). Contraprova de mutation vive em Worker auxiliar exclusivo de testes; produção habilita somente health/contexto local. Integração aceita certificado local só no runner; nunca NODE_TLS_REJECT_UNAUTHORIZED=0 ou confiança global. Stack/processos próprios são encerrados em finally; sinais e limpeza de fixtures não compartilham cancelamento.
 
 Não alterar timeouts/retries para esconder falha. Coverage SQL não é V8. Thresholds DataTable: 95% statements/lines, 85% branches, 90% functions. Specs E2E usam retry2 em CI já existente; gate local sem retry, serial Chromium. Erros assíncronos usam assertions auto-wait; testes focam contratos/a11y, não classes ou upstream internals.
 
@@ -110,6 +116,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
 | `tests/unit/lib/browser/browser-clipboard.test.ts` | encaminha o valor para a Clipboard API; propaga falhas da Clipboard API |
+| `tests/unit/lib/http/http-client.test.ts` | DTO estrito/null/unknown; MIME/JSON/UTF-8/16KiB; origem/headers proibidos; GET retry único, 408/425 não autoritativos e Retry-After sem truncar; POST sem retry; 403 sem logout; signal/timeout/timers; stream cancelado; input não serializável e base64url canônico |
 | `tests/unit/lib/csv-export.test.ts` | serializa cabeçalho, CRLF e campos que exigem aspas |
 | `tests/unit/lib/erp/erp-brazilian-states.test.ts` | resolve nomes canônicos das 27 UFs por sigla; rejeita siglas desconhecidas |
 | `tests/unit/lib/erp/erp-date-time.test.ts` | normaliza ISO e timestamps PostgreSQL com fuso explícito; rejeita datas impossíveis e date-times sem fuso |
@@ -155,6 +162,14 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `tests/scripts/docs-model.test.mjs` | Markdown parser resolves references, ids, repeated headings and code inventories; local links cannot escape the repository and external links are not fetched; Vitest discovers every unit/integration suite exactly once in node or dom |
 | `tests/scripts/shared-imports.test.mjs` | effective ESLint config denies runtime/UI/SDK/I-O imports in shared contracts |
 | `tests/scripts/validation-process.test.mjs` | Report directories isolated from Playwright cleanup; success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
+| `tests/scripts/worker-runner.test.mjs` | Workspace isolado/falha interrompe sequência; URLs remotas/probes ambíguos negados; descoberta Worker exatamente uma vez; appVitest5 e WorkerVitest4 preservados |
+
+### worker/tests
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `worker/tests/worker-boundary.test.ts` | API404 com AcceptHTML e disabled; health/método; configuração hosted fechada; catch sanitizado/headers; 8192/8193 sem length/multibyte; MIME/encoding/JSON; stream lento/deadline; URL/Cookie limites; duplicidade/autoridade desconhecida; Origin/Fetch Metadata; token estável, stale e mismatch negados antes de side effect no auxiliar; GCM purpose/binding/version/tamper/key separation |
+| `worker/tests/worker-upstream.test.ts` | URL somente local; SDK request-scoped/redirect negado/signal; sem Cookie browser; respostas RPC MIME/64KiB/DTO inválidos; rede indisponível sem vazamento |
 
 ### supabase/tests/database
 
@@ -164,12 +179,15 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `supabase/tests/database/auth_invariants.test.sql` | Cardinalidade, CAS one-time, intenção idempotente/conflito e leases. |
 | `supabase/tests/database/auth_roles.test.sql` | PUBLIC/anon/authenticated/service_role reais, grants/RLS/invoker e acesso direto/RPC. |
 | `supabase/tests/database/auth_schema.test.sql` | Objetos/colunas/constraints/índices, schemas privados, RLS e propriedades das funções. |
+| `supabase/tests/database/auth_csrf.test.sql` | Material exclusivo/imutável; grants/roles/invoker; PREAUTH+CSRF atômico; hash estável; stale generation/token errado/invalidation/expiry; binding adulterado; limpeza limitada; limite IP/global e chaves IP não criadas após bloqueio global |
+
+Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 
 <a id="c4"></a>
 
 ## Evidência e limitações
 
-Baseline F02 comprovou 54 arquivos/227 Vitest, 126 assertions pgTAP e 19 Chromium no SHA bc8ab3c; esses totais não são prova desta branch. Resultado novo fica no [manifesto de manutenção](../auth/evidence/pre-f03-maintenance-local.md). Relatório runner é auxiliar: totais de casos vêm do runner real, não de parser de títulos.
+Baseline F02 comprovou 54 arquivos/227 Vitest, 126 assertions pgTAP e 19 Chromium no SHA bc8ab3c; esses totais não são prova desta branch. Manutenção permanece [histórica](../auth/evidence/pre-f03-maintenance-local.md); resultado F03 será vinculado ao SHA no manifesto da fase. Relatório runner é auxiliar: totais de casos vêm do runner real, não de parser de títulos.
 
 Billing hospedado é falha de infraestrutura; merge exige autorização/waiver explícito naquela PR. Firefox/WebKit/DOM não provam leitor de tela, provider, RLS target, load ou release. Nenhum snapshot ou fixture real é anexado.
 

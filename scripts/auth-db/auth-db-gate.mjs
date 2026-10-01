@@ -19,21 +19,20 @@ export function assertEmptyDiff(output) {
   }
 }
 
-export async function databaseGate(execute = runProcess, results = []) {
-  const directory = new URL("../../supabase/.temp/", import.meta.url)
+export async function databaseGate(execute = runProcess, results = [], afterReady, directory = new URL("../../supabase/.temp/", import.meta.url)) {
   const lock = new URL("validation-gate.lock", directory)
   await mkdir(directory, { recursive: true })
   const handle = await open(lock, "wx").catch(() => { throw new Error("Database gate locked; verify no gate is running before removing a stale local lock") })
   try {
     await handle.writeFile(String(process.pid))
-    await ownedDatabaseGate(execute, results)
+    await ownedDatabaseGate(execute, results, afterReady)
   } finally {
     await handle.close()
     await unlink(lock)
   }
 }
 
-async function ownedDatabaseGate(execute, results) {
+async function ownedDatabaseGate(execute, results, afterReady) {
   const config = await readFile(new URL("../../supabase/config.toml", import.meta.url), "utf8")
   if (!config.includes(`project_id = "${projectId}"`)) throw new Error("Unexpected local project")
   await execute("docker", ["info"], { capture: true })
@@ -48,7 +47,10 @@ async function ownedDatabaseGate(execute, results) {
   try {
     started = true // Cleanup even if startup created only part of the stack.
     await runSteps([step("db:start"), step("db:reset"), step("db:reset"), step("db:test"),
-      step("db:test:concurrency"), step("db:test:concurrency"), step("db:lint"), step("db:advisors")], execute, results)
+      step("db:test:concurrency"), step("db:test:concurrency"),
+      { label: "F03 DB concurrency 1", command: process.execPath, args: ["scripts/auth-db/auth-db-context-concurrency.mjs"] },
+      { label: "F03 DB concurrency 2", command: process.execPath, args: ["scripts/auth-db/auth-db-context-concurrency.mjs"] },
+      step("db:lint"), step("db:advisors")], execute, results)
     const server = await execute("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-AtX", "-c", "show server_version"], { capture: true })
     if (!/^17\.\d+(?:\s.*)?$/.test(server.stdout.trim())) throw new Error("Unexpected PostgreSQL major")
     results.push({ label: "PostgreSQL runtime", version: server.stdout.trim(), exitCode: 0 })
@@ -59,8 +61,9 @@ async function ownedDatabaseGate(execute, results) {
       options: { capture: true, timeout: 600_000 },
     }], async (...args) => { const result = await execute(...args); assertEmptyDiff(result.stdout); return result }, results)
     const clean = await execute("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-AtX", "-v", "ON_ERROR_STOP=1", "-c",
-      "select (select count(*) from rmc_auth_private.identities)+(select count(*) from rmc_auth_private.units_state)+(select count(*) from rmc_auth_private.command_ledger)"], { capture: true })
+      "select (select count(*) from rmc_auth_private.identities)+(select count(*) from rmc_auth_private.units_state)+(select count(*) from rmc_auth_private.command_ledger)+(select count(*) from rmc_auth_private.journey_transactions)+(select count(*) from rmc_auth_private.csrf_material)"], { capture: true })
     if (clean.stdout.trim() !== "0") throw new Error("Synthetic fixture cleanup incomplete")
+    if (afterReady) await afterReady(execute, results)
   } finally {
     if (started) await runSteps([step("db:stop")], execute, results)
   }

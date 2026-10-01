@@ -9,6 +9,7 @@ const productionTestImportRestriction = {
   group: ["@tests/*"],
   message: "Código de produção não deve importar infraestrutura de testes.",
 }
+const serverImportRestriction = { group: ["@supabase/*", "**/worker/**"], message: "Browser não pode importar SDK servidor ou Worker." }
 
 const toastImportRestriction = {
   name: "@/components/ui/toast",
@@ -54,10 +55,13 @@ export default tseslint.config(
       "playwright-report",
       "test-results",
       "validation-results",
+      "**/worker-env.d.ts",
+      "**/.wrangler/**",
       "src/components/ui",
     ],
   },
   ...tanstackQuery.configs["flat/recommended"],
+  { files: ["scripts/worker/worker-integration.mjs"], languageOptions: { globals: { document: "readonly", fetch: "readonly" } } },
   {
     ...js.configs.recommended,
     files: ["scripts/**/*.mjs", "tests/scripts/**/*.mjs", "eslint.config.js"],
@@ -125,6 +129,7 @@ export default tseslint.config(
                 "**/features/**",
                 "**/lib/**",
                 "**/tests/**",
+                "**/worker/**",
               ],
               message:
                 "Contratos compartilhados devem permanecer puros e sem dependências de runtime, UI ou testes.",
@@ -144,6 +149,7 @@ export default tseslint.config(
           paths: [toastImportRestriction],
           patterns: [
             productionTestImportRestriction,
+            serverImportRestriction,
             relativeToastImportRestriction,
           ],
         },
@@ -160,6 +166,7 @@ export default tseslint.config(
           patterns: [
             productionTestImportRestriction,
             relativeToastOnlyImportRestriction,
+            serverImportRestriction,
           ],
         },
       ],
@@ -175,6 +182,7 @@ export default tseslint.config(
           patterns: [
             productionTestImportRestriction,
             relativeToasterOnlyImportRestriction,
+            serverImportRestriction,
           ],
         },
       ],

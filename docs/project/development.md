@@ -1,7 +1,7 @@
 # Desenvolvimento
 
 **Natureza:** referência vigente. **Escopo:** ambiente local e manutenção de dependências.
-**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
 **Status:** implementação existente descrita; resultados de execução ficam no [manifesto](../auth/evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
 
 ## Sumário navegável
@@ -51,7 +51,9 @@ Secrets não entram em VITE_*, logs, fixtures ou docs. .env.example contém apen
 
 Gate destrutivo de teste, projeto fixo rmc-estacionamento-layout/portas 55320–55329. Recusa DB já iniciado; se estiver trabalhando nele, finalize explicitamente antes do gate. Inicia stack mínimo, reset duas vezes, provas, cleanup e stop preservando backup; não afeta outro projeto.
 
-Minor PostgreSQL é consultada, não inferida de db.major_version=17 ou CLI. O stack desta rodada iniciou 17.11, confirmado por show server_version e registrado pelo gate. Aviso PG17.11/pgcrypto/ltree/btree_gist/operators exige análise; ausência dessas APIs nas migrations Auth não certifica todo engine. Auth segue disabled e prova target pendente.
+Minor PostgreSQL é consultada, não inferida de db.major_version=17 ou CLI. A evidência pré-F03 registra 17.11; a revalidação F03 observou 17.6, registrada sem promover a imagem local a prova target. Aviso PG17.11/pgcrypto/ltree/btree_gist/operators exige análise; ausência dessas APIs nas migrations Auth não certifica todo engine. Auth segue disabled e prova target pendente.
+
+F03 usa workspace worker privado, lockfile único; SDK servidor2.117.2, Wrangler4.145.0, plugin1.3.4/Vitest4.1.11, appVitest5.0.3. `npm run test:worker:integration` é autossuficiente: build, dois resets, testes de banco e HTTPS loopback 8787. Recusa stack preexistente/porta ocupada. Chaves efêmeras só no ambiente do processo filho, saída startup suprimida; nenhum secret precisa ser criado manualmente. Não iniciar serviços remotos.
 
 <a id="c5"></a>
 

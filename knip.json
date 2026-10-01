@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": ["src/components/ui/**"],
-  "ignoreDependencies": ["@supabase/supabase-js"],
+  "workspaces": {
+    ".": { "entry": ["tests/**/*.test.{ts,tsx,mjs}", "scripts/**/*.mjs", "tests/e2e/**/*.spec.ts"] },
+    "worker": { "entry": ["tests/**/*.test.ts"], "project": ["src/**/*.ts", "tests/**/*.ts"], "ignoreDependencies": ["cloudflare"] }
+  },
   "ignoreExportsUsedInFile": true
 }
