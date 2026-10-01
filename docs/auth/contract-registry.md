@@ -31,8 +31,8 @@ O baseline mantém Auth fechado por padrão e não inclui Worker/BFF, Supabase S
 | Vite | `8.3.0` resolvido. |
 | TanStack Query | `5.103.2` pinado exatamente e resolvido. |
 | Base UI | `1.8.0` resolvido. |
-| Supabase SDK/Auth | Nenhum adapter ou SDK novo é instalado em F00. Versão e package server-side serão selecionados e provados no bloco que implementar o adapter. |
-| PostgreSQL | Major/minor real, extensões e configuração hospedada ainda exigem prova antes de F02. |
+| Supabase SDK/Auth | Nenhum adapter ou SDK foi instalado em F00. A F02 pinou o package server-side para uso futuro, sem integrá-lo ao browser ou habilitar Auth. |
+| PostgreSQL | A F02 observou PostgreSQL local `17.6`, pgcrypto `1.3` e pgTAP `1.3.3`; major/minor, extensões e configuração hospedada continuam exigindo prova de target. |
 | Cloudflare Workers / Queues | Plataforma de destino registrada; configuração Wrangler, Worker runtime, Queue/DLQ e typegen são deliberadamente adiados para as fases que os implementam. |
 
 O checkpoint forense `9bb1b0a` chegou a avaliar Wrangler `4.143.0`, `compatibility_date` `2026-09-28` e um Worker de scaffold. Esses itens foram removidos do baseline ativo porque antecipavam F03 e não constituíam prova de implementação.

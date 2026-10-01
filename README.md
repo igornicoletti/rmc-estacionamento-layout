@@ -76,8 +76,8 @@ hospedado sem repetir etapas já cobertas pelo próprio script.
 - `src/app/app-error-boundary.tsx`: captura global de falhas de renderização; apresentação delegada a fallback.
 - `src/lib/query/query-client.ts`: política de cache/retry e fábrica do QueryClient.
 - `src/features/auth/`: scaffold de UX/lifecycle do layout. Não substitui os contratos canônicos puros nem concede autoridade servidor.
-- `src/shared/auth/`: contratos puros da F01. Arquivos de escopo usam prefixo `auth-*`; `index.ts` permanece como barrel convencional do domínio.
-- `src/shared/authorization/`: catálogo/schemas puros de autorização. Arquivos de escopo usam prefixo `authorization-*`; `index.ts` permanece como barrel do domínio.
+- `src/shared/auth/`: contratos puros da F01; todos os módulos usam prefixo `auth-*` e imports diretos.
+- `src/shared/authorization/`: catálogo/schemas puros de autorização; todos os módulos usam prefixo `authorization-*` e imports diretos.
 - `src/components/layout/`: composição visual de página e shell; recebe conteúdo, callbacks e destinos por props.
 - `src/components/fallback/`: apresentação de falhas da aplicação, rota, carregamento e indisponibilidade de sessão. Cada boundary decide seu próprio estado.
 - `src/components/sidebar/`: conteúdo, itens de navegação e apresentação do sidebar; paths derivados do registro de rotas.
@@ -96,7 +96,7 @@ Não há seleção automática por ambiente nem integração Supabase no browser
 
 A migração `pages → features` usa `*-page.tsx` para as entradas de tela. Arquivos
 de implementação pertencentes a um escopo usam prefixo do domínio quando isso
-remove ambiguidade; barrels `index.ts` são a exceção intencional a essa regra.
+remove ambiguidade; os domínios Auth/Authorization não usam barrels.
 Fixtures demonstrativas ficam em `src/mocks`. Imports internos usam `@/`; arquivos
 e diretórios usam inglês e conteúdo/URLs usam pt-BR.
 
