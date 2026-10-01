@@ -126,6 +126,10 @@ checksums. Reproduzir pelo gate; não inferir aprovação de artefato ausente.
   de suíte. Argumento reporter não citado em PowerShell foi corrigido antes do E2E adicional.
 - npm ci inicialmente falhou por EPERM no binding Rolldown mantido pelo Vite aberto;
   somente o servidor deste projeto foi encerrado, então instalação limpa passou.
+- Após npm ci, npm ls exit0 marcou cinco dependências WASM opcionais como extraneous
+  (@emnapi/core/runtime/wasi-threads, @napi-rs/wasm-runtime e @tybys/wasm-util).
+  Todas constam no lockfile com optional=true; não houve missing/invalid ou conflito
+  de peer. Registro de toolchain, sem inferir causa ou remover pacotes à força.
 - Playwright apagava relatórios guardados em test-results; corrigido para validation-results
   com contraprova. Gate repetido no SHA final, sem reaproveitar relatório apagado.
 - Erro sintético de ErrorBoundary e avisos FORCE_COLOR/NO_COLOR são diagnósticos esperados;
