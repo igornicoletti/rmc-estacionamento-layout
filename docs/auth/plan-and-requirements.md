@@ -64,7 +64,7 @@ No início de cada fase, revisar documentação e changelogs oficiais aplicávei
 
 Billing ou runner indisponível é limitação externa. Não equivale a CI verde e exige waiver explícito do responsável para merge quando o check obrigatório não iniciar.
 
-F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção integrada em main74c7b24. F03 integrada no PR40 com autorização do responsável e waiver específico de billing; main sincronizada e branch removida. O [dossiê integral](audit-v2.0.md) abrange todas as fases: sua disposição completa e o plano condicionado de F04 estão na [reauditoria](F04-preparation.md). Saneamento identificado exige gate próprio antes de F04.
+F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção integrada em main74c7b24. F03 integrada no PR40 com autorização do responsável e waiver específico de billing; main sincronizada e branch removida. O [dossiê integral](audit-v2.0.md) abrange todas as fases: sua disposição completa e o plano de F04 estão na [reauditoria](F04-preparation.md). Saneamento aprovado/integrado nos PR41/42, com waivers próprios; F04 iniciada em branch separada da main844ca20.
 
 <a id="c5"></a>
 
@@ -86,8 +86,8 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção 
 | Hierarquia, scope, target e evaluator/enforcement completo | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; perfil ADR-002; grants mínimos; estado/binding/fence; RPCs invoker para claim, CAS, lease e challenge/outbox atômicos | contraprovas de persistência; cardinalidade/histórico T25; override T26; banco/roles T27; commit/rollback T28 e binding T29; T24 autoritativo fica F04/F10 | `evidence/F02-reaudit-local.md`; SHA testado `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`; 126 assertions e duas rodadas concorrentes | verified-local |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker ESM, HttpClient, limites reais/deadlines, context PREAUTH/CSRF por RPC, headers e Crypto/codec explícito | T02/T03/T21; parcelas F03 T06/T07/T18/T27/T35/T37/T38; runtime/SQL/HTTPS real | `evidence/F03-local.md`; SHA 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; sem prova hosted | verified-local |
-| Prontidão v1.1: portas de escrita, CPF recuperável/rotação e reserva ownership | F01/F02, antes de F04 | portas puras/audit estrito; migration incremental CPF/source/policy e reserva provider; codec CPF separado e ainda desconectado de Env/rotas | unknown/audit estrito, CPF equivalente entre versões, backfill/rollback, fence/lease, falha audit, transições/grants e reserva concorrente | `evidence/pre-f04-prerequisites-local.md`; SHAs53e974b e04bc12b com parcelas e limites explícitos | verified-local; aceite/merge pendentes |
-| Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais; parcelas T39/T40/T49/T61 | plano condicionado em `F04-preparation.md`; pré-requisitos pendentes | blocked |
+| Prontidão v1.1: portas de escrita, CPF recuperável/rotação e reserva ownership | F01/F02, antes de F04 | portas puras/audit estrito; migration incremental CPF/source/policy e reserva provider; codec CPF separado e ainda desconectado de Env/rotas | unknown/audit estrito, CPF equivalente entre versões, backfill/rollback, fence/lease, falha audit, transições/grants e reserva concorrente | `evidence/pre-f04-prerequisites-local.md`; SHAs53e974b e04bc12b com parcelas e limites explícitos | verified-local; aprovado/integrado PR41/42 |
+| Provisioning e saga Auth–DB | F04 | create/read provider local, admission como porta; PoC independente UUID/ownership/reserva/associação; saga/reconciler/day-zero pendentes | T04, T24, falhas parciais; parcelas T39/T40/T49/T61 | `evidence/F04-local.md`; primeiro marco em a824b898, não prova global | in-progress |
 | Outbox, Queue, SMS e DLQ | F05 | dispatcher, consumer e adapter de gateway | T28–T30 | gateway não selecionado | blocked |
 | Ativação e senha inicial | F06 | challenge, BOOTSTRAP e promoção | T01, T04, T11, T31 | pendente | planned |
 | Login, TOTP e step-up | F07 | MFA_PENDING, enrollment e binding | T08–T10 | pendente | planned |
@@ -111,7 +111,7 @@ F00–F02 continuam históricos nos SHAs registrados; não comprovam retroativam
 
 | Testes propostos no dossiê | Requisito/escopo | Fase e evidência esperada | Estado nesta F03 |
 | --- | --- | --- | --- |
-| T39/T40/T61 | Credencial interna, UUID, ownership, resposta perdida | F04 provider+ledger, não promover PENDING | Pendente |
+| T39/T40/T61 | Credencial interna, UUID, ownership, resposta perdida | F04 provider+ledger, não promover PENDING | Parcelas UUID/credencial/ownership locais no checkpoint F04; saga/perda de resposta/reconciliação e teste global pendentes |
 | T41 | Cookies por endpoint e transições | F03 conflitos; F06–F09 promoção/cancel/logout | Parcela runtime/HTTPS verified-local |
 | T42/T43 | JWT/JWKS e revogação/indisponibilidade | F07/F08, caminho escolhido e cache explicitados | Pendente; T43 não pressupõe remoção de verificação online |
 | T44/T45 | Enrollment exclusivo e step-up one-time | F07/F10 provider, concorrência e commit | Pendente |

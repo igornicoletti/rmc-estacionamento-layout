@@ -32,7 +32,7 @@ Mudança material exige nova versão/supersessão, justificativa/impacto/testes.
 | Manutenção | [Manifesto](evidence/pre-f03-maintenance-local.md) | Tooling/docs/dependências; não inicia nova fase |
 | F03 | 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; [manifesto](evidence/F03-local.md); PR40 integrado em 3c4b6d4343aec56c369c625b15d0a0b859cabdce | Aceite e merge autorizados em 01/10/2026 com waiver específico de billing; local, sem login ou prova hospedada |
 | Saneamento pré-F04 | [Manifesto suplementar F01/F02](evidence/pre-f04-prerequisites-local.md); código04bc12b5eb30752f2437ba63b356f428a61ede27; PR41/42 integrados em 844ca20 | Aprovado em 01/10/2026; billing dispensado especificamente, não CI verde |
-| F04 | [Preparação e implementação](F04-preparation.md#implementation); branch feat/auth-f04-provisioning | Início autorizado; primeiro marco create/read local e PoC, saga/day-zero ainda pendentes; Auth disabled |
+| F04 | [Preparação e implementação](F04-preparation.md#implementation); [checkpoint parcial](evidence/F04-local.md); branch feat/auth-f04-provisioning | Primeiro marco create/read local e PoC aprovados por testes; fase não encerrada, saga/day-zero ainda pendentes; Auth disabled |
 | F05–F14 | [Plano e matriz](plan-and-requirements.md) | Não autorizadas automaticamente; release depende de F12/F13/F14 |
 
 Shell/fixtures são demonstração. Nenhuma evidence de outro SHA é promovida por inferência. Jobs PR40 não iniciaram por billing; waiver explícito registrado naquele PR. Não se transfere a outro PR. [Reauditoria das bases e preparação F04](F04-preparation.md) registra os gates ainda necessários antes de provisioning.
