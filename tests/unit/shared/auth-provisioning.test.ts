@@ -26,7 +26,7 @@ describe("contratos de prontidão provisioning", () => {
     expect(provisioningOutcomeSchema.safeParse({ kind: "ABSENT", reason: "timeout" }).success).toBe(false)
   })
   it("valida envelope CPF privado e reserva com fence", () => {
-    const envelope = { codecVersion: 1, algorithm: "A256GCM", purpose: "CPF_SOURCE", identityId: id, generation: 1, keyVersion: 1, ciphertext: new Uint8Array(39) }
+    const envelope = { codecVersion: 1, algorithm: "A256GCM", purpose: "CPF", identityId: id, generation: 1, keyVersion: 1, ciphertext: new Uint8Array(39) }
     expect(cpfEnvelopeSchema.safeParse(envelope).success).toBe(true)
     for (const extra of [{ purpose: "CSRF" }, { ciphertext: new Uint8Array(60) }, { plaintext: "123" }, { keyVersion: 0 }]) expect(cpfEnvelopeSchema.safeParse({ ...envelope, ...extra }).success).toBe(false)
     const reservation = { commandId: id, identityId: id, providerSubject: id, ownershipBinding: id, identityGeneration: 1, fence: 1, leaseOwner: id, leaseExpiresAt: "2026-10-01T00:00:00Z", state: "RESERVED" }

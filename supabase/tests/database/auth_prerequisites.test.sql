@@ -22,6 +22,8 @@ select throws_ok($$select rmc_auth_api.write_cpf_source('71000000-0000-4000-8000
   decode(repeat('11',39),'hex'),array[1],array[decode(repeat('21',32),'hex')])$$,
   '23505',null,'equivalent CPF cannot create second identity');
 select is((select count(*)::integer from rmc_auth_private.cpf_sources),1,'failed duplicate leaves no envelope');
+select throws_ok($$update rmc_auth_private.cpf_sources set revision=revision where identity_id='71000000-0000-4000-8000-000000000001'$$,
+  '23514','AUTH_CPF_SOURCE_IMMUTABLE','direct update cannot skip CAS revision');
 select is(rmc_auth_api.begin_cpf_rotation(1,2),2::bigint,'rotation enters dual-write');
 select throws_ok($$select rmc_auth_api.finish_cpf_rotation(2)$$,'22023','AUTH_CPF_BACKFILL_INCOMPLETE','cutover needs full backfill');
 select throws_ok($$select rmc_auth_api.write_cpf_source('71000000-0000-4000-8000-000000000002',1,2,0,1,
@@ -97,6 +99,21 @@ drop trigger synthetic_audit_failure on rmc_auth_private.audit_events;
 update rmc_auth_private.identities set generation=2 where id='71000000-0000-4000-8000-000000000002';
 select ok(not rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000003',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL'),'changed identity generation cannot commit');
+
+insert into rmc_auth_private.identities(id,role) values('71000000-0000-4000-8000-000000000003','R');
+select is(rmc_auth_api.write_cpf_source('71000000-0000-4000-8000-000000000003',1,5,0,1,
+  decode(repeat('61',39),'hex'),array[2],array[decode(repeat('62',32),'hex')]),1::bigint,'independent source for confirmed absence');
+select rmc_auth_api.claim_command('72000000-0000-4000-8000-000000000005','72000000-0000-4000-8000-000000000006',
+  decode(repeat('63',32),'hex'),'PROVISION_IDENTITY',null,'71000000-0000-4000-8000-000000000003');
+create temporary table absent_reservation as select * from rmc_auth_api.reserve_provider('72000000-0000-4000-8000-000000000005',1,
+  '73000000-0000-4000-8000-000000000001');
+select ok(rmc_auth_api.record_provider_outcome('72000000-0000-4000-8000-000000000005','73000000-0000-4000-8000-000000000001',
+  1,(select provider_subject from absent_reservation),(select ownership_binding from absent_reservation),'ABSENT'),'proven absence aborts only unconfirmed reservation');
+select rmc_auth_api.claim_command('72000000-0000-4000-8000-000000000007','72000000-0000-4000-8000-000000000008',
+  decode(repeat('64',32),'hex'),'PROVISION_IDENTITY',null,'71000000-0000-4000-8000-000000000003');
+select isnt((rmc_auth_api.reserve_provider('72000000-0000-4000-8000-000000000007',1,
+  '73000000-0000-4000-8000-000000000001')).provider_subject,(select provider_subject from absent_reservation),'new command after confirmed absence gets fresh UUID');
+select is((select count(*)::integer from rmc_auth_private.provider_reservations where identity_id='71000000-0000-4000-8000-000000000003'),2,'aborted ownership history preserved');
 
 select * from finish();
 rollback;

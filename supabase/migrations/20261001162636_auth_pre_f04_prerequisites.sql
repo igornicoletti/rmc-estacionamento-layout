@@ -33,11 +33,26 @@ create table rmc_auth_private.cpf_sources (
   revision bigint not null check (revision > 0),
   codec_version integer not null check (codec_version = 1),
   algorithm text not null check (algorithm = 'A256GCM'),
-  purpose text not null check (purpose = 'CPF_SOURCE'),
+  purpose text not null check (purpose = 'CPF'),
   key_version integer not null check (key_version > 0),
   ciphertext bytea not null check (octet_length(ciphertext) = 39),
   updated_at timestamptz not null default clock_timestamp()
 );
+create function rmc_auth_private.guard_cpf_source()
+returns trigger language plpgsql security invoker set search_path='' as $$
+begin
+  if tg_op='UPDATE' and ((new.identity_id,new.codec_version,new.algorithm,new.purpose)
+    is distinct from (old.identity_id,old.codec_version,old.algorithm,old.purpose)
+    or new.revision<>old.revision+1 or new.identity_generation<old.identity_generation) then
+    raise exception using errcode='23514',message='AUTH_CPF_SOURCE_IMMUTABLE';
+  end if;
+  perform id from rmc_auth_private.identities where id=new.identity_id
+    and generation=new.identity_generation and lifecycle<>'DELETED' for share;
+  if not found then raise exception using errcode='23514',message='AUTH_CPF_IDENTITY_INVALID'; end if;
+  return new;
+end $$;
+create trigger cpf_source_guard before insert or update on rmc_auth_private.cpf_sources
+  for each row execute function rmc_auth_private.guard_cpf_source();
 
 -- All required hashes are computed in the trusted crypto boundary; SQL receives no CPF.
 -- Lock ordering: policy -> identity -> source -> lookups, shared by every writer.
@@ -52,7 +67,6 @@ declare
   required integer[];
   existing_hash bytea;
   next_revision bigint;
-  idx integer;
 begin
   select * into policy from rmc_auth_private.cpf_lookup_policy where id for share;
   required := case when policy.pending_version is null then array[policy.active_version]
@@ -93,7 +107,7 @@ begin
   end loop;
   next_revision := p_revision+1;
   insert into rmc_auth_private.cpf_sources(identity_id,identity_generation,revision,codec_version,algorithm,purpose,key_version,ciphertext)
-    values(p_identity,p_identity_generation,next_revision,1,'A256GCM','CPF_SOURCE',p_key_version,p_ciphertext)
+    values(p_identity,p_identity_generation,next_revision,1,'A256GCM','CPF',p_key_version,p_ciphertext)
     on conflict(identity_id) do update set identity_generation=excluded.identity_generation,
       revision=excluded.revision,key_version=excluded.key_version,ciphertext=excluded.ciphertext,updated_at=clock_timestamp();
   return next_revision;
@@ -142,7 +156,7 @@ end $$;
 
 create table rmc_auth_private.provider_reservations (
   command_id uuid primary key references rmc_auth_private.command_ledger(command_id),
-  identity_id uuid not null unique references rmc_auth_private.identities(id),
+  identity_id uuid not null references rmc_auth_private.identities(id),
   provider_subject uuid not null unique default gen_random_uuid(),
   ownership_binding uuid not null unique default gen_random_uuid(),
   identity_generation bigint not null check (identity_generation > 0),
@@ -154,6 +168,8 @@ create table rmc_auth_private.provider_reservations (
   created_at timestamptz not null default clock_timestamp(),
   check ((state in ('CONFIRMED','COMMITTED')) = (confirmed_at is not null))
 );
+create unique index provider_one_current_reservation_idx on rmc_auth_private.provider_reservations(identity_id)
+  where state<>'ABORTED';
 
 create function rmc_auth_private.guard_provider_reservation()
 returns trigger language plpgsql security invoker set search_path='' as $$
@@ -245,6 +261,7 @@ begin
     when 'OWNED' then 'EFFECT_CONFIRMED'::rmc_auth_private.command_state
     when 'ABSENT' then 'FAILED_CONFIRMED'::rmc_auth_private.command_state
     else 'RECONCILIATION_REQUIRED'::rmc_auth_private.command_state end,
+    reconcile_after=case when p_outcome='UNKNOWN' then clock_timestamp() else null end,
     updated_at=clock_timestamp() where command_id=p_command;
   return true;
 end $$;
@@ -312,11 +329,12 @@ revoke all on rmc_auth_private.cpf_lookup_policy,rmc_auth_private.cpf_sources,rm
 grant select on rmc_auth_private.cpf_lookup_policy to service_role;
 grant update(id) on rmc_auth_private.cpf_lookup_policy to service_role;
 grant select,insert,update on rmc_auth_private.cpf_sources,rmc_auth_private.provider_reservations to service_role;
-grant execute on function rmc_auth_private.guard_provider_reservation(),rmc_auth_private.guard_lookup_rotation() to service_role;
+grant execute on function rmc_auth_private.guard_provider_reservation(),rmc_auth_private.guard_lookup_rotation(),
+  rmc_auth_private.guard_cpf_source() to service_role;
 grant select,insert on rmc_auth_private.identity_lookups to service_role;
 grant usage,select on sequence rmc_auth_private.identity_lookups_id_seq to service_role;
 grant update(provider_subject) on rmc_auth_private.identities to service_role;
-grant update(state,result_code,result_payload,updated_at) on rmc_auth_private.command_ledger to service_role;
+grant update(state,result_code,result_payload,reconcile_after,updated_at) on rmc_auth_private.command_ledger to service_role;
 grant insert on rmc_auth_private.audit_events,rmc_auth_private.audit_outbox to service_role;
 grant select(id) on rmc_auth_private.audit_events to service_role;
 revoke execute on function rmc_auth_api.write_cpf_source(uuid,bigint,bigint,bigint,integer,bytea,integer[],bytea[]),

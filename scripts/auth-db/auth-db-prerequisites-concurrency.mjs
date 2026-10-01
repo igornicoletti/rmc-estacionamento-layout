@@ -5,8 +5,12 @@ import { runProcess } from "../validation/validation-process.mjs"
 // Independent local psql processes, fixed owned container; no connection URL or secrets.
 async function query(sql, role = "postgres") {
   const result = await runProcess("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres",
-    "-AtXq", "-v", "ON_ERROR_STOP=1", "-c", `begin; set local statement_timeout='15s'; set local role ${role}; ${sql}; commit;`],
-  { capture: true, timeout: 30_000 })
+    "-AtXq", "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-c", `begin; set local statement_timeout='15s'; set local role ${role}; ${sql}; commit;`],
+  { capture: true, timeout: 30_000, allowedExitCodes: [0, 1] })
+  if (result.exitCode !== 0) {
+    const code = result.stderr.match(/ERROR:\s+(23505|22023)\b/)?.[1]
+    throw new Error(code ?? "Unexpected local SQL failure")
+  }
   return result.stdout.trim()
 }
 function assert(value, message) { if (!value) throw new Error(message) }
@@ -23,6 +27,7 @@ try {
   await query(`insert into rmc_auth_private.identities(id,role) values ('${identities[0]}','R'),('${identities[1]}','R')`)
   const first = await Promise.allSettled(identities.map((identity) => query(`select rmc_auth_api.write_cpf_source('${identity}',1,${policyGeneration},0,1,${cipher},array[1],array[${hash}])`, "service_role")))
   assert(first.filter((r) => r.status === "fulfilled" && r.value === "1").length === 1, "same CPF race must have exactly one winner")
+  assert(first.filter((r) => r.status === "rejected").every((r) => r.reason.message === "23505"), "loser must be unique_violation, never infrastructure failure")
   const index = first.findIndex((r) => r.status === "fulfilled")
   const identity = identities[index]
   assert(await query(`select count(*) from rmc_auth_private.cpf_sources where identity_id in ('${identities.join("','")}')`) === "1", "duplicate race leaves exactly one source")
@@ -32,7 +37,8 @@ try {
     query(`select rmc_auth_api.write_cpf_source('${identities[1-index]}',1,${policyGeneration},0,1,${cipher},array[2],array[${hash2}])`, "service_role"),
     query(`select rmc_auth_api.write_cpf_source('${identities[1-index]}',1,${policyGeneration},0,1,${cipher},array[1,2],array[${hash},${hash2}])`, "service_role"),
   ])
-  assert(mixed.every((r) => r.status === "rejected"), "new-only and duplicate dual-write must both fail")
+  assert(mixed[0].status === "rejected" && mixed[0].reason.message === "22023"
+    && mixed[1].status === "rejected" && mixed[1].reason.message === "23505", "invalid version and duplicate must fail with exact SQL states")
   policyGeneration = Number(await query(`select rmc_auth_api.finish_cpf_rotation(${policyGeneration},true)`))
   await query(`select rmc_auth_api.claim_command('${command}','${randomUUID()}',${hash},'PROVISION_IDENTITY',null,'${identity}')`)
   const reserves = await Promise.all(Array.from({ length: 10 }, () => query(`select provider_subject from rmc_auth_api.reserve_provider('${command}',1,'${owner}')`, "service_role")))

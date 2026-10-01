@@ -12,7 +12,7 @@ const version = z.number().int().positive().max(999999999)
 const keys = z.record(z.string().regex(/^[1-9]\d{0,8}$/), authSecretSchema)
 const ringSchema = z.strictObject({ currentSourceVersion: version, source: keys, lookup: keys })
 const aad = (identityId: string, generation: number, keyVersion: number) =>
-  new TextEncoder().encode(JSON.stringify([1, "A256GCM", "CPF_SOURCE", identityId, generation, keyVersion]))
+  new TextEncoder().encode(JSON.stringify([1, "A256GCM", "CPF", identityId, generation, keyVersion]))
 
 // Not wired to Env or a route. F04 must inject a purpose-separated keyring server-side.
 export class WorkerCpfCrypto implements CpfCrypto {
@@ -47,7 +47,7 @@ export class WorkerCpfCrypto implements CpfCrypto {
     this.#check(context)
     const ciphertext = new Uint8Array(39)
     ciphertext.set(iv); ciphertext.set(encrypted, 12)
-    return { codecVersion: 1, algorithm: "A256GCM", purpose: "CPF_SOURCE", identityId, generation, keyVersion, ciphertext }
+    return { codecVersion: 1, algorithm: "A256GCM", purpose: "CPF", identityId, generation, keyVersion, ciphertext }
   }
   async openCpf(input: CpfEnvelope, identityId: string, generation: number, context: Abortable): Promise<string> {
     this.#check(context, identityId, generation)

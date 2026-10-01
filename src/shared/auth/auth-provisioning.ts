@@ -36,7 +36,7 @@ export type ProvisioningOutcome = z.infer<typeof provisioningOutcomeSchema>
 export interface ProvisioningProvider {
   createReservedUser(reservation: ProvisioningReservation, context: CommandContext): Promise<ProvisioningOutcome>
   getReservedUser(reservation: ProvisioningReservation, context: CommandContext): Promise<ProvisioningOutcome>
-  deleteOwnedUser(proof: ProviderOwnership, context: CommandContext): Promise<"DELETED" | "UNKNOWN" | "CONFLICT">
+  deleteOwnedUser(reservation: ProvisioningReservation, proof: ProviderOwnership, context: CommandContext): Promise<"DELETED" | "UNKNOWN" | "CONFLICT">
 }
 
 export interface ProvisioningDatabase {
@@ -52,7 +52,7 @@ export interface ProvisioningDatabase {
 export const cpfEnvelopeSchema = z.strictObject({
   codecVersion: z.literal(1),
   algorithm: z.literal("A256GCM"),
-  purpose: z.literal("CPF_SOURCE"),
+  purpose: z.literal("CPF"),
   identityId: opaqueIdSchema,
   generation: positive,
   keyVersion: positive,

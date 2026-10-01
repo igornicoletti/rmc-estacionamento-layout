@@ -9,8 +9,8 @@ const context = () => ({ signal: new AbortController().signal })
 describe("CPF private codec in Workers runtime", () => {
   it("matches an independent Node AES-GCM/HMAC vector, not just roundtrip", async () => {
     const codec = new WorkerCpfCrypto(ring, [])
-    const ciphertext = new Uint8Array(unhex("0102030405060708090a0b0caf6e500b34148794b3f852fc10d99b94985cc8bc6f2142a54d39b4"))
-    expect(await codec.openCpf({ codecVersion: 1, algorithm: "A256GCM", purpose: "CPF_SOURCE",
+    const ciphertext = new Uint8Array(unhex("0102030405060708090a0b0caf6e500b34148794b3f852a9921b0df8c579c5f0d6cac27bae86a2"))
+    expect(await codec.openCpf({ codecVersion: 1, algorithm: "A256GCM", purpose: "CPF",
       identityId: id, generation: 1, keyVersion: 1, ciphertext }, id, 1, context())).toBe("12345678909")
     expect(hex(await codec.lookupCpf("12345678909", 1, context()))).toBe("d83509310cb510e615b94f9cf3a4f977d8442a0c4e068e197531750a82827fde")
   })
