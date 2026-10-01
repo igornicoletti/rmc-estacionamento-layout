@@ -34,7 +34,16 @@ jobs:
 
       - run: npm ci --no-audit
       - run: npx playwright install --with-deps chromium
-      - run: npm run check:full
+      - run: npm run check:app
+      - name: Upload sanitized validation report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: application-validation
+          path: |
+            test-results/validation/
+            playwright-report/
+          retention-days: 7
 
   auth-db:
     name: Auth DB rebuild, pgTAP, concurrency and advisors
@@ -51,14 +60,11 @@ jobs:
           node-version-file: ".node-version"
           package-manager-cache: false
       - run: npm ci --no-audit
-      - run: npm run db:start
-      - run: npm run db:reset
-      - run: npm run db:reset
-      - run: npm run db:test
-      - run: npm run db:test:concurrency
-      - run: npm run db:lint
-      - run: npm run db:advisors
-      - run: npx supabase db diff --local --schema rmc_auth_private,rmc_auth_api --use-pg-delta --strict-coverage
-      - name: Stop local database
+      - run: npm run check:db
+      - name: Upload sanitized validation report
         if: always()
-        run: npm run db:stop
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: database-validation
+          path: test-results/validation/
+          retention-days: 7

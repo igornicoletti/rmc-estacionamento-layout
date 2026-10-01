@@ -1,0 +1,180 @@
+# Validação e catálogo de testes
+
+**Natureza:** referência vigente. **Escopo:** gates de aplicação/banco/tooling e suites existentes.
+**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Status:** implementação existente descrita; resultados de execução ficam no [manifesto](../auth/evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
+
+## Sumário navegável
+
+- [Comandos](#c1)
+- [Ambientes e política de testes](#c2)
+- [Catálogo completo](#c3)
+- [Evidência e limitações](#c4)
+- [Fontes](#c5)
+
+<a id="c1"></a>
+
+## Comandos
+
+| Comando | Execução / pré-requisito |
+| --- | --- |
+| check | Diff staged/unstaged, lint, tipos, docs, tests scripts e Vitest; sem Docker |
+| check:app | Knip/audit/lint/tipos/docs/scripts/cobertura serial, assets/budget e Chromium sobre build atual |
+| check:db | Docker; projeto fixo; recusa stack existente; dois resets, pgTAP, concurrency duas vezes, lint/advisors/diff vazio/cleanup/stop |
+| check:full | app seguido de db, sem reexecutar Vitest/build |
+| test / test:watch | Vitest completo único / watch |
+| test:unit / test:integration | Seleção por camada |
+| test:serial | Diagnóstico com maxWorkers=1 |
+| test:scripts | Node test runner, contraprovas de tooling |
+| test:coverage | V8, um worker, timeout 10s preexistente de cobertura |
+| test:e2e | Build autossuficiente + três navegadores; instalar via Playwright |
+| test:e2e:chromium | Build autossuficiente + Chromium serial |
+| test:e2e:built | Interno: exige dist recém-produzido; somente gate app |
+| test:e2e:ui | Build e UI interativa Playwright |
+| docs:check | Markdown/parser, links/anchors/inventários/checksums/workflow; sem rede |
+| deps:status | npm outdated informativo; exit1 de outdated não é falha de infra |
+| db:start / db:stop | Stack mínimo com startup sem chaves / stop do projeto |
+| db:reset | Destrutivo, local e sem seed; usar gate para guardrails |
+| db:test / db:test:concurrency / db:lint / db:advisors | Diagnóstico local individual, stack já iniciado explicitamente |
+
+Runners usam processo Node e argumentos sem shell; falha para sequência imediatamente. SIGINT/TERM/timeout encerram árvore de processos, cleanup do stack próprio usa sinal independente. Captura tem limite de 8 MiB. Banco usa lock exclusivo local e recusa stack preexistente; após interrupção forçada, conferir processos antes de remover supabase/.temp/validation-gate.lock. Relatório por profile em test-results/validation registra SHA, dirty, horários/exit e versões efetivas; não publica stdout sensível. Build:assets evita repetir typecheck já feito; build público continua autossuficiente.
+
+<a id="c2"></a>
+
+## Ambientes e política de testes
+
+Vitest node: testes unit .ts puros; dom: .tsx e clipboard browser + integração, setup React/matchMedia/cleanup exclusivo. Isolamento por arquivo mantido. Node native testa runners/parser/ESLint. Cada arquivo deve executar uma vez; novas dependências DOM exigem classificação explícita, não cair silenciosamente em ambiente errado.
+
+Não alterar timeouts/retries para esconder falha. Coverage SQL não é V8. Thresholds DataTable: 95% statements/lines, 85% branches, 90% functions. Specs E2E usam retry2 em CI já existente; gate local sem retry, serial Chromium. Erros assíncronos usam assertions auto-wait; testes focam contratos/a11y, não classes ou upstream internals.
+
+Banco: CAS/claim/manager/sessão 50 conexões; lease 2/5/10/50; losers cardinalidade somente 23505; RPCs service_role, fixtures constraint postgres; IDs sintéticos e cleanup finally, sem TRUNCATE. Nenhuma transação aberta durante I/O externo. T24–T29 são parcelas DB, não jornada completa.
+
+<a id="c3"></a>
+
+## Catálogo completo
+
+<a id="catalog"></a>
+
+Inventário de arquivos e cenários declarados; nomes de casos não são contagem de execuções parametrizadas. Nenhuma suite é omitida/duplicada. AST do catálogo é conferida contra disco; a execução verifica descoberta e outcomes.
+
+### tests/unit/app
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/unit/app/app-error-boundary.test.tsx` | reporta a falha e permite recuperação |
+| `tests/unit/app/query-provider.test.ts` | tenta novamente apenas falhas recuperáveis e com limite; respeita Retry-After antes de usar backoff exponencial; declara defaults seguros sem desativar revalidação por foco |
+| `tests/unit/app/route-access-policy.test.ts` | exige todas as capabilities declaradas; não trata freshness transacional como estado global da rota; nega políticas desconhecidas, contraditórias ou com propriedades extras; só redireciona para autenticação quando o destino é configurado; compõe as políticas da hierarquia sem permitir que o filho enfraqueça o pai; nega uma hierarquia sem política de acesso |
+| `tests/unit/app/session-fallbacks.test.tsx` | anuncia o bootstrap como estado de carregamento; bloqueia novo retry enquanto a sessão está sendo consultada |
+| `tests/unit/app/session-provider.test.tsx` | descarta refresh cancelado antes de alterar sessão ou limpar cache; impede operação obsoleta de limpar cache criado por operação mais recente; limpa cache quando a autoridade do mesmo usuário muda; não permite que refresh interrompa logout em andamento; diferencia bootstrap de autoridade indisponível; cancela o bootstrap ao desmontar; cancela refresh em andamento ao desmontar; preserva sessão e cache quando o refresh falha; remove apenas cache vinculado à identidade ao encerrar a sessão; preserva sessão e cache quando o logout falha; limpa cache reaproveitado quando bootstrap resolve nova autoridade |
+
+### tests/unit/components
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/unit/components/app/app-alert-dialog.test.tsx` | expõe descrição acessível e encaminha o cancelamento; usa as ações nativas e permite omitir o cancelamento |
+| `tests/unit/components/app/app-badge.test.tsx` | mantém o ícone decorativo |
+| `tests/unit/components/app/app-calendar.test.tsx` | usa o fuso local do navegador quando nenhum fuso é informado; preserva um fuso explícito do consumidor |
+| `tests/unit/components/app/app-combobox.test.tsx` | expõe opções de uma lista sem grupos; expõe grupos e filtra pelo próprio input; mantém uma lista parcialmente agrupada sem cabeçalhos; encaminha seleção e limpeza nativa |
+| `tests/unit/components/app/app-dialog.test.tsx` | fecha pelo DialogClose do rodapé; permite alterar ou omitir o fechamento do rodapé |
+| `tests/unit/components/app/app-empty.test.tsx` | aplica o nível de heading e mantém o ícone decorativo; compõe o avatar e seu fallback dentro de EmptyMedia |
+| `tests/unit/components/app/app-sheet.test.tsx` | fecha pelo SheetClose padrão do rodapé; permite alterar ou omitir o fechamento do rodapé |
+| `tests/unit/components/app/app-tooltip-button.test.tsx` | preserva o disabled nativo do Button sem executar a ação; mostra tooltip no hover e executa a ação habilitada; reporta falha ao gerar o CSV |
+| `tests/unit/components/data-table/data-table-actions.test.tsx` | exporta todas as linhas do modelo filtrado na ordem corrente; bloqueia exportação de registros existentes durante atualização |
+| `tests/unit/components/header/header-notifications.test.tsx` | abre e fecha o painel por teclado; anuncia carregamento sem disponibilizar ações ou navegação; marca uma notificação como lida e navega para seu destino; encaminha a marcação de todas como lidas; impede ações duplicadas durante a marcação pendente; navega para ver todas e fecha o painel |
+| `tests/unit/components/header/header-user-menu.test.tsx` | abre o menu e navega para o destino de perfil recebido; altera e persiste o tema pelo submenu; encaminha o logout ao consumidor; impede outro logout enquanto a operação está pendente |
+| `tests/unit/components/toast/toast.test.tsx` | exibe uma notificação enviada pela API pública |
+
+### tests/unit/features
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/unit/features/auth/auth-runtime-config.test.ts` | permanece desabilitado na ausência de configuração; aceita candidate sem habilitar upstream no browser |
+| `tests/unit/features/clients/client-mapper.test.ts` | normaliza o contrato ERP sem inferir os indicadores textuais; preserva campos textuais vazios aceitos pelo ERP; formata e valida CPF e CNPJ pelo contrato compartilhado; rejeita respostas e campos incompatíveis com o contrato |
+| `tests/unit/features/clients/client-presentation.test.ts` | normaliza nomes e cidades sem expandir abreviações do ERP; corrige somente a apresentação de descrições conhecidas; aplica máscaras somente quando o formato de origem é reconhecido; padroniza ausências, flags e e-mails múltiplos |
+| `tests/unit/features/clients/client-preview-data.test.ts` | fornece uma coleção sintética determinística sem metadados internos |
+| `tests/unit/features/clients/client-record-presentation.test.ts` | mantém todos os campos do cliente no contrato de apresentação |
+| `tests/unit/features/clients/client-vehicle-mapper.test.ts` | normaliza os campos existentes no ERP; aceita veículo e motorista vazios quando o ERP envia texto vazio; rejeita uma resposta que não seja lista |
+| `tests/unit/features/clients/client-vehicle-record-presentation.test.ts` | mantém todos os campos do veículo no contrato de apresentação |
+| `tests/unit/features/clients/client-vehicles-data-table.test.tsx` | renderiza somente os veículos do cliente e preserva colunas internas ocultas; copia dados funcionais do veículo selecionado; encontra o veículo pela placa formatada |
+| `tests/unit/features/clients/clients-data-table-query.test.tsx` | mantém o boundary ocupado até a carga inicial concluir; mantém o estado inicial quando a consulta está pausada sem dados; isola a falha inicial e permite refazer a consulta; preserva dados e não repete erro de refetch cacheado após remontagem |
+| `tests/unit/features/clients/clients-data-table.test.tsx` | renderiza dados do domínio e mantém colunas configuradas como ocultas; copia um e-mail adicional; copia os dados funcionais do cliente selecionado; expõe as opções de cidade derivadas dos dados; encontra o cliente pelo telefone formatado mesmo com a coluna oculta |
+| `tests/unit/features/units/unit-mapper.test.ts` | preserva nomes canônicos do ERP e normaliza apenas tipos técnicos; preserva o nome do estado recebido e normaliza sua UF; aceita identificador inteiro em número, string ou bigint; descarta coordenadas opcionais inválidas e ignora metadados internos; rejeita respostas e campos obrigatórios inválidos |
+| `tests/unit/features/units/unit-presentation.test.ts` | formata valores ERP em caixa alta somente para apresentação; preserva acentos e capitalização já fornecidos pela origem; preserva siglas e rodovias, mas não confunde Rio e Sul com siglas |
+| `tests/unit/features/units/unit-preview-data.test.ts` | fornece as unidades do espelho histórico sem metadados internos |
+| `tests/unit/features/units/unit-record-presentation.test.ts` | mantém todos os campos da unidade no contrato de apresentação; preserva o valor canônico no modelo e formata cópia e CSV; apresenta Paraná e Paranaguá corretamente a partir do espelho |
+| `tests/unit/features/units/units-data-table-query.test.tsx` | mantém o boundary ocupado até a carga inicial concluir; isola a falha inicial e permite refazer a consulta; preserva dados e notifica uma vez quando o refetch falha |
+| `tests/unit/features/units/units-data-table.test.tsx` | combina cidade e bandeira e exporta apenas a interseção; renderiza dados normalizados e mantém metadados internos ocultos; copia dados funcionais da unidade selecionada; exporta o conjunto completo na ordem selecionada antes da paginação; exporta somente registros correspondentes à faceta ativa; encaminha a busca para o modelo local; expõe estado vazio e permite limpar somente a busca ativa |
+
+### tests/unit/lib
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/unit/lib/browser/browser-clipboard.test.ts` | encaminha o valor para a Clipboard API; propaga falhas da Clipboard API |
+| `tests/unit/lib/csv-export.test.ts` | serializa cabeçalho, CRLF e campos que exigem aspas |
+| `tests/unit/lib/erp/erp-brazilian-states.test.ts` | resolve nomes canônicos das 27 UFs por sigla; rejeita siglas desconhecidas |
+| `tests/unit/lib/erp/erp-date-time.test.ts` | normaliza ISO e timestamps PostgreSQL com fuso explícito; rejeita datas impossíveis e date-times sem fuso |
+| `tests/unit/lib/erp/erp-record.test.ts` | sanitiza apenas espaços e caracteres de controle; unifica identificadores inteiros em string; distingue inteiro obrigatório de texto opcional |
+| `tests/unit/lib/erp/erp-tax-id.test.ts` | valida e formata CPF e CNPJ; rejeita documentos com tamanho ou dígitos verificadores inválidos |
+| `tests/unit/lib/erp/hub-contracts.test.ts` | aceita campos opcionais ausentes e não fabrica quantidade zero; mantém códigos de veículo e cliente distintos e ignora metadados fora da resposta |
+
+### tests/unit/shared
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/unit/shared/auth-contracts.test.ts` | mantém fechado o tipo canônico de authority purpose; aceita a projeção pública estrita e rejeita campos inesperados; rejeita null, shape desconhecido, capability e assurance não canônicas (T03); fecha as etapas restricted por jornada e rejeita combinações cruzadas; totaliza transições, exige fatos e falha fechado para estados desconhecidos; formaliza IDs opacos internos como UUID v4 sem aceitar segredos arbitrários; expõe scope estrito com chave externa opaca, sem presumir UUID; valida identificadores humanos canônicos sem coerção; rejeita OTP fora do formato ou comando com campo extra; mantém login como comando fechado; mantém a política central versionada e os limites canônicos de F01 |
+| `tests/unit/shared/auth-freshness.test.ts` | aceita exatamente 300 s e 30 s futuros (T10) |
+| `tests/unit/shared/auth-ports.test.ts` | expõe somente contratos tipados da fronteira F01 sem selecionar adapters |
+| `tests/unit/shared/auth-problem.test.ts` | mantém o mapa fechado de códigos e status; rejeita status divergente, código desconhecido e campos inesperados (T21) |
+| `tests/unit/shared/authorization.test.ts` | contém as 17 capabilities Users do contrato; falha fechado para capability desconhecida |
+| `tests/unit/shared/password-policy.test.ts` | normaliza NFC antes de contar e preserva espaços (T31) |
+
+### tests/integration
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/integration/app-routing.test.tsx` | atualiza o título ao navegar e restaura a identidade na rota desconhecida; monta o shell na rota raiz; resolve a rota interna sem registrá-la em appRoutes; reconhece a rota dinâmica de detalhe do cliente; mantém o fallback desconhecido fora do shell |
+| `tests/integration/app-shell-navigation.test.tsx` | deriva o item e a seção ativos da rota atual; mantém o item pai ativo em uma rota descendente; mantém somente uma seção aberta; permite fechar manualmente a seção da rota ativa; descarta o override manual ao navegar para outra seção; não mantém uma seção contextual ao navegar para um item principal; fecha o menu mobile após navegar; mantém a navegação funcional com a Sidebar recolhida |
+| `tests/integration/app-shell-sign-out.test.tsx` | usa feedback público urgente quando o logout falha |
+| `tests/integration/app-shell.test.tsx` | expõe o header e seus controles como banner da aplicação; não oferece ação no estado sem novas notificações |
+| `tests/integration/data-table.test.tsx` | renderiza tabela nativa, caption e primeira página; busca imediatamente ignorando acentos e permite limpar; volta à primeira página quando o filtro reduz os resultados; ordena com aria-sort e exporta todas as linhas antes da paginação; filtra a faceta, atualiza as contagens e limpa os filtros; pagina, altera tamanho e controla visibilidade; deriva o skeleton da página e bloqueia controles na carga inicial; oculta paginação no estado vazio; preserva os dados e controles durante atualização em background; apresenta erro persistente com retry; oferece ação de cópia por linha; mantém a tabela utilizável quando a cópia falha |
+| `tests/integration/route-access-boundary.test.tsx` | preserva pathname, query e hash ao redirecionar; nega acesso quando um match contém handle inválido |
+| `tests/integration/route-error-boundary.test.tsx` | Casos parametrizados e integração do escopo. |
+| `tests/integration/theme.test.tsx` | persiste a preferência selecionada e aplica o esquema resolvido; acompanha mudanças da preferência do sistema |
+
+### tests/e2e
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/e2e/app.spec.ts` | busca cidade acentuada do espelho e combina filtros de unidades; distingue códigos de veículo e cliente sem tipografia mono ou tabular; monta o shell da aplicação; resolve uma rota por deep link; navega pelo menu lateral no desktop; fecha o menu lateral mobile após navegar; mantém o fallback de rota fora do shell; mantém a rolagem horizontal dentro da tabela de unidades; filtra, pagina e abre clientes e veículos sem depender da copy; filtra, ordena e pagina unidades sem depender da copy; mantém clientes responsivos e foco de teclado em 390 px; aplica e persiste o tema escuro; abre os e-mails adicionais por teclado e devolve foco ao fechar |
+| `tests/e2e/rmc.spec.ts` | exibe as prévias inline dos componentes compartilhados; abre e fecha overlays e mantém o rodapé visível durante a rolagem; mantém a prévia utilizável em 390 px |
+
+### tests/scripts
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `tests/scripts/docs-model.test.mjs` | Markdown parser resolves references, ids, repeated headings and code inventories; local links cannot escape the repository and external links are not fetched; Vitest discovers every unit/integration suite exactly once in node or dom |
+| `tests/scripts/shared-imports.test.mjs` | effective ESLint config denies runtime/UI/SDK/I-O imports in shared contracts |
+| `tests/scripts/validation-process.test.mjs` | Success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
+
+### supabase/tests/database
+
+| Arquivo | Cenários/contratos cobertos |
+| --- | --- |
+| `supabase/tests/database/auth_hardening.test.sql` | Bindings/challenge-outbox atômicos, NULL/UUID/hash/envelope, lifecycle/fence/expiry/budget, imutabilidade, superadmins, assignments e grants. |
+| `supabase/tests/database/auth_invariants.test.sql` | Cardinalidade, CAS one-time, intenção idempotente/conflito e leases. |
+| `supabase/tests/database/auth_roles.test.sql` | PUBLIC/anon/authenticated/service_role reais, grants/RLS/invoker e acesso direto/RPC. |
+| `supabase/tests/database/auth_schema.test.sql` | Objetos/colunas/constraints/índices, schemas privados, RLS e propriedades das funções. |
+
+<a id="c4"></a>
+
+## Evidência e limitações
+
+Baseline F02 comprovou 54 arquivos/227 Vitest, 126 assertions pgTAP e 19 Chromium no SHA bc8ab3c; esses totais não são prova desta branch. Resultado novo fica no [manifesto de manutenção](../auth/evidence/pre-f03-maintenance-local.md). Relatório runner é auxiliar: totais de casos vêm do runner real, não de parser de títulos.
+
+Billing hospedado é falha de infraestrutura; merge exige autorização/waiver explícito naquela PR. Firefox/WebKit/DOM não provam leitor de tela, provider, RLS target, load ou release. Nenhum snapshot ou fixture real é anexado.
+
+<a id="c5"></a>
+
+## Fontes
+
+[Vitest projects](https://vitest.dev/guide/projects), [Coverage](https://vitest.dev/guide/coverage), [Playwright CI](https://playwright.dev/docs/ci), [Testing Library](https://testing-library.com/docs/guiding-principles/), [Supabase tests](https://supabase.com/docs/guides/local-development/testing/overview).

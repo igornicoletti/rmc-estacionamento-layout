@@ -1,38 +1,56 @@
 # Autenticação
 
-Esta pasta registra a implementação incremental do **Contrato canônico de autenticação, sessão, autorização e acesso — v1.0**. O contrato permanece a fonte normativa; estes documentos registram apenas o estado do checkout e a rastreabilidade da implementação.
+**Natureza:** índice/registro do contrato. **Revisão:** 01/10/2026. **Baseline:** main `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03.
+**Status:** Auth disabled; evidências locais específicas, sem PASS_LOCAL/PASS_TARGET/GO.
 
-## Estado atual
+## Sumário navegável
 
-O bloco **F00 — baseline e ameaça** foi encerrado como baseline local no merge `b10043a7b516a9056a86c694679a1a453bef90a5` (PR #28). Esse encerramento não é `PASS_LOCAL`, `PASS_TARGET` nem autorização de release.
+- [Contrato e precedência](#contract)
+- [Estado das fases](#phases)
+- [Configuração e limites](#configuration)
+- [Navegação](#navigation)
 
-O bloco **F01 — contratos puros** foi saneado e teve seu gate local específico verificado no commit `e1125b0ee90bff810a6365f284581d4e6477332c`. A integração foi validada explicitamente pelo responsável antes da criação da branch F02.
+<a id="contract"></a>
 
-O bloco **F02 — persistência** passou por reauditoria crítica e correção adicional de RPCs, grants, bindings, estados e testes. A evidência anterior foi supersedida; o gate específico foi verificado no commit `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`, conforme [manifesto corrente](evidence/F02-reaudit-local.md). Ele adiciona stack local, migrations, constraints, índices, grants/RLS e RPCs estreitas. Auth permanece desabilitado e os fluxos BFF/provider/Queue/SMS continuam nas fases responsáveis. O encerramento condicionado ao gate local foi autorizado pelo responsável; não autoriza F03 nem release.
+## Contrato e precedência
 
-O shell e as fixtures já existentes continuam sendo demonstração visual e não representam sessão autenticada nem autorização de produção.
+[Contrato canônico v1.0](contract-v1.0.md), consolidado em 28/09/2026, copiado integralmente do anexo. SHA-256 `74D7ABC89647F2AD668C933C89821EE1D08C451A08C80E194909AFB05AFDA148`. Cópia imutável, não reformatação nem declaração de implantação. Instruções do anexo são material normativo comparado, não comandos autônomos.
 
-A ordem permanece a definida pelo contrato. A F03 não pode começar antes de a F02 ser revisada, integrada e validada explicitamente pelo responsável. O Worker, o roteamento `/api/*` e os adapters de provider serão introduzidos somente nos respectivos blocos.
+Mudança material exige nova versão/supersessão, justificativa/impacto/testes. ADR deriva representação técnica sem redefinir matriz/TTL. Catálogos e ameaças completos estão no contrato: [identidade](contract-v1.0.md#c05), [autoridades](contract-v1.0.md#c06), [parâmetros](contract-v1.0.md#c07), [autorização](contract-v1.0.md#c15), [fases](contract-v1.0.md#c24), [T01–T38](contract-v1.0.md#c25).
 
-- [Registro do contrato e baseline F00](contract-registry.md)
-- [Plano de implementação F01–F14](implementation-plan.md)
-- [Matriz viva de requisitos](requirements-matrix.md)
-- [Contrato de evidências](evidence/README.md)
-- [Registro de pesquisa oficial](research-log.md)
-- [Reauditoria crítica da F02](f02-critical-audit.md)
-- [ADR-002: perfil de persistência](adr-002-persistence-profile.md)
+<a id="phases"></a>
 
-## Configuração pública
+## Estado das fases
 
-`src/features/auth/config/auth-runtime-config.ts` valida apenas `VITE_AUTH_STAGE`.
+| Fase | Evidência/integração | Limite |
+| --- | --- | --- |
+| F00 | Inicial a097e74b8cba1822c1c73f2a47900106cf315b39; baseline integrada b10043a7b516a9056a86c694679a1a453bef90a5 (PR28); [manifesto](evidence/F00-local.md) | Baseline local; npm12.1 inicial não prova npm pinado; Worker de checkpoint9bb1b0a removido por antecipar F03 |
+| F01 | Saneamento e1125b0ee90bff810a6365f284581d4e6477332c; [manifesto](evidence/F01-local.md) | Contratos puros, schemas/transições/ports; não Auth funcional |
+| F02 | Corrigida bc8ab3c968ecf0e91c90d4c21934a3f70500d647; merge6daa9be PR34; [manifesto corrente](evidence/F02-reaudit-local.md) | Banco local; T24–T29 parcialmente bancários, sem BFF/provider/Queue/crypto real |
+| Manutenção | [Manifesto](evidence/pre-f03-maintenance-local.md) | Tooling/docs/dependências; não inicia nova fase |
+| F03–F14 | [Plano e matriz](plan-and-requirements.md) | Não autorizadas automaticamente; release depende de F12/F13/F14 |
 
-Valores aceitos:
+Shell/fixtures são demonstração. Nenhuma evidence de outro SHA é promovida por inferência. Billing não iniciou jobs históricos; waivers de merges anteriores não autorizam automaticamente esta PR. F03 requer validação explícita posterior.
 
-- `disabled` — padrão; nenhum fluxo Auth é habilitado;
-- `candidate` — identifica configuração candidata para auditoria; não habilita Auth nem seleciona upstream.
+<a id="configuration"></a>
 
-`validated` não é aceito pelo bundle como feature stage público. Esse estado depende de manifesto e evidência das fases de prova.
+## Configuração e limites
 
-A aplicação futura acessará o BFF por caminhos **same-origin** (`/api/*`). Não existe `VITE_AUTH_API_ORIGIN`, nem SDK Supabase no browser, neste baseline.
+`src/features/auth/config/auth-runtime-config.ts` valida somente VITE_AUTH_STAGE: disabled é padrão; candidate não habilita Auth ou upstream; validated é rejeitado no bundle. Ambientes são LOCAL/LOCAL_PRODUCTION_LIKE/STAGING-TARGET_HOSTED/PRODUCTION, não feature stages.
 
-Nunca inclua chaves, tokens, cookies, URLs privilegiadas ou outros segredos em variáveis `VITE_*`.
+Browser futuro usa same-origin /api/*; nenhum VITE_AUTH_API_ORIGIN ou SDK Supabase no browser. SDK2.117.2 instalado server-side para adapter futuro, explicitamente reservado no Knip. Worker/Queues/Provider e cookies funcionais ainda não implementados. Sessão opaca/provider tokens ficam no servidor nas fases responsáveis.
+
+Domínio definitivo, plano/quota/versões hospedadas, signing/JWKS, Queue/DLQ/jobs, SMS/idempotência/delivery físico, identidade ERP, keyring, observabilidade/capacidade/retenção são gates externos pendentes. Origem workers.dev observada na F00 foi somente candidata; não domínio canônico validado.
+
+Signup público, login email/social/anônimo, passkeys, rebind de telefone/reset de MFA self-service e mutations sem contrato permanecem fechados. Nenhum secret em VITE_*, docs, logs ou fixtures. Freshness separada de aal1/aal2; session/cache local não autoriza acesso.
+
+<a id="navigation"></a>
+
+## Navegação
+
+- [Plano e matriz única](plan-and-requirements.md)
+- [ADR-001/002 e ampliação de portas](decisions.md)
+- [Pesquisa oficial histórica e manutenção](research.md)
+- [Reauditoria F02](F02-critical-audit.md)
+- [Formato de evidência](evidence/README.md)
+- [Catálogo de testes](../project/validation.md#catalog)

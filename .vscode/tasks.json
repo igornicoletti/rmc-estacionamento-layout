@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "type": "npm", "script": "check", "group": "test", "problemMatcher": [] },
+    { "type": "npm", "script": "check:app", "group": "test", "problemMatcher": [] },
+    { "type": "npm", "script": "check:db", "group": "test", "problemMatcher": [] },
+    { "type": "npm", "script": "docs:check", "problemMatcher": [] }
+  ]
+}
