@@ -2,7 +2,7 @@
 
 **Natureza:** referência vigente. **Escopo:** F00–F14.
 **Revisão:** 01/10/2026. **Baseline:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`.
-**Status:** F03 aprovada e integrada no PR40; verified-local no [manifesto](evidence/F03-local.md). F04 não iniciada: [reauditoria e pré-requisitos](F04-preparation.md#gate). Resultados não são inferidos desta referência.
+**Status:** F03 aprovada e integrada no PR40. [Saneamento pré-F04](evidence/pre-f04-prerequisites-local.md) verified-local, aceite/merge pendentes. F04 não iniciada: [reauditoria e pré-requisitos](F04-preparation.md#gate). Resultados não são inferidos desta referência.
 
 ## Sumário navegável
 
@@ -86,7 +86,7 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção 
 | Hierarquia, scope, target e evaluator/enforcement completo | F10 | evaluator puro e enforcement BFF | T22–T27 | identidade ERP não comprovada | blocked |
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; perfil ADR-002; grants mínimos; estado/binding/fence; RPCs invoker para claim, CAS, lease e challenge/outbox atômicos | contraprovas de persistência; cardinalidade/histórico T25; override T26; banco/roles T27; commit/rollback T28 e binding T29; T24 autoritativo fica F04/F10 | `evidence/F02-reaudit-local.md`; SHA testado `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`; 126 assertions e duas rodadas concorrentes | verified-local |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker ESM, HttpClient, limites reais/deadlines, context PREAUTH/CSRF por RPC, headers e Crypto/codec explícito | T02/T03/T21; parcelas F03 T06/T07/T18/T27/T35/T37/T38; runtime/SQL/HTTPS real | `evidence/F03-local.md`; SHA 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; sem prova hosted | verified-local |
-| Prontidão v1.1: portas de escrita, CPF recuperável/rotação e reserva ownership | F01/F02, antes de F04 | ampliações incrementais ainda não implementadas; não invalida os gates históricos | unknown/audit estrito, CPF equivalente entre versões, backfill/rollback e reserva concorrente | `F04-preparation.md`; diagnóstico estático e regressão, não prova dos novos writers | blocked |
+| Prontidão v1.1: portas de escrita, CPF recuperável/rotação e reserva ownership | F01/F02, antes de F04 | portas puras/audit estrito; migration incremental CPF/source/policy e reserva provider; codec CPF separado e ainda desconectado de Env/rotas | unknown/audit estrito, CPF equivalente entre versões, backfill/rollback, fence/lease, falha audit e reserva concorrente | `evidence/pre-f04-prerequisites-local.md`; SHAs53e974b e9c53c34 com parcelas e limites explícitos | verified-local; aceite/merge pendentes |
 | Provisioning e saga Auth–DB | F04 | ledger, adapter Auth e reconciler | T04, T24, falhas parciais; parcelas T39/T40/T49/T61 | plano condicionado em `F04-preparation.md`; pré-requisitos pendentes | blocked |
 | Outbox, Queue, SMS e DLQ | F05 | dispatcher, consumer e adapter de gateway | T28–T30 | gateway não selecionado | blocked |
 | Ativação e senha inicial | F06 | challenge, BOOTSTRAP e promoção | T01, T04, T11, T31 | pendente | planned |
@@ -126,7 +126,7 @@ F00–F02 continuam históricos nos SHAs registrados; não comprovam retroativam
 | T56 | Rotação/Queue/DLQ/restore | F05/F08/F13, codec/keyring/restore em voo | Pendente; somente codec CSRF agora |
 | T57 | S/A MFA obrigatório | F07/F10 policy/provedor; exceção administrativa não cria endpoint permanente | Pendente, NORMAL fechado |
 | T58 | Snapshot/CSRF/Set-Cookie/abas | F03 reentrega; F08/F11 promoção e fencing | Parcela PREAUTH verified-local |
-| T59 | CPF HMAC/ciphertext/backfill | F02/F04, unicidade entre versões e rollback | Pendente antes de dados reais |
+| T59 | CPF HMAC/ciphertext/backfill | F02/F04, unicidade entre versões e rollback | Parcela fundamento DB/codec verified-local no suplemento pré-F04; composição adapter/restore operacional ainda pendentes |
 | T60/T62 | Subresources/Host/origem/upstream | F03 runtime/HTTPS; F13 edge/DNS/TLS target | Parcela local verified-local |
 | T63 | Recuperação administrativa/dual control | F09/F14 drill e revogação | Pendente |
 

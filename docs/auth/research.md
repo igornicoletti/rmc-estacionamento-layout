@@ -1,8 +1,8 @@
 # Pesquisa oficial
 
 **Natureza:** referência vigente. **Escopo:** fontes, versões e impacto; histórico explícito.
-**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
-**Status:** fontes e limites registrados; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
+**Revisão:** 01/10/2026. **Baseline:** main3c4b6d4 e saneamento pré-F04 em revisão.
+**Status:** fontes e limites registrados; resultados por SHA nos manifestos, não inferidos desta referência.
 
 ## Sumário navegável
 
@@ -11,6 +11,7 @@
 - [2026-10-01 — Manutenção pré-F03](#c3)
 - [2026-10-01 — Implementação F03](#c4)
 - [2026-10-01 — Confronto do dossiê v2.0](#c5)
+- [2026-10-01 — Saneamento pré-F04](#c6)
 
 <a id="c1"></a>
 
@@ -106,3 +107,18 @@ Objetivo: distinguir obrigação existente, correção normativa, detalhe de imp
 | Workers Web Crypto/Static Assets headers | Codec precisa ser inequívoco; headers combinados requerem detach para cache immutable | Codec 1 explícito, vetor independente, style exception separada de script |
 
 URLs reproduzíveis e commit fixado estão nas [fontes da revisão](contract-v1.1.md#sources). A base possui 160 IDs, não 157; o dossiê tem 125 IDs próprios e 25 testes adicionais. Esses inventários não equivalem a provas de segurança nem certificação de auditoria independente.
+
+<a id="c6"></a>
+
+## 2026-10-01 — Saneamento pré-F04
+
+Perguntas: manter unicidade CPF entre chaves; recuperar envelope após generation; reservar UUID antes do provider; distinguir outcome desconhecido de ausência e impedir commit após perda de lease. Confronto da v1.1 com código/RPCs/testes, incluindo todos os P0/P1/P2 da [preparação](F04-preparation.md#findings), sem tratar recomendações como autorização autônoma. [ADR-005](decisions.md#c6) e [manifesto suplementar](evidence/pre-f04-prerequisites-local.md) registram resultados e limites.
+
+| Busca / fonte primária consultada em 01/10/2026 | Aplicação |
+| --- | --- |
+| [PostgreSQL17 explicit locking](https://www.postgresql.org/docs/17/explicit-locking.html) — row locks, shared/exclusive, lifetime | Policy shared no writer e exclusive na rotação; CAS/fence e ordem de locks; sem transação mantida durante rede |
+| [Supabase database functions](https://supabase.com/docs/guides/database/functions) — invoker, search_path, EXECUTE | Funções invoker qualificadas, defaults/grants explícitos; administração de rotação não concedida ao BFF; RETURNING audit exige somente SELECT id |
+| [Workers Web Crypto](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/) — AES-GCM, HMAC e random | Codec CPF separado, AAD/binding versionados, 39 bytes, vetor independente Node e runtime Workers real; não configurar secrets ou rota nova |
+| [Changelog PG17.11](https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes) — ltree, pgcrypto PGP legado, btree_gist float e custom operators | Sem essas utilizações no schema Auth; AES-GCM no Worker, não PGP no PostgreSQL. Runtime local17.11 confirmado, nenhum resultado target inferido |
+
+Índice Markdown do changelog obtido por HTTP após content-type recusado pelo navegador; seguido o breaking change relevante. Mantidos toolchain/pins/lockfile: o aviso Wrangler4.146.0 não autoriza atualização incidental nesta correção. A referência local da skill Workers ainda exemplifica pool antigo; prevalece a integração oficial atual pinada no projeto, sem downgrade. Ausência de PoC provider, keyring operacional e restore reais mantém esses gates futuros fechados.

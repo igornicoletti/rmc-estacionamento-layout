@@ -31,6 +31,7 @@ Mudança material exige nova versão/supersessão, justificativa/impacto/testes.
 | F02 | Corrigida bc8ab3c968ecf0e91c90d4c21934a3f70500d647; merge6daa9be PR34; [manifesto corrente](evidence/F02-reaudit-local.md) | Banco local; T24–T29 parcialmente bancários, sem BFF/provider/Queue/crypto real |
 | Manutenção | [Manifesto](evidence/pre-f03-maintenance-local.md) | Tooling/docs/dependências; não inicia nova fase |
 | F03 | 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; [manifesto](evidence/F03-local.md); PR40 integrado em 3c4b6d4343aec56c369c625b15d0a0b859cabdce | Aceite e merge autorizados em 01/10/2026 com waiver específico de billing; local, sem login ou prova hospedada |
+| Saneamento pré-F04 | [Manifesto suplementar F01/F02](evidence/pre-f04-prerequisites-local.md); código9c53c345431720a17fa717cf80c0ae29bf79a082 | Fundamentos verified-local, aceite/merge pendentes; não inicia F04 nem substitui PoC provider |
 | F04–F14 | [Plano e matriz](plan-and-requirements.md) | Não autorizadas automaticamente; release depende de F12/F13/F14 |
 
 Shell/fixtures são demonstração. Nenhuma evidence de outro SHA é promovida por inferência. Jobs PR40 não iniciaram por billing; waiver explícito registrado naquele PR. Não se transfere a outro PR. [Reauditoria das bases e preparação F04](F04-preparation.md) registra os gates ainda necessários antes de provisioning.

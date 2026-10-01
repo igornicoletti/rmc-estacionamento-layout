@@ -1,8 +1,8 @@
 # Decisões derivadas de Auth
 
 **Natureza:** referência vigente. **Escopo:** decisões derivadas e revisão normativa explicitamente identificada.
-**Revisão:** 01/10/2026. **Baseline:** `74c7b24e647691e28df7935871c1b9afb6e34826` + F03 nesta branch.
-**Status:** decisões explícitas; resultados F03 no [manifesto](evidence/F03-local.md), não inferidos desta referência.
+**Revisão:** 01/10/2026. **Baseline:** main3c4b6d4 + saneamento pré-F04 em revisão.
+**Status:** decisões explícitas; resultados por SHA nos manifestos, não inferidos desta referência.
 
 ## Sumário navegável
 
@@ -104,6 +104,8 @@ CPF codec 1: A256GCM, IV aleatório de 12 bytes + CPF canônico cifrado (11 byte
 Policy singleton fixa active_version e pending_version com generation monotônica. Todo writer toma lock compartilhado da policy, depois identidade/source; exige as duas versões durante rotação e CAS da revisão. Controle administrativo toma lock exclusivo, sem EXECUTE para service_role. Begin exige fontes recuperáveis para lookups existentes; backfill calcula novos hashes no boundary crypto. Finish exige cobertura integral antes de trocar current; rollback não apaga hashes nem reduz generation. Aliases staged diferem explicitamente de retired: só staged da versão pendente pode ser ativado. Retired não revive. Legacy sem hash na versão ativa é negado, não reinterpretado.
 
 Envelope só pode ser regravado por CAS, preservando hashes da pessoa. Rotação de chave AES é independente da rotação HMAC: manter versões de decrypt necessárias até reseal/backfill/restore e retenção comprovados. Retirar chave somente após inventário de envelopes/backups e drill; esta rodada não destrói chaves nem dados. Fontes antigas sem envelope exigem procedimento controlado, nunca adivinhação ou preenchimento automático. Não é possível provar no PostgreSQL que hashes de chaves diferentes pertencem ao mesmo CPF: responsabilidade do crypto boundary; política dual-write fecha a lacuna de unicidade no acesso autorizado.
+
+Generation atual da identidade é precondição para ler o envelope privado; generation persistida no envelope é o binding usado para decrypt. Alteração de lifecycle não destrói recuperabilidade: reseal controlado pode atualizar binding/revision por CAS. A leitura cifrada não concede reveal ou qualquer authority; decryption continua restrita ao boundary autorizado. Fontes de identidades DELETED não são expostas por essa RPC; retenção/purge/restore administrativos precisam de procedimento específico antes de dados reais.
 
 Reserva provider aloca UUID e ownership binding no banco, vinculados ao commandId, target e generation. Lease 30 s, fence monotônico; outcome UNKNOWN não é ABSENT. Lease expirada permite um novo claimant, não uma transação SQL mantida durante chamada externa. Associação só aceita UUID/binding reservados e proof confirmado; lifecycle permanece PENDING. Ledger, associação, audit e audit_outbox confirmam na mesma transação; falha audit desfaz tudo. Actor lifecycle é revalidado quando vinculado, mas sessão/capability/scope e exceção day-zero exigem boundary F04/F10; essa RPC não autoriza invocação por browser.
 
