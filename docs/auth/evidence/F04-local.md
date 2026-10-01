@@ -1,6 +1,6 @@
-# F04 — evidência parcial do primeiro marco local
+# F04 — evidências parciais dos marcos locais
 
-**Natureza:** checkpoint, não aceite da fase. **Data:** 01/10/2026. **Contrato:** v1.1 sobre v1.0 imutável. **Ambiente:** LOCAL sintético, Auth disabled. **Baseline integrada:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **SHA final do runner testado:** `a824b8981492ed235ea06c2c2cfe9b56fe5092b0`. **Status:** primeiro marco comprovado; F04 em implementação. Não PASS_LOCAL/PASS_TARGET/GO.
+**Natureza:** checkpoints, não aceite da fase. **Data:** 01/10/2026. **Contrato:** v1.1 sobre v1.0 imutável. **Ambiente:** LOCAL sintético, Auth disabled. **Baseline integrada:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **SHA primeiro marco:** `a824b8981492ed235ea06c2c2cfe9b56fe5092b0`. **SHA saga/gate integral:** `67878c0a62fef22ae99c44d9b2a92b015886dc55`. **Status:** marcos comprovados; F04 em implementação. Não PASS_LOCAL/PASS_TARGET/GO.
 
 ## Sumário navegável
 
@@ -10,10 +10,13 @@
 - [Tentativas e limitações](#limitations)
 - [Pendências da fase](#pending)
 - [Checkpoint saga e diagnóstico resolvido](#saga)
+- [Gate integral no SHA estável](#stable)
 
 <a id="scope"></a>
 
 ## Escopo e implementação
+
+Esta seção e seus resultados descrevem o primeiro marco histórico. A composição real Worker/RPC/provider e a revalidação posterior estão registradas em [gate integral](#stable), sem reatribuir provas históricas ao novo SHA.
 
 [Plano F04](../F04-preparation.md#implementation), [pesquisa oficial](../research.md#c7) e [matriz](../plan-and-requirements.md#c5). PR41/42 integrados por autorização expressa; branches antigas removidas local/remoto, main 0/0. Waivers de billing específicos registrados nos dois PRs; não houve CI verde nem recursos remotos.
 
@@ -89,3 +92,23 @@ Resultados preliminares em checkout dirty sobre HEAD0bf36d7 (não prova do SHA l
 SQL posterior acrescentou contraprovas de esgotamento/deadline e validação do estado do ledger no claim: repetir gate antes de atribuir nova contagem. Cleanup do runner também passou a reter ledger quando create inconclusivo é seguido de404, sem apagar histórico de ownership por inferência. Prova Node do helper não é teste de crash do host. Cobertura/build/E2E/HTTPS F03 e vínculo ao SHA final ainda em validação.
 
 Auth disabled e nenhuma rota produtiva de provisioning. Budget persistido lookup-only implementado; day-zero, compensação/revogação, circuit breaker, scheduler/batches e autorização operacional continuam pendentes. Isso não encerra F04, não autoriza PR de aceite/merge/F05 e não é PASS_LOCAL global.
+
+<a id="stable"></a>
+
+## Gate integral no SHA estável
+
+`npm run check:full`, SHA completo `67878c0a62fef22ae99c44d9b2a92b015886dc55`, checkout limpo e sem commits/edições durante execução: **23:33:38.191Z–23:45:03.250Z, exit0** em 01/10/2026. Relatório ignorado `validation-results/full.json`, SHA-256 `2058A7D4140EA7A9C12CB135C1638BA97AAC7DBA81D3ED7CCC6F46F076724B76`. Uma execução preliminar passou, mas atravessou commit; não é a prova estável usada aqui.
+
+| Camada | Resultado comprovado |
+| --- | --- |
+| Qualidade | Diff, lint, tipos, Knip, audit sem vulnerabilidades e docs aprovados; catálogo78 suítes; 21 testes de scripts |
+| Aplicação | 56 arquivos/250 testes com cobertura e thresholds preservados; build e 19 testes Chromium |
+| Worker | Tipos gerados atuais, typecheck, seis arquivos/41 testes runtime, deploy dry-run sem publicar |
+| Banco | PostgreSQL17.11; dois resets; oito arquivos/241 assertions pgTAP; duas rodadas de concorrência F02, contexto F03 e provisioning; lint/advisors sem achados, diff vazio |
+| F03 real | HTTPS local, API/SPA/headers, PREAUTH persistido, dez abas concorrentes e cookies Chromium |
+| F04 real | 23:44:34.039Z–23:44:58.153Z; Worker auxiliar HTTPS/RPC/provider real; normal e resposta perdida após criação; reconciliação lookup-only, replay sem novo create e associação/audit únicos |
+| Cleanup | Fixtures sintéticas próprias removidas após ownership/ausência de sessões; ausência confirmada; processos próprios encerrados; db:stop exit0; nenhum container do projeto ativo |
+
+Toolchain/pins iguais aos registrados no primeiro marco: Node24.18.1/npm11.6.0, CLI2.119.0, SDK2.117.2, Wrangler4.145.0, plugin1.3.4/Vitest Worker4.1.11, Vitest app5.0.3, Zod4.6.5. Contrato/dossiê mantêm os checksums anteriores. IP/URLs e credenciais dos testes são exclusivamente locais; nenhuma integração target ou segredo real.
+
+Escopo implementado: RPCs estreitas, admissão persistida de create, fences/generation, budget de oito claims em24h com backoff, associação transacional e audit. ABORTED após dispatch é negado também no banco; GET404 não prova ausência de efeito em voo. Limite de tentativas não transforma UNKNOWN em falha definitiva. Não existe rota produtiva de provisioning, DELETE/revogação operacional, cron ou autorização administrativa completa. Day-zero, compensação segura, scheduler/batches/circuit breaker e contraprovas restantes do plano continuam pendentes. Este gate comprova os arquivos presentes, não encerra F04 nem substitui F12/F13. CI hospedado não foi executado; billing histórico não é aprovação ou waiver deste trabalho.

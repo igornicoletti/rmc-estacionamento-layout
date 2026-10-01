@@ -9,6 +9,7 @@
 - [Disposição de todos os achados](#findings)
 - [Gate de saneamento](#gate)
 - [Plano F04 condicionado](#implementation)
+- [Checkpoint atual e trabalho restante](#current)
 - [Testes e aceite](#tests)
 - [Fontes e limitações](#sources)
 
@@ -111,10 +112,27 @@ Checkpoint seguinte: startup diagnosticado (PostgREST503/schema ausente) e corri
 | 2 — Porta provider | createReservedUser/getReservedUser/deleteOwnedUser request-scoped com schemas unknown→validado, timeout/abort/redirect negado, erro sanitizado; nenhuma listUsers ilimitada | Confirmação de UUID + ownership de ledger; email/meta/user_metadata isolados não autorizam adoção ou compensação |
 | 3 — Saga e ledger | Claim/reserva atomicamente → chamada provider fora da transação → prova ownership → commit associação/onboarding PENDING/audit/assignment elegível → terminal persistido | Mesma chave/intenção recupera resultado; outra intenção/ator/alvo conflita. Lost response entra em reconciliação, não repetição cega |
 | 4 — Reconciliação/compensação | Lease/fencing bounded por comando; consulta direta UUID; retry classificado e limite de tentativas; outcomes ambíguos permanecem pendentes | Crash em cada fronteira; stale worker não commita/apaga recurso. Revogar antes de delete quando houver sessão; nunca apagar terceiro |
-| 5 — Day-zero | Procedimento local fora de API comum, responsável e recibo auditados, execução one-time, primeiro S PENDING/security setup | Lock global para limite S, sem senha padrão/token permanente/auto-confirm telefone. Encerrar procedimento após sucesso; MFA S/A obrigatório antes de NORMAL continua F07 |
+| 5 — Day-zero | Procedimento local fora de API comum, responsável e recibo auditados, execução one-time, primeiro S PENDING/ACTIVATION_REQUIRED | Lock global para limite S, sem senha padrão/token permanente/auto-confirm telefone. Encerrar procedimento após sucesso; ativação e MFA S/A antes de NORMAL continuam F06/F07 |
 | 6 — Prova/documentação | Matriz, decisões, pesquisa, catálogo e manifesto F04 no SHA; verificar erros, cleanup e diff | Gate app/Worker/DB/HTTPS afetado e provider real local; PR e revisão do responsável; sem merge ou F05 automático |
 
 Sequência da saga não é uma transação distribuída. Reserva não disponibiliza ativação até associação consistente. Caller não escolhe actor/authority; intenção autorizada vem de boundary servidor ou procedimento controlado day-zero. Ausência de Units reais impede provisioning operacional M/O unit-scoped; fixtures só testam constraints. F04 não envia SMS/Queue nem implementa F05/F06 para mascarar essa limitação.
+
+<a id="current"></a>
+
+## Checkpoint atual e trabalho restante
+
+Saga, store RPC, dispatch único persistido, reconciliação lookup-only com oito claims/24h e backoff, fences e associação/audit transacionais estão implementados. [Gate integral no SHA67878c0](evidence/F04-local.md#stable) comprovou runtime, banco concorrente e provider real local, inclusive resposta perdida e replay. O gate abaixo sobre baseline3c4b6d é histórico, não o resultado atual.
+
+| Estado/fato | Ação atualmente permitida |
+| --- | --- |
+| RESERVED, sem dispatch e ausência comprovada antes da tentativa | Admitir uma única criação sob reserva/lease/fence vigentes |
+| Dispatch já concedido ou UNKNOWN | Consultar somente UUID reservado; nunca repetir create ou abortar por GET404 |
+| OWNED com prova privada exata | Confirmar e associar sob fatos/fence atuais; nenhuma adoção por email |
+| COMMITTED | Reentregar resultado persistido sem novo provider/audit |
+| Binding conflitante, fence stale, resultado desconhecido | Preservar pendência; não apagar nem adotar recurso |
+| Budget/deadline esgotados | Preservar UNKNOWN para escalonamento; não reiniciar contador ou inferir ausência |
+
+ABORTED fica restrito à ausência anterior ao dispatch; compensação futura requer protocolo específico de ownership/revogação e prova de ausência de efeitos em voo. Faltam procedimento day-zero, autorização administrativa/capability/scope no commit, compensação/revogação operacional, scheduler/batches/circuit breaker e fault injection nas demais fronteiras. Units reais continuam não comprovadas e fluxos M/O operacionais fechados. Portanto, F04 permanece em implementação, sem PR de aceite ou autorização F05.
 
 <a id="tests"></a>
 
