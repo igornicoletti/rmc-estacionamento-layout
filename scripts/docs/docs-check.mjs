@@ -25,7 +25,7 @@ for (const [path, document] of documents) {
       throw new Error(`Missing anchor in ${path}: ${url}`)
     }
   }
-  const historical = path.includes("/evidence/F") || path.includes("\\evidence\\F") || path.endsWith("contract-v1.0.md") || path.endsWith("F02-critical-audit.md")
+  const historical = path.includes("/evidence/F") || path.includes("\\evidence\\F") || path.endsWith("contract-v1.0.md") || path.endsWith("audit-v2.0.md") || path.endsWith("F02-critical-audit.md")
   if (!historical) {
     const source = await readFile(path, "utf8")
     if (path.includes(`${resolve("docs")}`) && !source.includes("Sumário")) throw new Error(`Missing navigable summary: ${path}`)
@@ -51,6 +51,7 @@ const contracts = await readFile("src/shared/auth/auth-contracts.ts", "utf8")
 if (!contracts.includes('AUTH_CONTRACT_VERSION = "1.1"') || !revision.includes('contractVersion: "1.1"')
   || !revision.includes(contractHash)) throw new Error("Active contract version or provenance drift")
 for (const [path, expected] of Object.entries({
+  "docs/auth/audit-v2.0.md": "C1204398809DC124314A07434A82DA532E237B359B8AA79A273303D0B4D3EA39",
   "docs/auth/evidence/F02-api-schema.sql": "B390239361D8FEE724581470FD48D3D60181DE04904621F4D837219044C05562",
   "docs/auth/evidence/F02-private-schema.sql": "CBAD363B81B9E453F959AF528F53E4F1F9A7DB3BD027919CEAD52E0ACDE6FB44",
 })) {
