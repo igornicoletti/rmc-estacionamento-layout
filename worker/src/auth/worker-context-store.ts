@@ -1,11 +1,8 @@
-import { createClient } from "@supabase/supabase-js"
 import { z } from "zod"
 import type { AuthContextStore, PersistedAuthContext } from "../../../src/shared/auth/auth-http-contracts"
-import { authHttpPolicy } from "../../../src/shared/auth/auth-http-contracts"
 import { isoTimestampSchema, opaqueIdSchema } from "../../../src/shared/auth/auth-contracts"
-import { authPolicy } from "../../../src/shared/auth/auth-policy"
-import { httpDeadline, readHttpBytes } from "../../../src/lib/http/http-stream"
 import { WorkerProblem } from "../http/worker-http"
+import { createWorkerRpc } from "../http/worker-rpc"
 
 const hash = z.string().regex(/^[0-9a-f]{64}$/)
 const recordSchema = z.strictObject({
@@ -22,47 +19,7 @@ export function createContextStore(url: string, secret: string): AuthContextStor
   // F03 admits only the fixed, isolated local Supabase project.
   if (base.origin !== "http://127.0.0.1:55321" || base.pathname !== "/" || base.search || base.hash
     || base.username || base.password || !secret) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
-  const client = createClient(url, secret, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    db: { schema: "rmc_auth_api" },
-    global: { fetch: async (input, init) => {
-      const target = new URL(input instanceof Request ? input.url : String(input))
-      if (target.origin !== base.origin || !target.pathname.startsWith("/rest/v1/rpc/")) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
-      const deadline = httpDeadline(init?.signal ?? undefined, authPolicy.upstreamAttemptTimeoutMs)
-      try {
-        // Workers supports follow/manual, not redirect:error. Never follow Location.
-        const response = await fetch(input, { ...init, redirect: "manual", signal: deadline.signal })
-        if (response.status >= 300 && response.status < 400) {
-          void response.body?.cancel().catch(() => {})
-          throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
-        }
-        if (response.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !== "application/json") {
-          void response.body?.cancel().catch(() => {})
-          throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
-        }
-        const bytes = await readHttpBytes(response.body, authHttpPolicy.rpcResponseBytes, deadline.signal)
-        try { JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes)) }
-        catch { throw new WorkerProblem("AUTH_PROVIDER_FAILURE") }
-        return new Response(bytes, { status: response.status, headers: response.headers })
-      } catch (error) {
-        if (error instanceof WorkerProblem) throw error
-        if (deadline.timedOut()) throw new WorkerProblem("AUTH_DEPENDENCY_TIMEOUT")
-        if (init?.signal?.aborted) throw new WorkerProblem("AUTH_DEPENDENCY_TIMEOUT")
-        throw new WorkerProblem(error instanceof RangeError ? "AUTH_PROVIDER_FAILURE" : "AUTH_DEPENDENCY_UNAVAILABLE")
-      } finally { deadline.dispose() }
-    } },
-  })
-  async function rpc(name: string, args: Record<string, string | number>, signal: AbortSignal): Promise<unknown> {
-    try {
-      const result = await client.rpc(name, args).abortSignal(signal).throwOnError()
-      const data: unknown = result.data
-      return data
-    } catch (error) {
-      if (error instanceof WorkerProblem) throw error
-      const code = typeof error === "object" && error !== null && "code" in error ? error.code : undefined
-      throw new WorkerProblem(code === "22023" ? "AUTH_INVALID_REQUEST" : "AUTH_DEPENDENCY_UNAVAILABLE")
-    }
-  }
+  const rpc = createWorkerRpc(base.origin, secret, ["create_preauth_context", "read_preauth_context", "validate_preauth_csrf"])
   function record(value: unknown): PersistedAuthContext {
     const parsed = recordSchema.safeParse(value)
     if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")

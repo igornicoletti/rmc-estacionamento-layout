@@ -43,13 +43,16 @@ try {
   await query(`select rmc_auth_api.claim_command('${command}','${randomUUID()}',${hash},'PROVISION_IDENTITY',null,'${identity}')`)
   const reserves = await Promise.all(Array.from({ length: 10 }, () => query(`select provider_subject from rmc_auth_api.reserve_provider('${command}',1,'${owner}')`, "service_role")))
   assert(new Set(reserves).size === 1, "concurrent reservation must allocate one provider UUID")
+  const dispatch = await Promise.all(Array.from({ length: 10 }, () => query(`select rmc_auth_api.admit_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,true)
+    from rmc_auth_private.provider_reservations where command_id='${command}'`, "service_role")))
+  assert(dispatch.filter((value) => value === "t").length === 1, "one persistent dispatch permission winner required")
   // Expiry is a fixture transition, never a sleep or caller-provided server clock.
   await query(`update rmc_auth_private.provider_reservations set fence=fence+1,lease_expires_at=clock_timestamp()-interval '1 second' where command_id='${command}'`)
   const claims = await Promise.all(Array.from({ length: 10 }, () => query(`select (rmc_auth_api.claim_provider_reconciliation('${command}','${randomUUID()}')).command_id`, "service_role")))
   assert(claims.filter((value) => value === command).length === 1, "one reconciliation lease winner required")
   const stale = await query(`select rmc_auth_api.record_provider_outcome('${command}','${owner}',1,provider_subject,ownership_binding,'OWNED') from rmc_auth_private.provider_reservations where command_id='${command}'`, "service_role")
   assert(stale === "f", "old fence cannot confirm")
-  console.log("Pre-F04 concurrency: CPF one winner, dual-version duplicates denied, one reserved UUID, one reconciliation claimant, stale fence denied")
+  console.log("Auth provisioning concurrency: CPF one winner, dual-version duplicates denied, one reserved UUID, one dispatch permission, one reconciliation claimant, stale fence denied")
 } finally {
   // Exact synthetic IDs only; preserve singleton policy's monotonic generation.
   await query(`delete from rmc_auth_private.provider_reservations where command_id='${command}';

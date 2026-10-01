@@ -9,6 +9,9 @@ import { nodeCli, runProcess } from "../../scripts/validation/validation-process
 const localApi = "http://127.0.0.1:55321"
 const domain = "auth.rmc.invalid" // Synthetic selector only; never a production domain.
 const expectedAuthImage = "public.ecr.aws/supabase/gotrue:v2.197.0|sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b"
+export function canConfirmFixtureAbsence(error, creationObserved) {
+  return creationObserved === true && error?.status === 404 && error?.code === "user_not_found"
+}
 export function assertLocalProvider(url) {
   if (url !== localApi) throw new Error("Provider PoC refuses non-local project")
 }
@@ -82,7 +85,7 @@ export function providerPocClient(url, key, allowedIds, transport = fetch, paren
   })
 }
 
-export async function providerPoc(signal) {
+export async function providerPoc(signal, exercise) {
   signal?.throwIfAborted()
   const [cli, prefix] = nodeCli("supabase/dist/supabase.js")
   const status = await runProcess(cli, [...prefix, "status", "--output", "json"], { capture: true })
@@ -99,6 +102,7 @@ export async function providerPoc(signal) {
   let reservation
   let client
   let providerMayExist = false
+  let creationObserved = false
   let providerAbsent = true
   let stage = "CPF source and command fixture"
   try {
@@ -128,11 +132,16 @@ export async function providerPoc(signal) {
     signal?.throwIfAborted()
     stage = "reserved UUID creation and ownership"
     providerMayExist = true; providerAbsent = false
+    if (exercise) {
+      await exercise({ config, commandId, identityId, owner, reservation }, signal)
+      creationObserved = true // Exercise must assert the durable OWNED/COMMITTED result.
+    } else {
     const created = await client.auth.admin.createUser({ id: reservation.provider_subject,
       email: `u-${reservation.provider_subject}@${domain}`, password: randomBytes(32).toString("base64url"),
       email_confirm: true, phone_confirm: false, app_metadata: { rmc_provisioning: proof } })
     assert.equal(created.error, null)
     assert.ok(hasOwnedUser(created.data.user, reservation), "Provider must preserve reserved UUID and private ownership")
+    creationObserved = true
     stage = "ownership reread"
     const read = await client.auth.admin.getUserById(reservation.provider_subject)
     assert.equal(read.error, null)
@@ -142,9 +151,10 @@ export async function providerPoc(signal) {
     assert.equal(await query(`set role service_role; select rmc_auth_api.record_provider_outcome('${commandId}','${owner}',1,'${reservation.provider_subject}','${reservation.ownership_binding}','OWNED')`), "t")
     signal?.throwIfAborted()
     assert.equal(await query(`set role service_role; select rmc_auth_api.commit_provider_reservation('${commandId}','${owner}',1,'${randomUUID()}','LOCAL')`), "t")
+    }
     assert.equal(await query(`select lifecycle||':'||onboarding from rmc_auth_private.identities where id='${identityId}'`), "PENDING:ACTIVATION_REQUIRED")
     assert.equal(await query(`select count(*) from rmc_auth_private.audit_events where command_id='${commandId}'`), "1")
-    console.log("F04 provider PoC: reserved UUID, technical selector, private ownership, unconfirmed phone, durable association/audit, no NORMAL")
+    console.log("F04 local provider: reserved UUID, technical selector, private ownership, unconfirmed phone, durable association/audit, no NORMAL")
   } catch {
     console.error(`Provider PoC failed at allowlisted stage: ${stage}; payload suppressed`)
     throw new Error("Provider PoC failed")
@@ -153,7 +163,11 @@ export async function providerPoc(signal) {
       // Cleanup must remain bounded but cannot inherit cancellation of the test.
       client = providerPocClient(config.API_URL, config.SERVICE_ROLE_KEY, [reservation.provider_subject])
       const read = await client.auth.admin.getUserById(reservation.provider_subject)
-      if (read.error?.status === 404 && read.error?.code === "user_not_found") providerAbsent = true
+      if (read.error?.status === 404 && read.error?.code === "user_not_found") {
+        // Timeout/cancel followed by 404 can race an in-flight create. Keep the ledger.
+        assert.ok(canConfirmFixtureAbsence(read.error, creationObserved), "Uncertain create: retain ownership ledger for controlled reconciliation")
+        providerAbsent = true
+      }
       else {
         assert.equal(read.error, null, "Unknown cleanup outcome; retain ownership ledger")
         assert.ok(hasOwnedUser(read.data.user, reservation), "Never remove a foreign or altered provider resource")

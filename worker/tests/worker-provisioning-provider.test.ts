@@ -40,7 +40,7 @@ describe("F04 local provider create/read boundary", () => {
   })
   it("never calls provider for stale admission, altered command, terminal state or cancelled request", async () => {
     const fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock)
-    expect(await client(() => Promise.resolve(false)).createReservedUser(reservation, context())).toEqual({ kind: "CONFLICT" })
+    expect(await client(() => Promise.resolve(false)).createReservedUser(reservation, context())).toEqual({ kind: "UNKNOWN" })
     expect(await client().createReservedUser(reservation, { ...context(), commandId: crypto.randomUUID() })).toEqual({ kind: "CONFLICT" })
     expect(await client().createReservedUser({ ...reservation, state: "COMMITTED" }, context())).toEqual({ kind: "CONFLICT" })
     expect(await client().createReservedUser(reservation, { ...context(), signal: AbortSignal.abort() })).toEqual({ kind: "UNKNOWN" })

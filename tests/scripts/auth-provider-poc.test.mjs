@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { assertLocalProvider, hasOwnedUser, providerPocClient, providerPocGate } from "../../worker/scripts/worker-provider-poc.mjs"
+import { assertLocalProvider, canConfirmFixtureAbsence, hasOwnedUser, providerPocClient, providerPocGate } from "../../worker/scripts/worker-provider-poc.mjs"
 
 test("F04 provider PoC admits only exact local project and private ownership", () => {
   assert.doesNotThrow(() => assertLocalProvider("http://127.0.0.1:55321"))
@@ -30,6 +30,9 @@ test("F04 provider PoC transport forbids arbitrary UUID, redirects and large res
 })
 
 test("F04 provider PoC cancellation keeps owned stack cleanup runnable and removes listeners", async () => {
+  assert.equal(canConfirmFixtureAbsence({ status: 404, code: "user_not_found" }, false), false)
+  assert.equal(canConfirmFixtureAbsence({ status: 404, code: "user_not_found" }, true), true)
+  assert.equal(canConfirmFixtureAbsence({ status: 503 }, true), false)
   const before = process.listenerCount("SIGINT")
   const observed = []
   await assert.rejects(providerPocGate(async (_command, args, options) => {

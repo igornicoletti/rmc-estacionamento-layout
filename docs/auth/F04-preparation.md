@@ -101,6 +101,10 @@ Primeiro marco na branch `feat/auth-f04-provisioning`: adapter local create/read
 
 Branch atual: feat/auth-f04-provisioning, criada da main sincronizada após aceite do saneamento. Um PR ao concluir a fase; parada antes de merge/F05. Somente dados sintéticos e provider local; nenhum endpoint Users de produção antes de sessão NORMAL/autorização F10.
 
+Continuação local: `worker/src/auth/worker-provisioning-store.ts` implementa as RPCs estreitas; `worker/src/auth/worker-provisioning-saga.ts` reserva, consulta, confirma ownership e commita sem recriação no reconciler. Migration incremental introduz admissão persistida de dispatch única, com disputa em dez conexões adicionada ao runner. [ADR-006](decisions.md#c7) distingue essa admissão de autorização de negócio e exactly-once. Testes runtime aprovados não substituem prova DB: reset/startup falharam nesta continuação; nova migration, pgTAP e composição real continuam pendentes. Day-zero, compensação e backoff/limite persistido ainda não implementados.
+
+Checkpoint seguinte: startup diagnosticado (PostgREST503/schema ausente) e corrigido no runner por bootstrap PostgreSQL antes dos dois resets. Gate DB e composição real Workers/RPC/Auth passaram em checkout dirty; resposta perdida reconciliada por GET, sem nova criação, replay terminal sem novo audit e cleanup comprovado. Budget lookup-only persistido implementado. `npm run test:provisioning:local` usa Worker auxiliar em HTTPS8788, sem rota no bundle produtivo; [evidência](evidence/F04-local.md#pending) registra limites. Contraprovas finais de esgotamento/deadline e validação no SHA limpo ainda necessárias. Day-zero, compensação/revogação, circuit breaker, scheduler/batches e autorização operacional permanecem gates da fase.
+
 | Marco | Implementação/resultado | Revisão e gate |
 | --- | --- | --- |
 | 1 — PoC local versionada | Verificar imagem/version Auth efetiva e SDK2.117.2: admin UUID fornecido, email técnico, getUserById, app_metadata, credencial interna não comunicada, telefone não confirmado | Pin por imagem/digest e fonte tag/commit; criar/remover somente próprios usuários sintéticos; indisponibilidade não comprova ausência |

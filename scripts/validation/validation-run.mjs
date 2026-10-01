@@ -3,6 +3,7 @@ import { databaseGate } from "../auth-db/auth-db-gate.mjs"
 import { npmScript, runProcess, runSteps, validationReportDirectory } from "./validation-process.mjs"
 import { checkWorker } from "../worker/worker-check.mjs"
 import { workerIntegration } from "../worker/worker-integration.mjs"
+import { provisioningIntegration } from "../../worker/scripts/worker-provisioning-integration.mjs"
 
 const profile = process.argv[2]
 const profiles = {
@@ -32,7 +33,10 @@ try {
   if (["full", "bff"].includes(profile)) {
     if (profile === "bff") await runSteps([{ label: "build:assets", command: npmScript("build:assets")[0], args: npmScript("build:assets")[1] }], execute, results)
     await checkWorker(execute, results)
-    await databaseGate(execute, results, (run, report) => workerIntegration(run, report, abort.signal))
+    await databaseGate(execute, results, async (run, report) => {
+      await workerIntegration(run, report, abort.signal)
+      if (profile === "full") await provisioningIntegration(report, abort.signal)
+    })
   } else if (profile === "db") await databaseGate(execute, results)
 } catch (error) {
   console.error(error.message)

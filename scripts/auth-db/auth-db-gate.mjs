@@ -46,7 +46,10 @@ async function ownedDatabaseGate(execute, results, afterReady) {
   let started = false
   try {
     started = true // Cleanup even if startup created only part of the stack.
-    await runSteps([step("db:start"), step("db:reset"), step("db:reset"), step("db:test"),
+    // Restored volumes may lack the exposed schema after an interrupted reset.
+    // Bootstrap only PostgreSQL, rebuild twice, then start the API with real health checks.
+    // stop preserves the rebuilt local volume; never --no-backup or --ignore-health-check.
+    await runSteps([step("db:bootstrap"), step("db:reset"), step("db:reset"), step("db:stop"), step("db:start"), step("db:test"),
       step("db:test:concurrency"), step("db:test:concurrency"),
       { label: "F03 DB concurrency 1", command: process.execPath, args: ["scripts/auth-db/auth-db-context-concurrency.mjs"] },
       { label: "F03 DB concurrency 2", command: process.execPath, args: ["scripts/auth-db/auth-db-context-concurrency.mjs"] },

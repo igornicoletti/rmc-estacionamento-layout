@@ -9,6 +9,7 @@
 - [Integridade e cleanup](#integrity)
 - [Tentativas e limitações](#limitations)
 - [Pendências da fase](#pending)
+- [Checkpoint saga e diagnóstico resolvido](#saga)
 
 <a id="scope"></a>
 
@@ -61,4 +62,30 @@ Auth permanece disabled; domínio auth.rmc.invalid é somente fixture. Email té
 
 ## Pendências da fase
 
-Composição RPC do adapter com admission autoritativa, saga/idempotência/intenção, reconciliação persistida com lease/fence/retries bounded, compensação/revogação segura e day-zero controlado ainda não implementados. Faltam crash/perda de resposta em cada fronteira, autorização ator/alvo/scope no commit e gate integral no SHA final da fase. Units reais não comprovadas mantêm provisioning M/O fechado. PR de aceite F04 somente ao concluir esses marcos; merge/F05 exigem nova autorização do responsável.
+Continuação após SHA0bf36d715998c251e013f7b7771ff76faeabdeac, checkout dirty: saga controlada e store RPC implementados, sem entrypoint/Env produtivos. Dispatch único persistido por comando via migration incremental; autorização de reserva não substitui capability/scope/AAL. GET404 após outcome desconhecido não aborta nem permite repetição cega. Transporte RPC compartilhado com contexto F03, allowlists separadas. [ADR-006](../decisions.md#c7).
+
+Diagnóstico parcial: seis arquivos/41 testes Worker passaram incluindo contraprova de owner; lint, tipos Worker, Knip e docs (76 suítes) passaram. Não são evidência vinculada a novo SHA limpo. Gate DB falhou no reset; repetição falhou em startup, classificado como timeout pela inspeção capturada, sem imprimir secrets. Cleanup do runner confirmou stop do projeto local; outro stack rmc-estacionamento não foi alterado. Nova migration/pgTAP e disputa de dispatch ainda não comprovados; não declarar 226 assertions aprovadas por inferência.
+
+Integração real Workers/RPC/provider, reconciliação persistida com retries/backoff bounded, compensação/revogação segura e day-zero controlado continuam pendentes. Faltam crash/perda de resposta em cada fronteira, autorização ator/alvo/scope no commit e gate integral no SHA final da fase. Units reais não comprovadas mantêm provisioning M/O fechado. PR de aceite F04 somente ao concluir esses marcos; merge/F05 exigem nova autorização do responsável.
+
+Regressão desta continuação: `npm run check` terminou exit1 por dois timeouts de 5 s em testes existentes de Clients/Data Table (248/250 passaram). Repetição `npm run test:serial`, sem alterar timeout/assertions, terminou exit0: 56 arquivos/250 testes. Serial não transforma a tentativa quick em aprovação; cobertura/build/E2E/HTTPS e novo gate completo da fase ainda pendentes. Gate DB repetido por solicitação do responsável após relato de perda de conexão; causa do timeout anterior não comprovada.
+
+Nova repetição de `npm run check:db` também terminou exit1 em `db:start`, antes de resets/pgTAP/concorrências. `db:stop` terminou exit0 e consulta Docker confirmou ausência de containers do projeto layout. Portanto, conexão perdida não foi comprovada como causa exclusiva; novo SQL permanece não validado, sem ajuste de timeout ou interferência no outro stack.
+
+<a id="saga"></a>
+
+## Checkpoint saga e diagnóstico resolvido
+
+Continuação em 01/10/2026, após diagnóstico capturado/sanitizado: PostgREST503 e SQLSTATE3F000, schema rmc_auth_api ausente no volume restaurado. Bootstrap PostgreSQL → dois resets → stop com backup → stack completo elimina dependência circular de health/schema. Sem ignore-health-check, aumento de timeout, schema ad hoc ou remoção de volumes/outro projeto. [Decisão](../decisions.md#c7).
+
+Resultados preliminares em checkout dirty sobre HEAD0bf36d7 (não prova do SHA limpo):
+
+| Comando | Resultado |
+| --- | --- |
+| `check:db` | 23:08:00.665Z–23:11:20.329Z; exit0; oito arquivos/236 pgTAP, dois resets e duas rodadas concorrentes por escopo; lint/advisors/diff/cleanup aprovados |
+| `test:provisioning:local` | 23:14:15.931Z–23:17:27.607Z; exit0; mesmo gate DB compartilhado e Worker auxiliar HTTPS8788 real com store/provider/saga; criação normal, perda de resposta após efeito real, lookup-only/replay e audit único; cleanup confirmado |
+| lint, tipos app/Worker, Knip, audit e docs | Exit0; zero vulnerabilidades; catálogo78 suítes. Scripts21 e runtime Worker41 aprovados antes das contraprovas finais descritas abaixo |
+
+SQL posterior acrescentou contraprovas de esgotamento/deadline e validação do estado do ledger no claim: repetir gate antes de atribuir nova contagem. Cleanup do runner também passou a reter ledger quando create inconclusivo é seguido de404, sem apagar histórico de ownership por inferência. Prova Node do helper não é teste de crash do host. Cobertura/build/E2E/HTTPS F03 e vínculo ao SHA final ainda em validação.
+
+Auth disabled e nenhuma rota produtiva de provisioning. Budget persistido lookup-only implementado; day-zero, compensação/revogação, circuit breaker, scheduler/batches e autorização operacional continuam pendentes. Isso não encerra F04, não autoriza PR de aceite/merge/F05 e não é PASS_LOCAL global.

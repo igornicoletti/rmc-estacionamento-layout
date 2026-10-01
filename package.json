@@ -42,6 +42,7 @@
     "audit:security": "npm audit --audit-level=moderate",
     "unused:check": "knip",
     "db:start": "node scripts/auth-db/auth-db-start.mjs",
+    "db:bootstrap": "node scripts/auth-db/auth-db-start.mjs --database-only",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset --local --no-seed",
     "db:test": "supabase test db supabase/tests/database --local",
@@ -57,6 +58,7 @@
     "check:full": "node scripts/validation/validation-run.mjs full",
     "test:worker": "npm test -w worker",
     "test:provider:local": "node worker/scripts/worker-provider-poc.mjs",
+    "test:provisioning:local": "node worker/scripts/worker-provisioning-integration.mjs",
     "check:worker": "node scripts/worker/worker-check.mjs",
     "test:worker:integration": "node scripts/worker/worker-integration.mjs",
     "check:bff": "node scripts/validation/validation-run.mjs bff"

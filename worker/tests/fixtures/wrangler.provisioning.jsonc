@@ -1,0 +1,7 @@
+{
+  "name": "rmc-auth-f04-test-only",
+  "main": "worker-provisioning-entry.ts",
+  "compatibility_date": "2026-10-01",
+  "vars": { "SUPABASE_URL": "http://127.0.0.1:55321" },
+  "secrets": { "required": ["SUPABASE_SECRET_KEY"] }
+}

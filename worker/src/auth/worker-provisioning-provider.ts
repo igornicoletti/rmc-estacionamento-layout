@@ -57,7 +57,7 @@ export class WorkerProvisioningProvider implements Pick<ProvisioningProvider, "c
     const ctx = context.data
     if (ctx.signal.aborted) return { kind: "UNKNOWN" }
     try {
-      if (!await this.admit(current, ctx, create)) return { kind: "CONFLICT" }
+      if (!await this.admit(current, ctx, create)) return { kind: "UNKNOWN" }
       ctx.signal.throwIfAborted()
       const client = createClient(this.url, this.secret, {
         auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
