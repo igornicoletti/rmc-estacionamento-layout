@@ -1,0 +1,10 @@
+{
+  "globs": ["README.md", "docs/**/*.md", ".github/pull_request_template.md"],
+  "ignores": ["docs/auth/contract-v1.0.md", "docs/auth/evidence/F*.md", "docs/auth/F02-critical-audit.md"],
+  "config": {
+    "MD013": false,
+    "MD009": { "br_spaces": 0 },
+    "MD033": { "allowed_elements": ["a"] },
+    "MD060": false
+  }
+}

@@ -1,6 +1,15 @@
-# Evidência reproduzível de Auth
+# Evidência reproduzível
 
-Cada arquivo de evidência representa uma execução ou procedimento sobre um único SHA e ambiente. Evidência histórica não é transportada para outro commit por inferência.
+**Natureza:** formato de manifesto. **Revisão:** 01/10/2026. **Status:** convenção vigente; não é resultado de execução.
+
+## Sumário navegável
+
+- [Campos obrigatórios](#fields)
+- [Regras](#rules)
+
+Cada execução registra um SHA/ambiente. Histórico não é transportado por inferência.
+
+<a id="fields"></a>
 
 ## Campos obrigatórios
 
@@ -8,7 +17,7 @@ Cada arquivo de evidência representa uma execução ou procedimento sobre um ú
 | --- | --- |
 | `schemaVersion` | Versão deste formato de manifesto |
 | `contractVersion` | Versão do contrato canônico |
-| `phase` | Fase F01–F14 vinculada |
+| `phase` | Fase F00–F14, ou manutenção explicitamente fora das fases |
 | `requirementIds` | Requisitos e testes T vinculados |
 | `repositorySha` | SHA completo efetivamente testado |
 | `environment` | Ambiente canônico; não usar `candidate` como ambiente |
@@ -20,6 +29,8 @@ Cada arquivo de evidência representa uma execução ou procedimento sobre um ú
 | `results` | Casos, totais, checksums e resultado por requisito |
 | `limitations` | Itens não executados, indisponíveis ou inconclusivos |
 | `responsible` | Pessoa ou automação que produziu a evidência |
+
+<a id="rules"></a>
 
 ## Regras
 

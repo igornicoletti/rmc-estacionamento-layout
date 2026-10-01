@@ -8,7 +8,7 @@
 - `repositorySha`: `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`
 - `environment`: LOCAL
 - `result`: passed; gate específico `verified-local`, **não** `PASS_LOCAL`, `PASS_TARGET` ou release.
-- `requirementIds`: invariantes de persistência e parcelas bancárias T25/T26/T27/T28/T29; T24 autoritativo permanece F04/F10. Detalhamento e contraprovas em [reauditoria](../f02-critical-audit.md).
+- `requirementIds`: invariantes de persistência e parcelas bancárias T25/T26/T27/T28/T29; T24 autoritativo permanece F04/F10. Detalhamento e contraprovas em [reauditoria](../F02-critical-audit.md).
 - `responsible`: execução automatizada pelo assistente; encerramento condicionado ao gate local autorizado pelo responsável nesta solicitação.
 - `startedAt`: 2026-10-01T00:24:51.5682117-03:00
 - `finishedAt`: 2026-10-01T00:33:12.1133916-03:00

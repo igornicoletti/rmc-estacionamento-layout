@@ -1,5 +1,20 @@
 # Contratos ERP usados nas tabelas
 
+**Natureza:** referência vigente. **Escopo:** respostas recebidas e projeção comercial.
+**Revisão:** 01/10/2026. **Baseline:** `6daa9bed8971928ed7b63749e9b493645de78025` + manutenção pré-F03 nesta branch.
+**Status:** implementação existente descrita; resultados de execução ficam no [manifesto](../auth/evidence/pre-f03-maintenance-local.md), não são inferidos desta referência.
+
+## Sumário navegável
+
+- [Proveniência e endpoints](#c1)
+- [Proveniência dos campos](#c2)
+- [Regras e limites](#c3)
+- [Simulação com o espelho histórico de Unidades](#c4)
+
+<a id="c1"></a>
+
+## Proveniência e endpoints
+
 Fonte: `API Hub Solutions.json`, compartilhado pelo usuário em 28/09/2026.
 SHA-256: `B0DDCA335F5AEC8CEE71A5DE4D64609DDF02222591C7CDE03417D88C9EE3AF97`.
 O [OpenAPI online](https://hubapi.redemontecarlo.com.br/openapi.json) exige
@@ -19,6 +34,8 @@ nesse endpoint, que corresponde aos campos da tela atual. `Unidade` de
 `/erp/item-fornecedor/unidades` representa unidade de medida; não é esse cadastro.
 `/pricing/unidades` expõe objetos sem propriedades declaradas e não fundamenta
 novas colunas nesta implementação.
+
+<a id="c2"></a>
 
 ## Proveniência dos campos
 
@@ -71,6 +88,8 @@ do contrato. Os nomes das colunas e dos campos de cópia/CSV deixam essa diferen
 aplicados na apresentação. `ip_rede` e `nom_banco_dados` existem no schema recebido,
 mas não fazem parte da interface comercial, dos mocks ou do CSV atual.
 
+<a id="c3"></a>
+
 ## Regras e limites
 
 - Removidos `is_active_120d`, `client_is_active_120d`, `synced_at`, `created_at` e
@@ -94,9 +113,9 @@ Os testes verificam campos dos mocks contra o recorte, ausência de metadados
 inventados, nulabilidade, distinção dos identificadores, filtros, cópia e CSV.
 Chromium verifica a diferença dos códigos e a tipografia calculada na célula.
 
-Validação da etapa inicial de contratos: 171 testes Vitest em 47 arquivos e 18 jornadas Chromium aprovados;
-lint, typecheck/build, Knip e `git diff --check` aprovados. Os primitives de `ui`
-não foram alterados.
+Resultados históricos não são prova corrente; consulte manifestos e catálogo central.
+
+<a id="c4"></a>
 
 ## Simulação com o espelho histórico de Unidades
 
@@ -122,6 +141,4 @@ compõem a interseção, exibem contagens facetadas e compartilham o mesmo
 ativos. Colunas textuais de Unidades optam pela ordenação compartilhada `ptBR`,
 com comparação linguística e numérica; o estado original não é reescrito.
 
-Validação desta etapa: 40 testes focados em oito arquivos, com os 11 testes de
-apresentação/cópia revalidados após os últimos ajustes de grafia; 19 jornadas
-Chromium aprovadas. Lint, typecheck/build, Knip e `git diff --check` aprovados.
+Testes vigentes: mappers/modelos/presentation, hub-contracts e E2E listados no [catálogo](../project/validation.md#catalog). Dados reais de fixtures locais são ignorados pelo Git; não anexar.

@@ -7,11 +7,16 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      environment: "jsdom",
-      setupFiles: ["./tests/support/setup.ts"],
-      include: [
-        "tests/unit/**/*.{test,spec}.{ts,tsx}",
-        "tests/integration/**/*.{test,spec}.{ts,tsx}",
+      projects: [
+        { test: {
+          name: "node", environment: "node",
+          include: ["tests/unit/**/*.test.ts"],
+          exclude: ["tests/unit/lib/browser/browser-clipboard.test.ts"],
+        } },
+        { test: {
+          name: "dom", environment: "jsdom", setupFiles: ["./tests/support/setup.ts"],
+          include: ["tests/unit/**/*.test.tsx", "tests/integration/**/*.test.tsx", "tests/unit/lib/browser/browser-clipboard.test.ts"],
+        } },
       ],
       coverage: {
         provider: "v8",

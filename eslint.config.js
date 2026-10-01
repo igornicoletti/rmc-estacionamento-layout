@@ -53,10 +53,16 @@ export default tseslint.config(
       "coverage",
       "playwright-report",
       "test-results",
+      "validation-results",
       "src/components/ui",
     ],
   },
   ...tanstackQuery.configs["flat/recommended"],
+  {
+    ...js.configs.recommended,
+    files: ["scripts/**/*.mjs", "tests/scripts/**/*.mjs", "eslint.config.js"],
+    languageOptions: { globals: globals.node, ecmaVersion: "latest", sourceType: "module" },
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
     files: ["**/*.{ts,tsx}"],
@@ -95,8 +101,17 @@ export default tseslint.config(
             {
               group: [
                 "react",
+                "react/*",
                 "react-dom",
+                "react-dom/*",
                 "react-router",
+                "react-router/*",
+                "node:*",
+                "fs",
+                "fs/*",
+                "http",
+                "https",
+                "crypto",
                 "@tanstack/*",
                 "@supabase/*",
                 "cloudflare:*",
@@ -105,6 +120,11 @@ export default tseslint.config(
                 "@/features/*",
                 "@/lib/*",
                 "@tests/*",
+                "**/app/**",
+                "**/components/**",
+                "**/features/**",
+                "**/lib/**",
+                "**/tests/**",
               ],
               message:
                 "Contratos compartilhados devem permanecer puros e sem dependências de runtime, UI ou testes.",
@@ -116,6 +136,7 @@ export default tseslint.config(
   },
   {
     files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/shared/**"],
     rules: {
       "no-restricted-imports": [
         "error",

@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    groups:
+      vitest:
+        patterns: ["vitest", "@vitest/*"]
+        update-types: ["minor", "patch"]
+      query:
+        patterns: ["@tanstack/react-query", "@tanstack/eslint-plugin-query"]
+        update-types: ["minor", "patch"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+        update-types: ["minor", "patch"]
+      tooling:
+        dependency-type: development
+        exclude-patterns: ["vitest", "@vitest/*", "@tanstack/*", "@types/react", "@types/react-dom"]
+        update-types: ["minor", "patch"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
