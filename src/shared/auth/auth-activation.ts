@@ -17,6 +17,18 @@ export const activationVerifySchema = z.strictObject({
   commandId: opaqueIdSchema,
 })
 
+export const activationResendSchema = z.strictObject({
+  contractVersion: z.literal(AUTH_CONTRACT_VERSION),
+  commandId: opaqueIdSchema,
+})
+
+export const activationJourneySchema = z.strictObject({
+  contractVersion: z.literal(AUTH_CONTRACT_VERSION),
+  step: z.enum(["OTP_REQUIRED", "PASSWORD_REQUIRED", "SECURITY_SETUP"]),
+  challengeId: opaqueIdSchema.optional(),
+  expiresAt: z.iso.datetime({ offset: true }).optional(),
+})
+
 export const activationCancelSchema = z.strictObject({
   contractVersion: z.literal(AUTH_CONTRACT_VERSION),
   commandId: opaqueIdSchema,
@@ -39,10 +51,20 @@ export const activationTotpEnrollSchema = z.strictObject({
   commandId: opaqueIdSchema,
 })
 
+export const activationTotpRestartSchema = z.strictObject({
+  contractVersion: z.literal(AUTH_CONTRACT_VERSION),
+  commandId: opaqueIdSchema,
+  password: z.string(),
+})
+
 export const activationTotpVerifySchema = z.strictObject({
   contractVersion: z.literal(AUTH_CONTRACT_VERSION),
   commandId: opaqueIdSchema,
   code: z.string().regex(/^\d{6}$/),
+})
+
+export const activationTotpResumeSchema = activationTotpVerifySchema.extend({
+  password: z.string(),
 })
 
 export const activationAcceptedSchema = z.strictObject({

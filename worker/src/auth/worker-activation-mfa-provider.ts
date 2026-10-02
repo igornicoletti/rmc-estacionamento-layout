@@ -7,7 +7,7 @@ import { WorkerProblem } from "../http/worker-http"
 import { ownedActivationUser, type ActivationProviderClaim } from "./worker-activation-provider"
 
 const factorSchema = z.object({
-  id: opaqueIdSchema, factor_type: z.string(), status: z.string(),
+  id: opaqueIdSchema, factor_type: z.string(), status: z.string(), friendly_name: z.string().optional(),
 })
 const userSchema = z.object({ id: opaqueIdSchema })
 const enrollmentSchema = z.object({
@@ -24,12 +24,12 @@ export class WorkerActivationMfaProvider {
     private readonly transport: typeof fetch = fetch) {
     if (url !== "http://127.0.0.1:55321" || !secret) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
   }
-  private async call(path: string, method: "GET" | "POST", token: string,
+  private async call(path: string, method: "GET" | "POST" | "DELETE", token: string,
     body: unknown, signal: AbortSignal): Promise<unknown> {
     if (token.length < 40 || token.length > 4096
       || !(path === "/auth/v1/user" || path === "/auth/v1/factors"
         || /^\/auth\/v1\/factors\/[0-9a-f-]{36}\/(challenge|verify)$/.test(path)
-        || /^\/auth\/v1\/admin\/users\/[0-9a-f-]{36}\/factors$/.test(path))) {
+        || /^\/auth\/v1\/admin\/users\/[0-9a-f-]{36}\/factors(?:\/[0-9a-f-]{36})?$/.test(path))) {
       throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
     }
     const deadline = httpDeadline(signal, authPolicy.upstreamAttemptTimeoutMs)
@@ -63,18 +63,37 @@ export class WorkerActivationMfaProvider {
     if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
     return parsed.data
   }
-  async enroll(claim: ActivationProviderClaim, token: string, signal: AbortSignal) {
+  async enroll(claim: ActivationProviderClaim, token: string, commandId: string, signal: AbortSignal) {
+    if (!opaqueIdSchema.safeParse(commandId).success) throw new WorkerProblem("AUTH_INVALID_REQUEST")
     await this.user(claim, token, signal)
     const before = await this.factors(claim, signal)
     if (before.length !== 0) throw new WorkerProblem("AUTH_STATE_CONFLICT")
     const value = await this.call("/auth/v1/factors", "POST", token,
-      { factor_type: "totp", friendly_name: "RMC" }, signal)
+      { factor_type: "totp", friendly_name: `RMC activation ${commandId}` }, signal)
     const parsed = enrollmentSchema.safeParse(value)
     if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
     const uri = new URL(parsed.data.totp.uri)
     if (uri.protocol !== "otpauth:" || uri.host !== "totp"
       || uri.searchParams.get("secret") !== parsed.data.totp.secret) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
     return { factorId: parsed.data.id, secret: parsed.data.totp.secret, uri: parsed.data.totp.uri }
+  }
+  async resetUnverified(claim: ActivationProviderClaim, token: string,
+    previousCommand: string, factorId: string | null, signal: AbortSignal) {
+    await this.user(claim, token, signal)
+    const factors = await this.factors(claim, signal)
+    if (factors.length > 1) throw new WorkerProblem("AUTH_STATE_CONFLICT")
+    if (factors.length === 1) {
+      const factor = factors[0]
+      if (factor.factor_type !== "totp" || factor.status !== "unverified"
+        || factor.friendly_name !== `RMC activation ${previousCommand}`
+        || (factorId !== null && factor.id !== factorId)) throw new WorkerProblem("AUTH_STATE_CONFLICT")
+      const deleted = z.object({ id: opaqueIdSchema.optional() }).safeParse(await this.call(
+        `/auth/v1/admin/users/${claim.providerSubject}/factors/${factor.id}`,
+        "DELETE", this.secret, undefined, signal))
+      if (!deleted.success || (deleted.data.id && deleted.data.id !== factor.id))
+        throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+    }
+    if ((await this.factors(claim, signal)).length !== 0) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
   }
   async verify(claim: ActivationProviderClaim, token: string, factorId: string,
     code: string, signal: AbortSignal) {

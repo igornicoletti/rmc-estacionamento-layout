@@ -74,6 +74,20 @@ try {
   const adminFactorsBefore = await client.auth.admin.mfa.listFactors({ userId: subject })
   assert.ifError(adminFactorsBefore.error)
   assert.deepEqual(adminFactorsBefore.data.factors, [])
+  const marker = `RMC activation ${randomUUID()}`
+  const pending = await auth("/auth/v1/factors", "POST", signed.data.session.access_token,
+    { factor_type: "totp", friendly_name: marker })
+  const pendingFactors = await client.auth.admin.mfa.listFactors({ userId: subject })
+  assert.ifError(pendingFactors.error)
+  assert.equal(pendingFactors.data.factors.length, 1)
+  assert.equal(pendingFactors.data.factors[0].id, pending.id)
+  assert.equal(pendingFactors.data.factors[0].status, "unverified")
+  assert.equal(pendingFactors.data.factors[0].friendly_name, marker)
+  const deletedPending = await client.auth.admin.mfa.deleteFactor({ userId: subject, id: pending.id })
+  assert.ifError(deletedPending.error)
+  const afterReset = await client.auth.admin.mfa.listFactors({ userId: subject })
+  assert.ifError(afterReset.error)
+  assert.deepEqual(afterReset.data.factors, [])
   const enrolled = await auth("/auth/v1/factors", "POST", signed.data.session.access_token,
     { factor_type: "totp", friendly_name: "RMC" })
   assert.ok(enrolled.id)

@@ -93,7 +93,9 @@ Cookies usam Secure, HttpOnly, SameSite=Strict, Path=/, sem Domain; Max-Age limi
 
 ## MFA, credenciais e revogação
 
-S/A não recebem NORMAL antes de fator TOTP confirmado. Após prova da senha, BOOTSTRAP security setup só permite configurar segurança; promoção atômica exige fator e policy atuais. Isso substitui a permissão v1.0 de S/A opt-in em aal1. Política adicional para R/M exige decisão do responsável antes de target; O conserva opt-in. Nenhuma configuração pendente autoriza acesso privilegiado.
+S/A/R/M não recebem NORMAL antes de fator TOTP confirmado. Após prova da senha, BOOTSTRAP security setup só permite configurar segurança; promoção atômica exige fator e policy atuais. Isso substitui a permissão v1.0 de S/A opt-in em aal1 e fixa R/M antes do target. O conserva opt-in. Nenhuma configuração pendente autoriza acesso privilegiado.
+
+A prova de posse do telefone na ativação é o challenge OTP RMC vinculado à fonte PHONE provisionada, à revisão da fonte e à identidade; a fonte não pode mudar entre emissão, envio, verificação e promoção. O usuário técnico do Auth permanece sem telefone pessoal. Esta regra substitui especificamente a instrução ACT-06 da v1.0 de gravar `phone_confirm`/`phone_confirmed_at` no Auth. A confirmação não é alegada como atributo do provedor.
 
 Enrollment tem claim exclusivo por identidade, intenção/generation persistidas, consulta antes/depois e confirmação de ownership/cardinalidade no provider. Fator externo inesperado ou resultado ambíguo bloqueia promoção e exige reconciliação; não apagar fator alheio.
 

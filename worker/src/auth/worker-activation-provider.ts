@@ -38,7 +38,8 @@ export class WorkerActivationProvider {
     private readonly transport: typeof fetch = fetch) {
     if (url !== "http://127.0.0.1:55321" || !secret) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
   }
-  async provePassword(claim: ActivationProviderClaim, password: string, signal: AbortSignal): Promise<{
+  async provePassword(claim: ActivationProviderClaim, password: string, signal: AbortSignal,
+    allowUpdate = true): Promise<{
     accessToken: string; expiresAt: string;
   }> {
     const client = createClient(this.url, this.secret, {
@@ -73,6 +74,8 @@ export class WorkerActivationProvider {
     let signed = await client.auth.signInWithPassword({ email, password })
     signal.throwIfAborted()
     if (signed.error) {
+      if (!allowUpdate) throw new WorkerProblem(
+        signed.error.code === "invalid_credentials" ? "AUTH_CREDENTIALS_INVALID" : "AUTH_PROVIDER_FAILURE")
       // Only a definite password mismatch authorizes an admin update. Any
       // outage or ambiguous response remains restricted for reconciliation.
       if (signed.error.code !== "invalid_credentials") throw new WorkerProblem("AUTH_PROVIDER_FAILURE")

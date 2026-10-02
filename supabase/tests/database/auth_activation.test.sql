@@ -47,6 +47,8 @@ select lives_ok($$select rmc_auth_api.begin_activation(
   '16000000-0000-4000-8000-000000000006')$$,'challenge and outbox committed with the restricted journey');
 reset role;
 select is((select count(*)::integer from rmc_auth_private.delivery_outbox where id='16000000-0000-4000-8000-000000000006'),1,'eligible request has exactly one outbox');
+select is((select phone_source_revision from rmc_auth_private.challenges where id='16000000-0000-4000-8000-000000000005'),1::bigint,
+  'activation challenge binds the phone source revision');
 select is((select state::text from rmc_auth_private.journey_transactions where id='16000000-0000-4000-8000-000000000002'),'COMMITTED','parent PREAUTH consumed');
 select is((select purpose::text from rmc_auth_private.journey_transactions where id='16000000-0000-4000-8000-000000000004'),'PREAUTH','new journey has no NORMAL authority');
 select is((select count(*)::integer from rmc_auth_private.functional_sessions where identity_id='16000000-0000-4000-8000-000000000001'),0,'request never creates a functional session');
@@ -76,6 +78,8 @@ set local role service_role;
 select is(rmc_auth_api.read_activation_challenge(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),'16000000-0000-4000-8000-000000000005')->>'identityId',
   '16000000-0000-4000-8000-000000000001','restricted challenge metadata read under cookie and CSRF');
 select is(rmc_auth_api.read_activation_challenge(decode(repeat('37',32),'hex'),decode(repeat('ff',32),'hex'),'16000000-0000-4000-8000-000000000005'),null::jsonb,'wrong CSRF cannot read challenge');
+select is(rmc_auth_api.read_activation_journey(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'))->>'step',
+  'OTP_REQUIRED','journey status requires the same cookie and CSRF');
 select ok(not rmc_auth_api.verify_activation(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),
   '16000000-0000-4000-8000-000000000005',decode(repeat('00',32),'hex'),
   '16000000-0000-4000-8000-000000000007',decode(repeat('41',32),'hex'),decode(repeat('42',32),'hex'),
@@ -85,11 +89,19 @@ reset role;
 select is((select attempt_count from rmc_auth_private.challenges where id='16000000-0000-4000-8000-000000000005'),1,'wrong attempt counted durably');
 select is((select count(*)::integer from rmc_auth_private.functional_sessions where identity_id='16000000-0000-4000-8000-000000000001'),0,'wrong code creates no session');
 set local role service_role;
-select ok(rmc_auth_api.verify_activation(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),
+select ok(rmc_auth_api.verify_activation_once(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),
   '16000000-0000-4000-8000-000000000005',decode(repeat('3b',32),'hex'),
   '16000000-0000-4000-8000-000000000007',decode(repeat('41',32),'hex'),decode(repeat('42',32),'hex'),
-  decode(repeat('43',60),'hex'),decode(repeat('44',32),'hex'),1,'16000000-0000-4000-8000-000000000008'),
+  decode(repeat('43',60),'hex'),decode(repeat('44',32),'hex'),1,'16000000-0000-4000-8000-000000000008',
+  '16000000-0000-4000-8000-000000000007',decode(repeat('45',32),'hex')),
   'correct OTP creates only BOOTSTRAP');
+select is(rmc_auth_api.replay_activation_verify(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),
+  '16000000-0000-4000-8000-000000000007','16000000-0000-4000-8000-000000000005',
+  decode(repeat('45',32),'hex'))->>'sessionId','16000000-0000-4000-8000-000000000007',
+  'lost verify response replays the committed BOOTSTRAP');
+select is(rmc_auth_api.replay_activation_verify(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),
+  '16000000-0000-4000-8000-000000000007','16000000-0000-4000-8000-000000000005',
+  decode(repeat('ff',32),'hex')),null::jsonb,'changed verify intent cannot replay BOOTSTRAP');
 select ok(not rmc_auth_api.verify_activation(decode(repeat('37',32),'hex'),decode(repeat('39',32),'hex'),
   '16000000-0000-4000-8000-000000000005',decode(repeat('3b',32),'hex'),
   '16000000-0000-4000-8000-000000000009',decode(repeat('51',32),'hex'),decode(repeat('52',32),'hex'),
@@ -146,7 +158,56 @@ select ok(rmc_auth_api.record_activation_totp(
   '16000000-0000-4000-8000-000000000021','16000000-0000-4000-8000-000000000022',1,
   '16000000-0000-4000-8000-000000000023','16000000-0000-4000-8000-000000000026'),
   'factor id recorded without the TOTP secret');
+select is(rmc_auth_api.read_activation_bootstrap_status(decode(repeat('41',32),'hex'),
+  decode(repeat('42',32),'hex'))->>'step','SECURITY_SETUP',
+  'canonical journey status reports restricted security setup');
+savepoint totp_recovery_fence;
+select is(rmc_auth_api.claim_activation_totp_recovery(decode(repeat('41',32),'hex'),
+  decode(repeat('42',32),'hex'),'16000000-0000-4000-8000-000000000029',
+  '16000000-0000-4000-8000-000000000030')->>'previousCommand',
+  '16000000-0000-4000-8000-000000000021',
+  'TOTP recovery captures the exact original enrollment command');
+select is(rmc_auth_api.complete_activation(decode(repeat('41',32),'hex'),
+  decode(repeat('42',32),'hex'),'16000000-0000-4000-8000-000000000027',
+  decode(repeat('63',32),'hex'),'26000000-0000-4000-8000-000000000001',
+  '16000000-0000-4000-8000-000000000023','aal2',decode(repeat('ac',128),'hex'),1,
+  clock_timestamp()+interval '1 hour','16000000-0000-4000-8000-000000000027',
+  decode(repeat('81',32),'hex'),decode(repeat('82',32),'hex'),decode(repeat('83',60),'hex'),
+  decode(repeat('84',32),'hex'),1,'16000000-0000-4000-8000-000000000028'),null::jsonb,
+  'recovery fence prevents promotion while provider deletion is pending');
+rollback to savepoint totp_recovery_fence;
 reset role;
+savepoint same_generation_phone_change;
+update rmc_auth_private.provisioning_phone_sources set ciphertext=decode(repeat('ad',42),'hex')
+  where identity_id='16000000-0000-4000-8000-000000000001';
+set local role service_role;
+select throws_ok($$select rmc_auth_api.complete_activation(decode(repeat('41',32),'hex'),
+  decode(repeat('42',32),'hex'),'16000000-0000-4000-8000-000000000027',
+  decode(repeat('63',32),'hex'),'26000000-0000-4000-8000-000000000001',
+  '16000000-0000-4000-8000-000000000023','aal2',decode(repeat('ac',128),'hex'),1,
+  clock_timestamp()+interval '1 hour','16000000-0000-4000-8000-000000000027',
+  decode(repeat('81',32),'hex'),decode(repeat('82',32),'hex'),decode(repeat('83',60),'hex'),
+  decode(repeat('84',32),'hex'),1,'16000000-0000-4000-8000-000000000028')$$,
+  '23514','PHONE_SOURCE_CHANGED','same-generation phone replacement cannot promote');
+reset role;
+rollback to savepoint same_generation_phone_change;
+savepoint replaced_phone_row;
+delete from rmc_auth_private.provisioning_phone_sources
+  where identity_id='16000000-0000-4000-8000-000000000001';
+insert into rmc_auth_private.provisioning_phone_sources(identity_id,identity_generation,key_version,ciphertext)
+  values('16000000-0000-4000-8000-000000000001',1,1,decode(repeat('ae',42),'hex'));
+set local role service_role;
+select throws_ok($$select rmc_auth_api.complete_activation(decode(repeat('41',32),'hex'),
+  decode(repeat('42',32),'hex'),'16000000-0000-4000-8000-000000000027',
+  decode(repeat('63',32),'hex'),'26000000-0000-4000-8000-000000000001',
+  '16000000-0000-4000-8000-000000000023','aal2',decode(repeat('ac',128),'hex'),1,
+  clock_timestamp()+interval '1 hour','16000000-0000-4000-8000-000000000027',
+  decode(repeat('81',32),'hex'),decode(repeat('82',32),'hex'),decode(repeat('83',60),'hex'),
+  decode(repeat('84',32),'hex'),1,'16000000-0000-4000-8000-000000000028')$$,
+  '23514','PHONE_SOURCE_CHANGED','source replacement cannot reset the proof revision');
+reset role;
+rollback to savepoint replaced_phone_row;
+savepoint phone_source_change;
 update rmc_auth_private.provisioning_phone_sources set identity_generation=2
   where identity_id='16000000-0000-4000-8000-000000000001';
 set local role service_role;
@@ -159,8 +220,7 @@ select is(rmc_auth_api.complete_activation(decode(repeat('41',32),'hex'),
   decode(repeat('84',32),'hex'),1,'16000000-0000-4000-8000-000000000028'),null::jsonb,
   'promotion denies a phone source no longer bound to the identity generation');
 reset role;
-update rmc_auth_private.provisioning_phone_sources set identity_generation=1
-  where identity_id='16000000-0000-4000-8000-000000000001';
+rollback to savepoint phone_source_change;
 set local role service_role;
 select is(rmc_auth_api.complete_activation(decode(repeat('41',32),'hex'),
   decode(repeat('42',32),'hex'),'16000000-0000-4000-8000-000000000024',
@@ -204,6 +264,26 @@ select lives_ok($$select rmc_auth_api.begin_activation(
   decode(repeat('76',32),'hex'),1,decode(repeat('77',40),'hex'),1,
   clock_timestamp()+interval '5 minutes','16000000-0000-4000-8000-000000000034')$$,
   'decoy challenge is persisted without delivery');
+reset role;
+update rmc_auth_private.activation_requests set created_at=clock_timestamp()-interval '61 seconds'
+  where command_id='16000000-0000-4000-8000-000000000031';
+set local role service_role;
+select is(rmc_auth_api.resend_activation(decode(repeat('72',32),'hex'),decode(repeat('74',32),'hex'),
+  '16000000-0000-4000-8000-000000000037','16000000-0000-4000-8000-000000000038',
+  decode(repeat('78',32),'hex'),1,decode(repeat('79',40),'hex'),1,
+  clock_timestamp()+interval '5 minutes','16000000-0000-4000-8000-000000000039')->>'challengeId',
+  '16000000-0000-4000-8000-000000000038','decoy resend replaces challenge without revealing identity');
+select is((select generation from rmc_auth_private.challenges
+  where id='16000000-0000-4000-8000-000000000038'),2::bigint,
+  'resend advances challenge and journey generation');
+select is(rmc_auth_api.read_activation_challenge(decode(repeat('72',32),'hex'),
+  decode(repeat('74',32),'hex'),'16000000-0000-4000-8000-000000000033'),null::jsonb,
+  'resend invalidates the old challenge');
+select is(rmc_auth_api.resend_activation(decode(repeat('72',32),'hex'),decode(repeat('74',32),'hex'),
+  '16000000-0000-4000-8000-000000000037','16000000-0000-4000-8000-000000000040',
+  decode(repeat('80',32),'hex'),1,decode(repeat('81',40),'hex'),1,
+  clock_timestamp()+interval '5 minutes','16000000-0000-4000-8000-000000000041')->>'challengeId',
+  '16000000-0000-4000-8000-000000000038','same resend command replays the challenge');
 select ok(rmc_auth_api.cancel_activation(decode(repeat('72',32),'hex'),
   decode(repeat('74',32),'hex'),'16000000-0000-4000-8000-000000000035'),
   'restart cancels pending activation before a new PREAUTH');

@@ -127,9 +127,44 @@ it("enrolls one owned TOTP factor and verifies the resulting AAL2 session", asyn
   })
   const provider = new WorkerActivationMfaProvider("http://127.0.0.1:55321", key(11), transport)
   const initialToken = "synthetic-access-token-that-is-longer-than-forty-chars"
-  expect((await provider.enroll(claim, initialToken, signal)).factorId).toBe(factorId)
+  expect((await provider.enroll(claim, initialToken, claim.reservationCommand, signal)).factorId).toBe(factorId)
   expect((await provider.verify(claim, initialToken, factorId, "123456", signal)).accessToken).toBe(aal2Token)
   expect(transport.mock.calls.some(([input]) => (input instanceof Request ? input.url : input.toString())
     .endsWith(`/admin/users/${claim.providerSubject}/factors`))).toBe(true)
   expect(JSON.stringify(transport.mock.calls)).not.toContain("ABCDEFGHIJKLMNOP")
+})
+
+it("resets only the activation-owned unverified factor", async () => {
+  const claim = { identityId: id, providerSubject: "10000000-0000-4000-8000-000000000005",
+    reservationCommand: "10000000-0000-4000-8000-000000000006",
+    ownershipBinding: "10000000-0000-4000-8000-000000000007", generation: 1 }
+  const factorId = "10000000-0000-4000-8000-000000000008"
+  const user = { id: claim.providerSubject, email: `u-${claim.providerSubject}@auth.rmc.invalid`,
+    app_metadata: { rmc_provisioning: { purpose: "PROVISION_IDENTITY", contractVersion: "1.1",
+      commandId: claim.reservationCommand, identityId: claim.identityId,
+      ownershipBinding: claim.ownershipBinding, identityGeneration: 1 } } }
+  let status = "unverified", name = `RMC activation ${claim.reservationCommand}`
+  let factorExists = true
+  const transport = vi.fn<typeof fetch>((input, init) => {
+    const path = new URL(input instanceof Request ? input.url : input.toString()).pathname
+    if (path === "/auth/v1/user") return Promise.resolve(Response.json(user))
+    if (path.endsWith("/factors") && init?.method === "GET") return Promise.resolve(Response.json(
+      factorExists ? [{ id: factorId, factor_type: "totp", status, friendly_name: name }] : []))
+    if (path.endsWith(`/factors/${factorId}`) && init?.method === "DELETE") {
+      factorExists = false
+      return Promise.resolve(Response.json({ id: factorId }))
+    }
+    throw new Error(`Unexpected path ${path}`)
+  })
+  const provider = new WorkerActivationMfaProvider("http://127.0.0.1:55321", key(11), transport)
+  const token = "synthetic-access-token-that-is-longer-than-forty-chars"
+  status = "verified"
+  await expect(provider.resetUnverified(claim, token, claim.reservationCommand, factorId, signal)).rejects.toThrow()
+  expect(factorExists).toBe(true)
+  status = "unverified"; name = "unrelated factor"
+  await expect(provider.resetUnverified(claim, token, claim.reservationCommand, factorId, signal)).rejects.toThrow()
+  expect(factorExists).toBe(true)
+  name = `RMC activation ${claim.reservationCommand}`
+  await provider.resetUnverified(claim, token, claim.reservationCommand, factorId, signal)
+  expect(factorExists).toBe(false)
 })

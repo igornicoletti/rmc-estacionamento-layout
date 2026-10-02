@@ -9,6 +9,14 @@ const candidateSchema = z.strictObject({ identityId: opaqueIdSchema,
   generation: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) })
 const acceptedSchema = z.strictObject({ accepted: z.literal(true),
   challengeId: opaqueIdSchema, expiresAt: z.iso.datetime({ offset: true }) })
+const journeySchema = z.strictObject({ step: z.literal("OTP_REQUIRED"), challengeId: opaqueIdSchema,
+  journeyId: opaqueIdSchema, identityId: opaqueIdSchema.nullable(),
+  generation: z.number().int().positive(), contextKeyVersion: z.number().int().positive(),
+  expiresAt: z.iso.datetime({ offset: true }), journeyExpiresAt: z.iso.datetime({ offset: true }) })
+const resentSchema = acceptedSchema.extend({ journeyExpiresAt: z.iso.datetime({ offset: true }) })
+const verifyReplaySchema = z.strictObject({ sessionId: opaqueIdSchema,
+  expiresAt: z.iso.datetime({ offset: true }), contextKeyVersion: z.number().int().positive() })
+const bootstrapStatusSchema = z.strictObject({ step: z.enum(["PASSWORD_REQUIRED", "SECURITY_SETUP"]) })
 const limitedSchema = z.strictObject({ limited: z.literal(true) })
 const challengeSchema = z.strictObject({
   journeyId: opaqueIdSchema, challengeId: opaqueIdSchema, identityId: opaqueIdSchema.nullable(),
@@ -35,13 +43,15 @@ const setupSchema = z.strictObject({
   role: authRoleSchema, reservationCommand: opaqueIdSchema, ownershipBinding: opaqueIdSchema,
   ciphertext: z.string().regex(/^(?:[0-9a-f]{2}){100,8192}$/),
   keyVersion: z.number().int().positive(), providerExpiresAt: z.iso.datetime({ offset: true }),
-  factorId: opaqueIdSchema.nullable(), factorState: z.enum(["CLAIMED", "ENROLLED", "VERIFIED"]).nullable(),
+  factorId: opaqueIdSchema.nullable(), factorState: z.enum(["CLAIMED", "ENROLLED", "RECOVERING", "VERIFIED"]).nullable(),
 })
 const totpClaimSchema = z.strictObject({
   claimed: z.literal(true), identityId: opaqueIdSchema, sessionId: opaqueIdSchema,
   generation: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   fence: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
 })
+const recoveryClaimSchema = totpClaimSchema.extend({ previousCommand: opaqueIdSchema,
+  factorId: opaqueIdSchema.nullable() })
 const completionSchema = z.strictObject({
   normalSessionId: opaqueIdSchema, expiresAt: z.iso.datetime({ offset: true }),
   idleExpiresAt: z.iso.datetime({ offset: true }),
@@ -57,8 +67,72 @@ export function createActivationStore(url: string, secret: string) {
     "claim_activation_password", "prove_activation_password",
     "read_activation_security_setup", "claim_activation_totp", "record_activation_totp",
     "complete_activation", "replay_activation_completion",
+    "read_activation_journey", "resend_activation", "replay_activation_verify", "verify_activation_once",
+    "read_activation_bootstrap_status",
+    "claim_activation_totp_recovery", "finish_activation_totp_recovery",
   ])
   return {
+    async claimTotpRecovery(input: { cookieHash: string; csrfHash: string;
+      commandId: string; owner: string }, signal: AbortSignal) {
+      const value = await rpc("claim_activation_totp_recovery", {
+        p_cookie: bytea(input.cookieHash), p_csrf: bytea(input.csrfHash),
+        p_command: input.commandId, p_owner: input.owner,
+      }, signal)
+      if (value === null) return null
+      if (z.strictObject({ busy: z.literal(true) }).safeParse(value).success) return { busy: true as const }
+      const parsed = recoveryClaimSchema.safeParse(value)
+      if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+      return parsed.data
+    },
+    async finishTotpRecovery(input: { identityId: string; sessionId: string;
+      commandId: string; owner: string; fence: number }, signal: AbortSignal) {
+      const value = await rpc("finish_activation_totp_recovery", {
+        p_identity: input.identityId, p_session: input.sessionId, p_command: input.commandId,
+        p_owner: input.owner, p_fence: input.fence,
+      }, signal)
+      if (typeof value !== "boolean") throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+      return value
+    },
+    async bootstrapStatus(cookieHash: string, csrfHash: string, signal: AbortSignal) {
+      const value = await rpc("read_activation_bootstrap_status",
+        { p_cookie: bytea(cookieHash), p_csrf: bytea(csrfHash) }, signal)
+      if (value === null) return null
+      const parsed = bootstrapStatusSchema.safeParse(value)
+      if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+      return parsed.data
+    },
+    async replayVerify(input: { cookieHash: string; csrfHash: string; commandId: string;
+      challengeId: string; intentHash: string }, signal: AbortSignal) {
+      const value = await rpc("replay_activation_verify", {
+        p_cookie: bytea(input.cookieHash), p_csrf: bytea(input.csrfHash),
+        p_command: input.commandId, p_challenge: input.challengeId, p_intent: bytea(input.intentHash),
+      }, signal)
+      if (value === null) return null
+      const parsed = verifyReplaySchema.safeParse(value)
+      if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+      return parsed.data
+    },
+    async readJourney(cookieHash: string, csrfHash: string, signal: AbortSignal) {
+      const value = await rpc("read_activation_journey", { p_cookie: bytea(cookieHash), p_csrf: bytea(csrfHash) }, signal)
+      if (value === null) return null
+      const parsed = journeySchema.safeParse(value)
+      if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+      return parsed.data
+    },
+    async resend(input: { cookieHash: string; csrfHash: string; commandId: string; challengeId: string;
+      verifierHash: string; verifierKeyVersion: number; ciphertext: string; deliveryKeyVersion: number;
+      expiresAt: string; outboxId: string }, signal: AbortSignal) {
+      const value = await rpc("resend_activation", {
+        p_cookie: bytea(input.cookieHash), p_csrf: bytea(input.csrfHash), p_command: input.commandId,
+        p_challenge: input.challengeId, p_verifier: bytea(input.verifierHash),
+        p_verifier_key: input.verifierKeyVersion, p_ciphertext: `\\x${input.ciphertext}`,
+        p_delivery_key: input.deliveryKeyVersion, p_expires: input.expiresAt, p_outbox: input.outboxId,
+      }, signal)
+      if (value === null) return null
+      const parsed = resentSchema.safeParse(value)
+      if (!parsed.success) throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
+      return parsed.data
+    },
     async replay(commandId: string, preauthCookieHash: string, preauthCsrfHash: string,
       intentHash: string, signal: AbortSignal) {
       const value = await rpc("replay_activation", {
@@ -120,16 +194,18 @@ export function createActivationStore(url: string, secret: string) {
     },
     async verify(input: {
       cookieHash: string; csrfHash: string; challengeId: string; verifierHash: string;
+      commandId: string; intentHash: string;
       sessionId: string; sessionCookieHash: string; sessionCsrfHash: string;
       sessionCsrfCiphertext: string; sessionBindingHash: string; contextKeyVersion: number; requestId: string;
     }, signal: AbortSignal) {
-      const value = await rpc("verify_activation", {
+      const value = await rpc("verify_activation_once", {
         p_cookie: bytea(input.cookieHash), p_csrf: bytea(input.csrfHash), p_challenge: input.challengeId,
         p_verifier: bytea(input.verifierHash), p_bootstrap_session: input.sessionId,
         p_bootstrap_cookie: bytea(input.sessionCookieHash), p_bootstrap_csrf: bytea(input.sessionCsrfHash),
         p_bootstrap_csrf_ciphertext: `\\x${input.sessionCsrfCiphertext}`,
         p_bootstrap_binding: bytea(input.sessionBindingHash),
         p_context_key: input.contextKeyVersion, p_request: input.requestId,
+        p_command: input.commandId, p_intent: bytea(input.intentHash),
       }, signal)
       if (typeof value !== "boolean") throw new WorkerProblem("AUTH_PROVIDER_FAILURE")
       return value
