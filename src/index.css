@@ -170,6 +170,7 @@
 
 @media (max-width: 47.999rem) {
   [data-slot="input"],
+  [data-slot="input-group-control"],
   [data-slot="textarea"],
   [data-slot="native-select"],
   [data-slot="select-trigger"],
@@ -182,6 +183,7 @@
   }
 
   [data-slot="input"]::placeholder,
+  [data-slot="input-group-control"]::placeholder,
   [data-slot="textarea"]::placeholder,
   [data-slot="combobox-chip-input"]::placeholder,
   [data-slot="command-input"]::placeholder {

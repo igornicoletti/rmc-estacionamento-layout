@@ -32,6 +32,8 @@ Não há componentes de formulário Auth implementados nem autorização por pri
 
 Use variants e estados nativos antes de CSS adicional. Composição Base UI usa `render`, não `asChild`. Botões mantêm `disabled` nativo; links preservam semântica de link. Dialog/Sheet exigem título acessível. Ícones decorativos usam `aria-hidden`.
 
+Tipografia mobile existente: `src/index.css`, até47.999rem, aplica0.875rem aos controles e placeholders, incluindo input-group-control. O slot é usado por InputGroupInput/InputGroupTextarea e descrito na [documentação oficial](https://ui.shadcn.com/docs/components/base/input-group). Componente copiado não foi atualizado. E2E clientes390px verifica14px no controle/placeholder, foco e ausência de overflow; Chromium não prova comportamento de autozoom do Safari físico. Zoom do usuário não é desabilitado.
+
 Atualização de pacote não atualiza source copiado. Consulte `npx shadcn@latest info --json`, `docs <component>`, `add <component> --dry-run` e `--diff <file>` antes de modificar; revise alterações locais. Não execute overwrite global. O alias utils no CLI não é consumidor runtime: primitives atuais importam `cn` do pacote; não criar src/lib/utils por inferência.
 
 <a id="c3"></a>

@@ -365,6 +365,10 @@ test("mantém clientes responsivos e foco de teclado em 390 px", async ({
 
   const search = page.getByRole("searchbox")
 
+  await expect(search).toHaveAttribute("data-slot", "input-group-control")
+  await expect(search).toHaveCSS("font-size", "14px")
+  expect(await search.evaluate((element) => getComputedStyle(element, "::placeholder").fontSize)).toBe("14px")
+
   await search.focus()
   await expect(search).toBeFocused()
 
