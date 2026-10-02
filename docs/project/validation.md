@@ -207,6 +207,11 @@ Pré-F04/F04: `scripts/auth-db/auth-db-prerequisites-concurrency.mjs` disputa CP
 
 F04 primeiro marco: `npm run test:provider:local` executa `worker/scripts/worker-provider-poc.mjs`, com gate DB próprio (dois resets/concorrências/pgTAP) e PoC Auth real local. Reserva persistida antes de createUser, UUID/selector/ownership server-only, telefone não confirmado, associação PENDING e audit; cleanup só do recurso sintético comprovado sem sessões. Prova Node separada dos testes do adapter Workers; não comprova saga/day-zero/target. Recusa stack preexistente e URL remota; pode apagar somente o banco local de testes pertencente ao runner.
 
+| `worker/tests/worker-delivery.test.ts` | F05 codec, IDs, unknown outcome, stale, DLQ, receipt e limites HTTP |
+| `supabase/tests/database/auth_delivery.test.sql` | F05 grants, outbox claim/CAS, consumer fence, UNKNOWN e duplicate |
+
+O gate `check:full` executa a integração F05 com um envio sintético e uma mensagem malformada que deve alcançar a quarentena via Queue→DLQ. Após limpar os fixtures, `scripts/auth-db/auth-delivery-status.mjs --assert-drained` exige zero unprocessed, deadLetter, ambiguous, prepared e quarantine. Em operação local, `npm run auth:delivery:status` mostra somente contagens e idades; não expõe OTP, telefone, payload ou IDs.
+
 <a id="c4"></a>
 
 ## Evidência e limitações

@@ -33,7 +33,7 @@ export function createWorkerRpc(url: string, secret: string, operations: readonl
       } finally { deadline.dispose() }
     } },
   })
-  return async (name: string, args: Record<string, string | number | boolean | null>, signal: AbortSignal): Promise<unknown> => {
+  return async (name: string, args: Record<string, unknown>, signal: AbortSignal): Promise<unknown> => {
     if (!operations.includes(name)) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
     signal.throwIfAborted()
     try {

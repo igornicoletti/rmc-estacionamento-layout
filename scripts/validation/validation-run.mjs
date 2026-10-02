@@ -4,6 +4,7 @@ import { npmScript, runProcess, runSteps, validationReportDirectory } from "./va
 import { checkWorker } from "../worker/worker-check.mjs"
 import { workerIntegration } from "../worker/worker-integration.mjs"
 import { provisioningIntegration } from "../../worker/scripts/worker-provisioning-integration.mjs"
+import { deliveryIntegration } from "../../worker/scripts/worker-delivery-integration.mjs"
 
 const profile = process.argv[2]
 const profiles = {
@@ -35,7 +36,12 @@ try {
     await checkWorker(execute, results)
     await databaseGate(execute, results, async (run, report) => {
       await workerIntegration(run, report, abort.signal)
-      if (profile === "full") await provisioningIntegration(report, abort.signal)
+      if (profile === "full") {
+        await provisioningIntegration(report, abort.signal)
+        await deliveryIntegration(report, abort.signal)
+        await runSteps([{ label: "F05 local delivery drained", command: process.execPath,
+          args: ["scripts/auth-db/auth-delivery-status.mjs", "--assert-drained"], options: { capture: true } }], run, report)
+      }
     })
   } else if (profile === "db") await databaseGate(execute, results)
 } catch (error) {

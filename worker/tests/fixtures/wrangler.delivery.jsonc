@@ -1,0 +1,16 @@
+{
+  "name": "rmc-auth-f05-test-only",
+  "main": "worker-delivery-entry.ts",
+  "compatibility_date": "2026-10-01",
+  "vars": { "SUPABASE_URL": "http://127.0.0.1:55321" },
+  "secrets": { "required": ["SUPABASE_SECRET_KEY", "DELIVERY_KEYRING", "SMS_GATEWAY_TOKEN"] },
+  "queues": {
+    "producers": [{ "binding": "AUTH_DELIVERY_QUEUE", "queue": "auth-delivery" }],
+    "consumers": [
+      { "queue": "auth-delivery", "max_batch_timeout": 0, "max_batch_size": 1,
+        "max_retries": 1, "retry_delay": 1, "dead_letter_queue": "auth-delivery-dlq" },
+      { "queue": "auth-delivery-dlq", "max_batch_timeout": 0, "max_batch_size": 1,
+        "max_retries": 1, "retry_delay": 1, "dead_letter_queue": "auth-delivery-quarantine" }
+    ]
+  }
+}

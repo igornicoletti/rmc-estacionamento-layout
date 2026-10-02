@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": false,
-  "secrets": { "required": ["AUTH_KEYRING", "SUPABASE_SECRET_KEY"] },
+  "secrets": { "required": ["AUTH_KEYRING", "SUPABASE_SECRET_KEY", "DELIVERY_KEYRING", "SMS_GATEWAY_TOKEN"] },
   "assets": {
     "directory": "../dist",
     "binding": "ASSETS",
@@ -18,10 +18,20 @@
     "AUTH_STAGE": "disabled",
     "BFF_CONTEXT_ENABLED": "false",
     "BFF_PROVISIONING_ENABLED": "false",
+    "BFF_DELIVERY_ENABLED": "false",
+    "SMS_GATEWAY_URL": "https://not-configured.invalid",
     "CANONICAL_ORIGIN": "https://not-configured.invalid",
     "SUPABASE_URL": "https://not-configured.invalid"
   },
   "triggers": { "crons": ["* * * * *"] },
+  "queues": {
+    "producers": [{ "binding": "AUTH_DELIVERY_QUEUE", "queue": "auth-delivery" }],
+    "consumers": [
+      { "queue": "auth-delivery", "dead_letter_queue": "auth-delivery-dlq", "max_batch_size": 10,
+        "max_batch_timeout": 1, "max_retries": 5, "max_concurrency": 1, "retry_delay": 30 },
+      { "queue": "auth-delivery-dlq", "dead_letter_queue": "auth-delivery-quarantine", "max_batch_size": 10, "max_retries": 5, "max_concurrency": 1 }
+    ]
+  },
   "observability": {
     "enabled": true,
     "logs": { "invocation_logs": false, "head_sampling_rate": 1 }
