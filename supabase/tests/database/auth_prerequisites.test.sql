@@ -58,7 +58,7 @@ select throws_ok($$update rmc_auth_private.provider_reservations set state='COMM
   where command_id='72000000-0000-4000-8000-000000000001'$$,'23514','AUTH_PROVISION_IMMUTABLE','privileged direct update cannot skip ownership confirmation');
 select is((rmc_auth_api.reserve_provider('72000000-0000-4000-8000-000000000001',1,
   '73000000-0000-4000-8000-000000000002')).provider_subject,(select provider_subject from reservation),'retry retains reserved UUID and owner');
-select ok(not rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000001',
+select ok(not rmc_auth_private.commit_provider_reservation('72000000-0000-4000-8000-000000000001',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL'),'unconfirmed cannot commit');
 select ok(not rmc_auth_api.record_provider_outcome('72000000-0000-4000-8000-000000000001',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),(select ownership_binding from reservation),'OWNED'),'cannot adopt another UUID');
@@ -69,13 +69,13 @@ select ok(rmc_auth_api.record_provider_outcome('72000000-0000-4000-8000-00000000
   '73000000-0000-4000-8000-000000000001',1,(select provider_subject from reservation),(select ownership_binding from reservation),'OWNED'),'exact owned proof confirmed');
 select ok(not rmc_auth_api.record_provider_outcome('72000000-0000-4000-8000-000000000001',
   '73000000-0000-4000-8000-000000000001',1,(select provider_subject from reservation),(select ownership_binding from reservation),'ABSENT'),'owned cannot be aborted as absent');
-select ok(rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000001',
+select ok(rmc_auth_private.commit_provider_reservation('72000000-0000-4000-8000-000000000001',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL'),'association and audit commit');
 reset role;
 select is((select lifecycle::text from rmc_auth_private.identities where id='71000000-0000-4000-8000-000000000001'),'PENDING','commit does not promote');
 select is((select count(*)::integer from rmc_auth_private.audit_events where command_id='72000000-0000-4000-8000-000000000001'),1,'one audit event');
 select is((select count(*)::integer from rmc_auth_private.audit_outbox),1,'durable audit outbox committed');
-select ok(rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000001',
+select ok(rmc_auth_private.commit_provider_reservation('72000000-0000-4000-8000-000000000001',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL'),'idempotent committed result');
 select is((select count(*)::integer from rmc_auth_private.audit_outbox),1,'retry does not duplicate audit');
 
@@ -95,7 +95,7 @@ select ok(rmc_auth_api.record_provider_outcome('72000000-0000-4000-8000-00000000
   1,(select provider_subject from reservation_two),(select ownership_binding from reservation_two),'OWNED'),'second proof confirmed');
 create function pg_temp.fail_audit() returns trigger language plpgsql as $$begin raise exception using errcode='23514',message='SYNTHETIC_AUDIT_FAILURE'; end$$;
 create trigger synthetic_audit_failure before insert on rmc_auth_private.audit_events for each row execute function pg_temp.fail_audit();
-select throws_ok($$select rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000003',
+select throws_ok($$select rmc_auth_private.commit_provider_reservation('72000000-0000-4000-8000-000000000003',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL')$$,'23514','SYNTHETIC_AUDIT_FAILURE','audit failure aborts commit');
 select ok((select provider_subject is null from rmc_auth_private.identities where id='71000000-0000-4000-8000-000000000002'),'failed audit leaves identity unassociated');
 select is((select state from rmc_auth_private.provider_reservations where command_id='72000000-0000-4000-8000-000000000003'),'CONFIRMED','failed audit leaves reservation uncommitted');
@@ -106,7 +106,7 @@ select is((rmc_auth_api.read_cpf_source('71000000-0000-4000-8000-000000000002',2
   1::bigint,'current identity fence can retrieve historical crypto binding for controlled reseal');
 select ok((rmc_auth_api.read_cpf_source('71000000-0000-4000-8000-000000000002',1)).identity_id is null,
   'old identity fence cannot retrieve source after generation changes');
-select ok(not rmc_auth_api.commit_provider_reservation('72000000-0000-4000-8000-000000000003',
+select ok(not rmc_auth_private.commit_provider_reservation('72000000-0000-4000-8000-000000000003',
   '73000000-0000-4000-8000-000000000001',1,gen_random_uuid(),'LOCAL'),'changed identity generation cannot commit');
 
 insert into rmc_auth_private.identities(id,role) values('71000000-0000-4000-8000-000000000003','R');

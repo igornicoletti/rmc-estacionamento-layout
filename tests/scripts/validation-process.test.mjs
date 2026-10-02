@@ -86,6 +86,8 @@ test("database gate cleans up owned startup on failure", async () => {
       return { stdout: "", stderr: "", exitCode: 0 }
     }), /db:reset/) })
     assert.ok(calls.at(-1).includes("db:stop"))
+    assert.ok(calls.some((args) => args.includes("db:bootstrap")))
+    assert.ok(!calls.some((args) => args.includes("db:start")), "API must not start before a successful rebuild")
   } finally {
     if (prior === undefined) delete process.env.npm_execpath
     else process.env.npm_execpath = prior
@@ -103,6 +105,8 @@ test("database gate cleans up its stack when the shared integration callback fai
       return { stdout: sql === "show server_version" ? "17.6" : typeof sql === "string" && sql.startsWith("select (select count(*)") ? "0" : "", stderr: "", exitCode: 0 }
     }, [], async () => { throw new Error("integration failure") }), /integration failure/) })
     assert.ok(calls.at(-1).includes("db:stop"))
+    const scripts = calls.flatMap((args) => args.includes("run") ? [args.at(-1)] : [])
+    assert.deepEqual(scripts.slice(0, 5), ["db:bootstrap", "db:reset", "db:reset", "db:stop", "db:start"])
   } finally {
     if (prior === undefined) delete process.env.npm_execpath
     else process.env.npm_execpath = prior

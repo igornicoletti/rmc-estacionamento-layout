@@ -12,6 +12,7 @@
 - [ADR-003 — Transporte e runtime F03](#c4)
 - [ADR-004 — Revisão normativa v1.1](#c5)
 - [ADR-005 — Fundamentos pré-F04 e rotação CPF](#c6)
+- [ADR-006 — Admissão persistida de dispatch](#c7)
 
 <a id="c1"></a>
 
@@ -112,3 +113,35 @@ Reserva provider aloca UUID e ownership binding no banco, vinculados ao commandI
 Event schema v1.1 é estrito: tipos/outcomes/reasons/capabilities/purposes/deployments allowlisted, request/event IDs UUID v4, sem texto livre. Histórico audit v1.0 permanece permitido no banco; não é reemitido como evento v1.1. Resultado de command ledger só amplia o schema para identityId exato do target em PROVISION_IDENTITY COMMITTED; nenhum payload genérico. RLS permanece defesa adicional, não contenção de service_role BYPASSRLS.
 
 Fontes verificadas: [locks PostgreSQL17](https://www.postgresql.org/docs/17/explicit-locking.html), [funções Supabase](https://supabase.com/docs/guides/database/functions) e [Web Crypto Workers](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/). Runtime do projeto prevalece sobre exemplos antigos de integração Vitest da skill: manter plugin atual pinado, não retornar ao antigo pool Workers.
+
+<a id="c7"></a>
+
+## ADR-006 — Admissão persistida de dispatch
+
+**Data:** 01/10/2026. **Escopo:** F04 local em implementação, sem endpoint público. Reserva idempotente não impede dois callers da mesma lease de executar create. Uma RPC invoker consome atomicamente uma permissão irreversível por comando, sob locks command → reservation → identities ordenadas. Revalida owner, fence, UUID/binding, generation, prazo e lifecycle; leituras não consomem a permissão. Grants não transformam service_role BYPASSRLS em papel contido por RLS.
+
+Não é exactly-once: crash após admissão e antes do POST deixa pendência durável. Timeout não prova rollback; GET404 posterior pode preceder confirmação de uma criação ainda em execução. O reconciler só consulta o UUID reservado, nunca repete create ou aborta por esse 404. Prova OWNED permite confirmação e commit atomicamente auditado; conflito não permite adoção/deleção. Replay terminal retorna resultado persistido sem novo efeito.
+
+Admissão de reserva não é autorização completa de capability/scope/AAL. Day-zero, backoff/limite persistido de reconciliação e compensação segura continuam gates da F04. Adapter e saga não estão conectados ao Worker produtivo. Transporte RPC limitado é compartilhado com contexto F03, mantendo allowlists separadas e clientes request-scoped.
+
+Continuação técnica local: até oito claims lookup-only em 24 horas, backoff 60/120/240/480/960/1920/3600/3600 segundos, lease de 30 s. Claims consumidos antes do GET, inclusive se o worker morrer; contador/prazo não reiniciam e lease expirada não ignora backoff. Esgotamento preserva pendência para resolução controlada, sem abort/recreate automático. Valores são política inicial de implementação, não números atribuídos ao contrato nem capacidade target validada. Agendamento/batches/circuit breaker e runbook de resolução ainda não comprovados.
+
+Runner local: bootstrap PostgreSQL antes dos resets e API depois de schema reconstruído. Causa observada do startup anterior: PostgREST 503/SQLSTATE3F000 por schema exposto ausente no volume restaurado; não falha de internet demonstrada. Health checks não foram desabilitados e nenhum volume/outro stack foi removido.
+
+Contraprova DB adicional: ABSENT não pode tornar ABORTED uma reserva cujo dispatch já foi consumido. Mesmo se um caller invocar diretamente a RPC de outcome, trigger rejeita esse abort; apenas ausência pré-dispatch continua elegível. Compensação posterior exige protocolo próprio de fencing/revogação, não reutilização de ABSENT. Migration incremental preserva as anteriores.
+
+Fontes: [locks PostgreSQL17](https://www.postgresql.org/docs/17/explicit-locking.html), [funções Supabase](https://supabase.com/docs/guides/database/functions), [consulta administrativa por UUID](https://supabase.com/docs/reference/javascript/auth-admin-getuserbyid) e [Fetch Workers](https://developers.cloudflare.com/workers/runtime-apis/fetch/). Fontes consultadas em 01/10/2026; prova real de composição Workers/DB/provider ainda pendente naquele checkpoint.
+
+### Continuação ADR-006 — Operação controlada F04
+
+Day-zero usa advisory transaction lock e recibo singleton, com operador/command/target/intenção vinculados. Primeiro S fica PENDING/ACTIVATION_REQUIRED; nenhuma sessão NORMAL ou telefone confirmado é criado. Reexecução exata recupera recibo; segunda identidade conflita. Funções privadas operator-only não recebem EXECUTE do service_role ou browser.
+
+Fonte PHONE usa keyring separado de CPF/CSRF, AAD [1,"A256GCM","PHONE",identityId,generation,keyVersion] e HMAC ["PHONE_LOOKUP",keyVersion,E.164]. Envelope binário IV12+ciphertext+tag16; limite31–44bytes acompanha o schema E.164 existente, sem inserir plaintext no banco. Staging controlado nega substituição por hash diferente; todas as intenções administrativas precisam de fonte vinculada à generation antes de autorizar provisioning. Codec/decrypt da entrega e prova física pertencem à F05/F13; ciphertext sem chave recuperável não constitui prontidão operacional.
+
+Prova de autorização persiste sessão, generations independentes de ator/sessão/alvo, papéis, intenção e horário verificado; facts imutáveis, consumo irreversível. BFF não insere prova. Dispatch e commit revalidam NORMAL/aal2/fresh e hierarquia; M/O fechados até prova ERP. F07 produzirá fatos verificados reais; inserção sintética como postgres só testa a fronteira. Primitives invoker sem autorização ficam em rmc_auth_private, fora da Data API; nomes legados em rmc_auth_api delegam aos wrappers autorizados. Grants de composição não contêm service_role por RLS; nenhuma credencial dessa role chega ao browser.
+
+Reconciliação de intenção já consumida pode ler UUID reservado depois de revogar o ator, sob owner/fence/binding/generation/lease. Isso não autoriza create ou commit. Batch máximo três a cada minuto; lease global30s, orçamento Worker25s; circuito abre60s após três falhas. Estado persistente sobrevive ao processo; esgotamento preserva ledger para escalonamento. Valores são política técnica local, não capacidade target comprovada. Scheduler hosted permanece desabilitado.
+
+Compensação controlada: fence DISABLED/generation e sessões BFF primeiro; verificar ownership, bloquear provider pela API, confirmar ownership/bloqueio e ausência de sessões, somente então DELETE e confirmar ausência. Ban não revoga JWT existente. Sessões existentes/ambiguidade exigem escalonamento e protocolo de revogação F08; nenhuma deleção cega ou SQL escreve em auth.users/auth.sessions. Ledger/audit/outbox concluem atomicamente e replay não duplica auditoria. Testes não provam revogação target ou crash do host.
+
+Revisão F04 em 02/10/2026: ciclo vazio libera lease com healthy=NULL e preserva failures/open_until; somente trabalho efetivo pode recuperar o circuito. Ownership conflitante é escalonado imediatamente sob command/reservation locks, owner/fence/binding/lease válidos, com audit/outbox atômicos e replay idempotente. Falha na persistência retorna PENDING, nunca conflito confirmado; batch exclui comandos escalonados. Testes de mecanismo usam explicitamente primitives privadas; contraprovas da API usam nomes legados sob service_role sem autorização e comprovam ausência de dispatch/associação. Nenhum grant de leitura foi ampliado para facilitar fixtures.

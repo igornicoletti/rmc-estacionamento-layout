@@ -3,7 +3,7 @@
   "ignore": ["src/components/ui/**"],
   "workspaces": {
     ".": { "entry": ["tests/**/*.test.{ts,tsx,mjs}", "scripts/**/*.mjs", "tests/e2e/**/*.spec.ts"] },
-    "worker": { "entry": ["tests/**/*.test.ts"], "project": ["src/**/*.ts", "tests/**/*.ts"], "ignoreDependencies": ["cloudflare"] }
+    "worker": { "entry": ["tests/**/*.test.ts", "tests/fixtures/*entry.ts", "scripts/**/*.mjs"], "project": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.mjs"], "ignoreDependencies": ["cloudflare"] }
   },
   "ignoreExportsUsedInFile": true
 }

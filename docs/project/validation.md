@@ -21,11 +21,13 @@
 | check | Diff staged/unstaged, lint, tipos, docs, tests scripts e Vitest; sem Docker |
 | check:app | Knip/audit/lint/tipos/docs/scripts/cobertura serial, assets/budget e Chromium sobre build atual |
 | check:db | Docker; projeto fixo; recusa stack existente; dois resets, pgTAP, concurrency duas vezes, lint/advisors/diff vazio/cleanup/stop |
-| check:full | app, Worker e banco+HTTPS local, sem reexecutar Vitest/build/reset |
+| check:full | app, Worker, banco+HTTPS F03 e provisioning F04 real local, compartilhando stack/dois resets; sem duplicar Vitest/build |
 | check:bff | Build, Worker e banco+HTTPS local; sem app Vitest |
 | check:worker | Env --check, tipos Worker, runtime e deploy dry-run; exige dist atual |
 | test:worker | Runtime Workers isolado; Vitest4.1.11/plugin1.3.4 |
 | test:worker:integration | Build e gate DB exclusivo; HTTPS e Chromium real, sem deploy |
+| test:provider:local | Gate DB e PoC Node Auth real, ownership e cleanup sintéticos |
+| test:provisioning:local | Gate DB compartilhado; Worker HTTPS/SDK/RPC/Auth reais: normal, resposta perdida/scheduled, day-zero e compensação própria sem sessões; sem build/deploy/endpoint produtivo |
 | test / test:watch | Vitest completo único / watch |
 | test:unit / test:integration | Seleção por camada |
 | test:serial | Diagnóstico com maxWorkers=1 |
@@ -38,10 +40,13 @@
 | docs:check | Markdown/parser, links/anchors/inventários/checksums/workflow; sem rede |
 | deps:status | npm outdated informativo; exit1 de outdated não é falha de infra |
 | db:start / db:stop | Stack mínimo com startup sem chaves / stop do projeto |
+| db:bootstrap | Somente PostgreSQL; interno ao gate antes dos dois resets e startup completo |
 | db:reset | Destrutivo, local e sem seed; usar gate para guardrails |
 | db:test / db:test:concurrency / db:lint / db:advisors | Diagnóstico local individual, stack já iniciado explicitamente |
 
 Runners usam processo Node e argumentos sem shell; falha para sequência imediatamente. SIGINT/TERM/timeout encerram árvore de processos, cleanup do stack próprio usa sinal independente. Captura tem limite de 8 MiB. Banco usa lock exclusivo local e recusa stack preexistente; após interrupção forçada, conferir processos antes de remover supabase/.temp/validation-gate.lock. Relatório por profile em validation-results registra SHA, dirty, horários/exit e versões efetivas; não publica stdout sensível. Build:assets evita repetir typecheck já feito; build público continua autossuficiente.
+
+Bootstrap DB precede a API: iniciar PostgreSQL, executar dois resets, parar preservando volume e iniciar stack mínimo completo com health checks. Isso recupera volume com schema ausente após reset interrompido; não cria schema ad hoc nem aceita serviço unhealthy. Cleanup final permanece obrigatório.
 
 <a id="c2"></a>
 
@@ -161,6 +166,8 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
 | `tests/scripts/docs-model.test.mjs` | Markdown parser resolves references, ids, repeated headings and code inventories; local links cannot escape the repository and external links are not fetched; Vitest discovers every unit/integration suite exactly once in node or dom |
+| `tests/scripts/auth-provider-poc.test.mjs` | PoC F04 nega URL remota/UUID não allowlisted; ownership apenas em app_metadata; telefone confirmado, prova extra e recurso alheio negados; redirect/limite, cancelamento antes do provider, cleanup não cancelado e listeners removidos |
+| `tests/scripts/auth-provisioning-integration.test.mjs` | Comando da fixture estrito; UUIDs, operações e fault injection allowlisted; rejeita campos/credenciais extras antes de I/O |
 | `tests/scripts/shared-imports.test.mjs` | effective ESLint config denies runtime/UI/SDK/I-O imports in shared contracts |
 | `tests/scripts/validation-process.test.mjs` | Report directories isolated from Playwright cleanup; success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
 | `tests/scripts/worker-runner.test.mjs` | Workspace isolado/falha interrompe sequência; URLs remotas/probes ambíguos negados; descoberta Worker exatamente uma vez; appVitest5 e WorkerVitest4 preservados |
@@ -172,6 +179,11 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `worker/tests/worker-boundary.test.ts` | API404 com AcceptHTML e disabled; health/método; configuração hosted fechada; catch sanitizado/headers; 8192/8193 sem length/multibyte; MIME/encoding/JSON; stream lento/deadline; URL/Cookie limites; todas as combinações conflitantes de autoridade; Origin/Host/Fetch Metadata e subresources; desafio 401; token estável, stale e mismatch negados antes de side effect no auxiliar; vetor AES-GCM independente, codec/algorithm desconhecidos, purpose/binding/version/tamper/key separation |
 | `worker/tests/worker-upstream.test.ts` | URL somente local; SDK request-scoped/redirect negado/signal; sem Cookie browser; respostas RPC MIME/64KiB/DTO inválidos; rede indisponível sem vazamento |
 | `worker/tests/worker-cpf-crypto.test.ts` | AES-GCM/HMAC com vetor independente Node, nonce aleatório, binding/generation/tag/version adulterados negados, chaves CPF separadas, retenção/retirada de chave histórica, cancelamento e canonicalização CPF |
+| `worker/tests/worker-provisioning-provider.test.ts` | F04 create/read local request-scoped, UUID/prova/credencial interna; admission stale e command alterado sem side effect; ausência somente lookup explícito; ownership alterado, user_metadata, redirect, MIME/JSON/limite e perda de resposta sem retry |
+| `worker/tests/worker-provisioning-store.test.ts` | RPCs allowlisted, cardinalidade, binding/fence/generation, resposta estrita, confirmação consistente e commit com request ID; ausência de headers browser |
+| `worker/tests/worker-provisioning-saga.test.ts` | Reserva antes do efeito, replay terminal, resposta perdida, lookup inconclusivo/404 sem abort, prova divergente, confirmação stale, falha audit e cancelamento |
+| `worker/tests/worker-provisioning-reconciler.test.ts` | Local explícito, disabled/remote sem I/O, lease/circuit durável, lote bounded e respostas estritas/cancelamento sem criação |
+| `tests/unit/shared/auth-provisioning-policy.test.ts` | Base users.create, NORMAL aal2, hierarquia inferior, fresh vinculado à intenção/sessão, geração e scope unit fail-closed |
 
 ### supabase/tests/database
 
@@ -183,10 +195,17 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `supabase/tests/database/auth_schema.test.sql` | Objetos/colunas/constraints/índices, schemas privados, RLS e propriedades das funções. |
 | `supabase/tests/database/auth_csrf.test.sql` | Material exclusivo/imutável; grants/roles/invoker; PREAUTH+CSRF atômico; hash/codec/algorithm explícitos e desconhecidos negados; stale generation/token errado/invalidation/expiry; binding adulterado; limpeza limitada; limite IP/global e chaves IP não criadas após bloqueio global |
 | `supabase/tests/database/auth_prerequisites.test.sql` | CPF source/lookup atômico, CAS, dual-write obrigatório, backfill/cutover/rollback com generation; invoker/grants; reserva idempotente, UUID/binding/lease, unknown versus absent; commit PENDING e audit/outbox únicos; falha de audit reverte commit e generation stale nega |
+| `supabase/tests/database/auth_dispatch.test.sql` | Admissão de dispatch única e irreversível, leitura sem consumo, fence/binding/lifecycle stale, grants mínimos e função invoker com search_path vazio |
+| `supabase/tests/database/auth_reconciliation.test.sql` | Claim exclusivo com tentativa durável, backoff mesmo após lease expirada, prazo imutável, contador não reiniciável e grants/invoker |
+| `supabase/tests/database/auth_controlled_operations.test.sql` | Day-zero operador-only, primeiro S PENDING/one-time e dados cifrados; batch/circuit persistidos, owner/fence e grants |
+| `supabase/tests/database/auth_provisioning_authorization.test.sql` | Fonte PHONE controlada/grants/nega substituição; prova intenção/sessão/generations, consumo único; lookup após revogação sem mutation/commit, fence de compensação e ausência inconclusiva escalada |
+| `supabase/tests/database/auth_provisioning_review.test.sql` | Nomes RPC legados não contornam autorização; primitives privadas; conflito fenced persistido com audit/outbox únicos, replay e exclusão de retries |
 
 Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 
-Pré-F04: `scripts/auth-db/auth-db-prerequisites-concurrency.mjs` disputa CPF com duas conexões, nega duplicata entre versões, disputa reserva provider e lease de reconciliação com dez conexões cada; exige um vencedor e nega fence antigo. Duas rodadas no gate; limpeza restrita aos IDs sintéticos e rollback da política mantendo generation monotônica.
+Pré-F04/F04: `scripts/auth-db/auth-db-prerequisites-concurrency.mjs` disputa CPF com duas conexões, nega duplicata entre versões; disputa reserva provider, dispatch, lease de reconciliação, first-S day-zero e batch com dez conexões cada; exige um vencedor e nega fence antigo. Duas rodadas no gate; limpeza restrita aos IDs sintéticos e rollback da política mantendo generation monotônica.
+
+F04 primeiro marco: `npm run test:provider:local` executa `worker/scripts/worker-provider-poc.mjs`, com gate DB próprio (dois resets/concorrências/pgTAP) e PoC Auth real local. Reserva persistida antes de createUser, UUID/selector/ownership server-only, telefone não confirmado, associação PENDING e audit; cleanup só do recurso sintético comprovado sem sessões. Prova Node separada dos testes do adapter Workers; não comprova saga/day-zero/target. Recusa stack preexistente e URL remota; pode apagar somente o banco local de testes pertencente ao runner.
 
 <a id="c4"></a>
 

@@ -15,6 +15,9 @@ describe("contratos de prontidão provisioning", () => {
   it("nega mensagens, segredos e estados desconhecidos no audit", () => {
     const event = { eventId: id, requestId: id, eventType: "ADMIN_COMMAND_OUTCOME", outcome: "SUCCESS", reasonCode: "PROVISION_COMMITTED", occurredAt: "2026-10-01T00:00:00Z", deployment: "LOCAL", contractVersion: "1.1" }
     expect(auditEventSchema.safeParse(event).success).toBe(true)
+    for (const reasonCode of ["DAY_ZERO_COMPLETE", "PROVISION_COMPENSATION_FENCED", "PROVISION_COMPENSATED"]) {
+      expect(auditEventSchema.safeParse({ ...event, reasonCode }).success).toBe(true)
+    }
     for (const extra of [{ body: "secret" }, { reasonCode: "SQL_ERROR_TEXT" }, { outcome: "unexpected" }, { capability: "unknown" }, { reasonCode: undefined }, { contractVersion: "1.0" }]) {
       expect(auditEventSchema.safeParse({ ...event, ...extra }).success).toBe(false)
     }

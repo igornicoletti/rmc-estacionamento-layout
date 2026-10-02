@@ -17,9 +17,11 @@
     "ENVIRONMENT": "PRODUCTION",
     "AUTH_STAGE": "disabled",
     "BFF_CONTEXT_ENABLED": "false",
+    "BFF_PROVISIONING_ENABLED": "false",
     "CANONICAL_ORIGIN": "https://not-configured.invalid",
     "SUPABASE_URL": "https://not-configured.invalid"
   },
+  "triggers": { "crons": ["* * * * *"] },
   "observability": {
     "enabled": true,
     "logs": { "invocation_logs": false, "head_sampling_rate": 1 }

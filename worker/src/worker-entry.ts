@@ -4,9 +4,16 @@ import { httpDeadline } from "../../src/lib/http/http-stream"
 import { getAuthContext } from "./auth/worker-context"
 import { createContextStore } from "./auth/worker-context-store"
 import { WorkerCrypto } from "./auth/worker-crypto"
+import { reconcileProvisioningLocal } from "./auth/worker-provisioning-reconciler"
 import { jsonResponse, problemResponse, validatePath, WorkerProblem } from "./http/worker-http"
 
 export default {
+  async scheduled(_controller, env) {
+    const result = await reconcileProvisioningLocal({ enabled: env.BFF_PROVISIONING_ENABLED === "true", environment: env.ENVIRONMENT,
+      authStage: env.AUTH_STAGE, url: env.SUPABASE_URL, secret: env.SUPABASE_SECRET_KEY }, new AbortController().signal)
+    console.log(JSON.stringify({ operation: "provisioning-reconciliation", outcome: result.kind, attempted: result.attempted }))
+    if (result.kind === "UNAVAILABLE") throw new Error("Reconciliation unavailable")
+  },
   async fetch(request, env): Promise<Response> {
     const requestId = crypto.randomUUID()
     const started = Date.now()

@@ -1,6 +1,6 @@
 # F04 — reauditoria das bases e preparação de provisioning
 
-**Natureza:** auditoria de implementação e plano condicionado. **Data:** 01/10/2026. **Baseline auditada:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`. **Fontes:** [contrato v1.0 integral](contract-v1.0.md), [dossiê v2.0 integral](audit-v2.0.md), [revisão vigente v1.1](contract-v1.1.md). **Status atual:** saneamento local implementado/provado, aceite/merge pendentes; F04 não iniciada. Auth disabled.
+**Natureza:** auditoria histórica e plano de implementação. **Data:** 01/10/2026. **Baseline auditada:** main `3c4b6d4343aec56c369c625b15d0a0b859cabdce`; início F04 em `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **Fontes:** [contrato v1.0 integral](contract-v1.0.md), [dossiê v2.0 integral](audit-v2.0.md), [revisão vigente v1.1](contract-v1.1.md). **Status atual:** saneamento aprovado/integrado nos PR41/42; F04 em implementação por autorização explícita. Auth disabled.
 
 ## Sumário navegável
 
@@ -9,6 +9,7 @@
 - [Disposição de todos os achados](#findings)
 - [Gate de saneamento](#gate)
 - [Plano F04 condicionado](#implementation)
+- [Checkpoint atual e trabalho restante](#current)
 - [Testes e aceite](#tests)
 - [Fontes e limitações](#sources)
 
@@ -95,7 +96,15 @@ Essas são correções de prontidão introduzidas pela revisão, não reescrita 
 
 ## Plano F04 condicionado
 
-Branch futura: feat/auth-f04-provisioning, criada da main sincronizada somente após o gate acima. Um PR; parada antes de merge/F05. Somente dados sintéticos e provider local; nenhum endpoint Users de produção antes de sessão NORMAL/autorização F10.
+O responsável autorizou merge/sincronização/limpeza e início F04 em 01/10/2026. PR41/42 integrados, ambas as branches removidas local/remoto; main sincronizada 0/0 em 844ca20. Waivers específicos registrados nos PRs para jobs não iniciados por billing; sem CI verde ou autorização de release. Diagnósticos e pendências de aceite descritos nas seções anteriores são históricos da baseline, não o estado atual.
+
+Primeiro marco na branch `feat/auth-f04-provisioning`: adapter local create/read em `worker/src/auth/worker-provisioning-provider.ts`, com admission de reserva persistida obrigatória, SDK request-scoped e transporte limitado; não ligado ao entrypoint/Env. DELETE permanece não implementado no adapter até fechar revogação/fencing/compensação. PoC independente `worker/scripts/worker-provider-poc.mjs`, comando `npm run test:provider:local`, inicia somente stack próprio, usa reserva real antes de createUser, testa associação/audit e remove apenas fixture de ownership comprovado sem sessões. PoC Node não prova composição do adapter Workers, saga completa, day-zero ou ambiente target. Não criar endpoint Users nem habilitar NORMAL nesta etapa.
+
+Branch atual: feat/auth-f04-provisioning, criada da main sincronizada após aceite do saneamento. Um PR ao concluir a fase; parada antes de merge/F05. Somente dados sintéticos e provider local; nenhum endpoint Users de produção antes de sessão NORMAL/autorização F10.
+
+Continuação local: `worker/src/auth/worker-provisioning-store.ts` implementa as RPCs estreitas; `worker/src/auth/worker-provisioning-saga.ts` reserva, consulta, confirma ownership e commita sem recriação no reconciler. Migration incremental introduz admissão persistida de dispatch única, com disputa em dez conexões adicionada ao runner. [ADR-006](decisions.md#c7) distingue essa admissão de autorização de negócio e exactly-once. Testes runtime aprovados não substituem prova DB: reset/startup falharam nesta continuação; nova migration, pgTAP e composição real continuam pendentes. Day-zero, compensação e backoff/limite persistido ainda não implementados.
+
+Checkpoint seguinte: startup diagnosticado (PostgREST503/schema ausente) e corrigido no runner por bootstrap PostgreSQL antes dos dois resets. Gate DB e composição real Workers/RPC/Auth passaram em checkout dirty; resposta perdida reconciliada por GET, sem nova criação, replay terminal sem novo audit e cleanup comprovado. Budget lookup-only persistido implementado. `npm run test:provisioning:local` usa Worker auxiliar em HTTPS8788, sem rota no bundle produtivo; [evidência](evidence/F04-local.md#pending) registra limites. Contraprovas finais de esgotamento/deadline e validação no SHA limpo ainda necessárias. Day-zero, compensação/revogação, circuit breaker, scheduler/batches e autorização operacional permanecem gates da fase.
 
 | Marco | Implementação/resultado | Revisão e gate |
 | --- | --- | --- |
@@ -103,10 +112,29 @@ Branch futura: feat/auth-f04-provisioning, criada da main sincronizada somente a
 | 2 — Porta provider | createReservedUser/getReservedUser/deleteOwnedUser request-scoped com schemas unknown→validado, timeout/abort/redirect negado, erro sanitizado; nenhuma listUsers ilimitada | Confirmação de UUID + ownership de ledger; email/meta/user_metadata isolados não autorizam adoção ou compensação |
 | 3 — Saga e ledger | Claim/reserva atomicamente → chamada provider fora da transação → prova ownership → commit associação/onboarding PENDING/audit/assignment elegível → terminal persistido | Mesma chave/intenção recupera resultado; outra intenção/ator/alvo conflita. Lost response entra em reconciliação, não repetição cega |
 | 4 — Reconciliação/compensação | Lease/fencing bounded por comando; consulta direta UUID; retry classificado e limite de tentativas; outcomes ambíguos permanecem pendentes | Crash em cada fronteira; stale worker não commita/apaga recurso. Revogar antes de delete quando houver sessão; nunca apagar terceiro |
-| 5 — Day-zero | Procedimento local fora de API comum, responsável e recibo auditados, execução one-time, primeiro S PENDING/security setup | Lock global para limite S, sem senha padrão/token permanente/auto-confirm telefone. Encerrar procedimento após sucesso; MFA S/A obrigatório antes de NORMAL continua F07 |
+| 5 — Day-zero | Procedimento local fora de API comum, responsável e recibo auditados, execução one-time, primeiro S PENDING/ACTIVATION_REQUIRED | Lock global para limite S, sem senha padrão/token permanente/auto-confirm telefone. Encerrar procedimento após sucesso; ativação e MFA S/A antes de NORMAL continuam F06/F07 |
 | 6 — Prova/documentação | Matriz, decisões, pesquisa, catálogo e manifesto F04 no SHA; verificar erros, cleanup e diff | Gate app/Worker/DB/HTTPS afetado e provider real local; PR e revisão do responsável; sem merge ou F05 automático |
 
 Sequência da saga não é uma transação distribuída. Reserva não disponibiliza ativação até associação consistente. Caller não escolhe actor/authority; intenção autorizada vem de boundary servidor ou procedimento controlado day-zero. Ausência de Units reais impede provisioning operacional M/O unit-scoped; fixtures só testam constraints. F04 não envia SMS/Queue nem implementa F05/F06 para mascarar essa limitação.
+
+<a id="current"></a>
+
+## Checkpoint atual e trabalho restante
+
+Saga, store RPC, dispatch único persistido, reconciliação lookup-only com oito claims/24h e backoff, fences e associação/audit transacionais estão implementados. [Gate integral no SHA67878c0](evidence/F04-local.md#stable) comprovou runtime, banco concorrente e provider real local, inclusive resposta perdida e replay. O gate abaixo sobre baseline3c4b6d é histórico, não o resultado atual.
+
+| Estado/fato | Ação atualmente permitida |
+| --- | --- |
+| RESERVED, sem dispatch e ausência comprovada antes da tentativa | Admitir uma única criação sob reserva/lease/fence vigentes |
+| Dispatch já concedido ou UNKNOWN | Consultar somente UUID reservado; nunca repetir create ou abortar por GET404 |
+| OWNED com prova privada exata | Confirmar e associar sob fatos/fence atuais; nenhuma adoção por email |
+| COMMITTED | Reentregar resultado persistido sem novo provider/audit |
+| Binding conflitante, fence stale, resultado desconhecido | Preservar pendência; não apagar nem adotar recurso |
+| Budget/deadline esgotados | Preservar UNKNOWN para escalonamento; não reiniciar contador ou inferir ausência |
+
+ABORTED fica restrito à ausência anterior ao dispatch. Procedimento day-zero one-time/operador identificado; provas privadas de intenção/session/generations/freshness; compensação com fence funcional antes de bloquear/deletar provider; scheduler lookup-only, batch máximo três, lease persistida e circuito após três falhas estão implementados e validados localmente. Ciclos vazios preservam o histórico do circuito; conflitos de ownership são escalonados/auditados antes de retornar e deixam o batch. Confirmação de compensação exige ownership privado, provider bloqueado e nenhuma sessão; casos com sessões ou ownership ambíguo são escalonados, nunca apagados automaticamente. O produtor real de prova verificada pertence à F07; fixtures PostgreSQL não provam login/MFA.
+
+Cron produtivo está configurado, mas `BFF_PROVISIONING_ENABLED=false`; habilitação aceita somente ambiente local explícito e Auth disabled. Nenhum endpoint Users ou administração pública existe. O Worker só usa RPCs autorizadas; primitives invoker subjacentes ficam no schema privado, fora da Data API; nomes legados expostos também exigem autorização. Units reais continuam não comprovadas e fluxos M/O operacionais fechados. [Gate de fechamento](evidence/F04-local.md#review-closure) no código44614a9 passou com checkout limpo, incluindo quatro cenários reais locais e cleanup. Implementação controlada F04 verified-local; correções/merge/sincronização/limpeza autorizados no PR44, com waiver de billing específico. F05 e release não autorizadas. Prova real de step-up/revogação/Units e ambiente hospedado continua nas fases próprias, nunca simulada como resultado positivo.
 
 <a id="tests"></a>
 
