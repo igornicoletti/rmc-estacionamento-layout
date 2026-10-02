@@ -49,6 +49,7 @@
     "db:test:concurrency": "node scripts/auth-db/auth-db-concurrency.mjs",
     "db:lint": "supabase db lint --local --schema rmc_auth_private,rmc_auth_api --level warning --fail-on warning",
     "db:advisors": "supabase db advisors --local --type all --level warn --fail-on warn",
+    "auth:delivery:status": "node scripts/auth-db/auth-delivery-status.mjs",
     "docs:check": "node scripts/docs/docs-check.mjs",
     "docs:lint": "markdownlint-cli2",
     "deps:status": "node scripts/validation/validation-dependencies.mjs",
