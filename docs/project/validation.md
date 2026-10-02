@@ -27,7 +27,7 @@
 | test:worker | Runtime Workers isolado; Vitest4.1.11/plugin1.3.4 |
 | test:worker:integration | Build e gate DB exclusivo; HTTPS e Chromium real, sem deploy |
 | test:provider:local | Gate DB e PoC Node Auth real, ownership e cleanup sintéticos |
-| test:provisioning:local | Gate DB compartilhado; Worker auxiliar HTTPS/SDK/RPC/Auth reais, resposta perdida e replay; sem build/deploy/endpoint produtivo |
+| test:provisioning:local | Gate DB compartilhado; Worker HTTPS/SDK/RPC/Auth reais: normal, resposta perdida/scheduled, day-zero e compensação própria sem sessões; sem build/deploy/endpoint produtivo |
 | test / test:watch | Vitest completo único / watch |
 | test:unit / test:integration | Seleção por camada |
 | test:serial | Diagnóstico com maxWorkers=1 |
@@ -198,11 +198,11 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `supabase/tests/database/auth_dispatch.test.sql` | Admissão de dispatch única e irreversível, leitura sem consumo, fence/binding/lifecycle stale, grants mínimos e função invoker com search_path vazio |
 | `supabase/tests/database/auth_reconciliation.test.sql` | Claim exclusivo com tentativa durável, backoff mesmo após lease expirada, prazo imutável, contador não reiniciável e grants/invoker |
 | `supabase/tests/database/auth_controlled_operations.test.sql` | Day-zero operador-only, primeiro S PENDING/one-time e dados cifrados; batch/circuit persistidos, owner/fence e grants |
-| `supabase/tests/database/auth_provisioning_authorization.test.sql` | Prova persistida vinculada à intenção/sessão, consumo único/dispatch, ator bloqueado antes do commit, fence de compensação e ausência inconclusiva escalada |
+| `supabase/tests/database/auth_provisioning_authorization.test.sql` | Fonte PHONE controlada/grants/nega substituição; prova intenção/sessão/generations, consumo único; lookup após revogação sem mutation/commit, fence de compensação e ausência inconclusiva escalada |
 
 Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 
-Pré-F04: `scripts/auth-db/auth-db-prerequisites-concurrency.mjs` disputa CPF com duas conexões, nega duplicata entre versões, disputa reserva provider e lease de reconciliação com dez conexões cada; exige um vencedor e nega fence antigo. Duas rodadas no gate; limpeza restrita aos IDs sintéticos e rollback da política mantendo generation monotônica.
+Pré-F04/F04: `scripts/auth-db/auth-db-prerequisites-concurrency.mjs` disputa CPF com duas conexões, nega duplicata entre versões; disputa reserva provider, dispatch, lease de reconciliação, first-S day-zero e batch com dez conexões cada; exige um vencedor e nega fence antigo. Duas rodadas no gate; limpeza restrita aos IDs sintéticos e rollback da política mantendo generation monotônica.
 
 F04 primeiro marco: `npm run test:provider:local` executa `worker/scripts/worker-provider-poc.mjs`, com gate DB próprio (dois resets/concorrências/pgTAP) e PoC Auth real local. Reserva persistida antes de createUser, UUID/selector/ownership server-only, telefone não confirmado, associação PENDING e audit; cleanup só do recurso sintético comprovado sem sessões. Prova Node separada dos testes do adapter Workers; não comprova saga/day-zero/target. Recusa stack preexistente e URL remota; pode apagar somente o banco local de testes pertencente ao runner.
 

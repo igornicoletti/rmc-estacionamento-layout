@@ -1,6 +1,6 @@
-# F04 — evidências parciais dos marcos locais
+# F04 — evidências dos marcos e gate integral local
 
-**Natureza:** checkpoints, não aceite da fase. **Data:** 01/10/2026. **Contrato:** v1.1 sobre v1.0 imutável. **Ambiente:** LOCAL sintético, Auth disabled. **Baseline integrada:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **SHA primeiro marco:** `a824b8981492ed235ea06c2c2cfe9b56fe5092b0`. **SHA saga/gate integral:** `67878c0a62fef22ae99c44d9b2a92b015886dc55`. **Status:** marcos comprovados; F04 em implementação. Não PASS_LOCAL/PASS_TARGET/GO.
+**Natureza:** manifesto local com checkpoints históricos; não aceite/release. **Data:** 01/10/2026 local. **Contrato:** v1.1 sobre v1.0 imutável. **Ambiente:** LOCAL sintético, Auth disabled. **Baseline:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **SHA final testado:** `85790bc84f1697ef2fe28c9108eb9f422288d782`. **Status:** verified-local controlado; revisão/aceite pendentes. Não PASS_LOCAL/PASS_TARGET/GO. SHAs anteriores e seus resultados permanecem históricos nas respectivas seções.
 
 ## Sumário navegável
 
@@ -12,6 +12,7 @@
 - [Checkpoint saga e diagnóstico resolvido](#saga)
 - [Gate integral no SHA estável](#stable)
 - [Continuação dos controles F04](#controlled)
+- [Gate integral final e limites de aceite](#final)
 
 <a id="scope"></a>
 
@@ -129,3 +130,27 @@ Rodada sobre HEAD e5ebe6afbf4c5022472b675a6800c744a5ed6b1d, checkout dirty, 02/1
 Tentativas anteriores falharam por fixture temporária sem grant e por allowlist SQL de reasons não alinhada ao schema TypeScript. Correções preservaram grants produtivos e rejeição de unknown. Startup diagnóstico passou; interrupção/timeout anterior não comprova internet como causa. Gates inválidos não foram promovidos. Todos os stacks próprios das tentativas foram parados, sem remover outros stacks/volumes.
 
 Depois dessa prova, staging operator-only de PHONE e precondição de fonte para toda intenção administrativa foram acrescentados; requerem nova validação. Producer real de prova de step-up permanece F07; fixtures não autenticam. M/O fechados até ERP/F10. Compensação com sessões existentes é escalonada, não usa ban como revogação JWT. Cron hospedado disabled; sem endpoint Users, SMS, Queue ou recursos remotos. Gate integral/revisão no SHA final ainda pendentes.
+
+<a id="final"></a>
+
+## Gate integral final e limites de aceite
+
+`npm run check:full` sobre **85790bc84f1697ef2fe28c9108eb9f422288d782**, checkout **limpo**, sem commits/edições durante execução: **02/10/2026 02:45:22.657Z–02:56:30.119Z, exit0** (01/10,23:45–23:56 local). Relatório derivado/ignorado `validation-results/full.json`, SHA-256 **8C226A13B52CE7EDDBCDBA883FD8417346918E29163C6ED6669418059E4A5561**. Commit posterior somente documental registra este resultado; não reatribui o SHA testado. Gate anterior no código8e87b5b também passou, mas o último corrige o binding puro de ator/onboarding.
+
+| Camada / comandos do gate | Resultado comprovado |
+| --- | --- |
+| Diff/qualidade | diff e staged diff sem erros; lint/typecheck/Knip; npm audit zero vulnerabilidades; docs82 suítes; scripts21 aprovados |
+| Aplicação | coverage serial:57 arquivos/253 testes; statements87.24%,branches82.43%,functions85.86%,lines88.15%; thresholds preservados; build/budget e Chromium19 aprovados |
+| Worker | wrangler types --check, tsc, sete arquivos/45 testes e deploy dry-run aprovados; sem publicação |
+| Banco | PostgreSQL17.11; dois resets limpos; dez arquivos/283 assertions; duas rodadas independentes F02/F03/provisioning; lint/advisors sem achados e diff vazio |
+| HTTPS F03 | 02:55:36.984Z–02:55:47.371Z,exit0; API/SPA/headers, PREAUTH persistido, dez abas concorrentes e cookies Chromium |
+| F04 real local | 02:55:48.315Z–02:56:23.950Z,exit0; normal, perda de resposta com scheduled lookup-only/replay, day-zero primeiro S PENDING e compensação owned sem sessões, com fence/bloqueio/ausência/audit |
+| Cleanup | ownership/ausência externa confirmados, fixtures exatas removidas; processos próprios encerrados; db:stop exit0; nenhum container layout ativo. Stack rmc-estacionamento preservado |
+
+Versões: Node24.18.1/npm11.6.0, CLI2.119.0, SDK2.117.2, PostgreSQL17.11, Auth v2.197.0/digest1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b; Wrangler4.145.0, Workers plugin1.3.4/Vitest4.1.11, app Vitest5.0.3/Zod4.6.5. Configuração: LOCAL_PRODUCTION_LIKE/Auth disabled; APIs loopback55321, Worker auxiliar HTTPS8788; flags hosted BFF_CONTEXT_ENABLED/BFF_PROVISIONING_ENABLED false. Chaves sintéticas/efêmeras não registradas. Avisos de secrets ausentes no dry-run não são prova de configuração target.
+
+Contraprovas presentes: malformed/unknown/ownership alheio; ausência explícita versus timeout; intenção/ator/session/generation/onboarding; consumo único; revogação permite somente lookup vinculado, nunca create/commit; CPF rotação/dual-write/rollback; fence stale; dez concorrentes first-S/batch/dispatch; budget/deadline/circuit; audit failure desfaz associação/ledger; resposta de create perdida, replay sem duplicação; cancelamento/deadline/transportes bounded e cleanup. São provas locais das parcelas T04/T24/T28/T29/T39/T40/T49/T61, não conclusão global dessas jornadas nem fault injection de SIGKILL/falha do host/target.
+
+Escopo F04 controlado concluído para revisão: saga/provider/RPC, day-zero, fontes CPF/PHONE privadas, intenção autorizada persistida, reconciliação agendada/bounded, compensação sem sessões e auditoria durável. Não existe endpoint Users ou Auth operacional. BFF não fabrica prova verificada; produtor real é F07. M/O negados até ERP/F10; ban não revoga JWT, sessões existentes/ownership ambíguo exigem escalonamento e protocolo F08. Codec/decrypt/entrega SMS permanecem F05; domínio/secrets/cron hospedado/capacidade/restore e provider target são F13. Nenhuma dependência futura foi simulada como sucesso ou abriu fluxo restrito.
+
+Contrato/dossiê mantêm os checksums registrados acima; migrations antigas preservadas, sem dados reais, migration remota, deploy ou SMS/Queue. CI hospedado não integra essa prova local; billing histórico não é resultado positivo nem waiver para este PR. Merge, sincronização/limpeza e F05 dependem de autorização expressa após revisão. Ausência de pendência crítica no escopo local não é aprovação de produção.

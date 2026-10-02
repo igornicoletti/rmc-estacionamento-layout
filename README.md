@@ -9,8 +9,9 @@ Clientes, veículos e Unidades têm tabelas de demonstração. Demais telas são
 Auth **disabled**: F00/F01/F02 têm evidências locais específicas; não há login,
 BFF funcional de login ou autorização de produção. F03 introduz Worker/HTTP e
 PREAUTH/CSRF exclusivamente local; nenhum SDK Supabase está no browser.
-F04 está em implementação: saga de provisioning, dispatch persistido e reconciliação
-bounded têm prova local; day-zero e compensação operacional ainda não estão concluídos.
+F04 tem implementação controlada e gate integral local concluídos, aguardando revisão:
+saga, day-zero, autorização por intenção, reconciliação e compensação sem sessões.
+Sem endpoint Users; step-up real, revogação de sessões e Units operacionais seguem fases próprias.
 Build e preview não são release. [Estado e contrato](docs/auth/README.md).
 
 ## Começar
