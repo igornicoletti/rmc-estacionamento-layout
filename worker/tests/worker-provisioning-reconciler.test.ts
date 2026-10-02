@@ -17,11 +17,13 @@ describe("F04 scheduled reconciler stays local, bounded and durable", () => {
     expect(fetchMock).toHaveBeenCalledOnce()
   })
   it("settles an empty batch and rejects malformed or duplicate/unbounded IDs", async () => {
-    const mock = vi.fn().mockResolvedValueOnce(Response.json({ fence: 1, commandIds: [] })).mockResolvedValueOnce(Response.json(true))
+    const mock = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ fence: 1, commandIds: [] })).mockResolvedValueOnce(Response.json(true))
     vi.stubGlobal("fetch", mock)
     expect(await reconcileProvisioningLocal(config, new AbortController().signal)).toEqual({ kind: "COMPLETE", attempted: 0 })
     expect(mock).toHaveBeenCalledTimes(2)
-    expect(JSON.parse(mock.mock.calls[1][1].body)).toMatchObject({ p_healthy: null })
+    const body = mock.mock.calls[1][1]?.body
+    if (typeof body !== "string") throw new Error("Expected RPC JSON")
+    expect(JSON.parse(body) as unknown).toMatchObject({ p_healthy: null })
     for (const value of [{ fence: 0, commandIds: [] }, { fence: 1, commandIds: [], unknown: true },
       { fence: 1, commandIds: ["unknown"] },
       { fence: 1, commandIds: Array(2).fill("01000000-0000-4000-8000-000000000001") },
