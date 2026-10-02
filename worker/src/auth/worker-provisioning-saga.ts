@@ -34,10 +34,10 @@ export class WorkerProvisioningSaga {
         await this.database.recordUnknown(reservation, context)
         return { kind: "PENDING" }
       }
-      if (result.data.kind === "CONFLICT") return { kind: "CONFLICT" }
+      if (result.data.kind === "CONFLICT") return await this.conflict(reservation, context)
       const proof = result.data.proof
       if (proof.providerSubject !== reservation.providerSubject || proof.commandId !== reservation.commandId
-        || proof.ownershipBinding !== reservation.ownershipBinding) return { kind: "CONFLICT" }
+        || proof.ownershipBinding !== reservation.ownershipBinding) return await this.conflict(reservation, context)
       if (!await this.database.confirmOwnership(reservation, proof, context)) return { kind: "PENDING" }
       context.signal.throwIfAborted()
       if (await this.database.commit(reservation, context)) return { kind: "COMMITTED", identityId: reservation.identityId }
@@ -46,6 +46,10 @@ export class WorkerProvisioningSaga {
       // No failure means rollback/absence. Durable reservation survives crash/cancel/failure.
       return { kind: "PENDING" }
     }
+  }
+
+  private async conflict(reservation: ProvisioningReservation, context: CommandContext): Promise<ProvisioningSagaResult> {
+    return { kind: await this.database.recordConflict(reservation, context) ? "CONFLICT" : "PENDING" }
   }
 
   async start(commandId: string, identityGeneration: number, owner: string, context: CommandContext): Promise<ProvisioningSagaResult> {

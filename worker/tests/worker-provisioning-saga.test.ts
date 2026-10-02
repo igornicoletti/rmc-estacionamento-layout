@@ -15,6 +15,7 @@ function harness() {
     confirmOwnership: vi.fn(() => Promise.resolve(true)), commit: vi.fn(() => Promise.resolve(true)),
     abortConfirmedAbsent: vi.fn(() => Promise.resolve(true)), admit: vi.fn(() => Promise.resolve(true)),
     recordUnknown: vi.fn(() => Promise.resolve(true)),
+    recordConflict: vi.fn(() => Promise.resolve(true)),
   } satisfies ProvisioningDatabase
   const provider = { getReservedUser: vi.fn(() => Promise.resolve<ProvisioningOutcome>({ kind: "ABSENT" })),
     createReservedUser: vi.fn(() => Promise.resolve<ProvisioningOutcome>(owned)) }
@@ -37,6 +38,7 @@ describe("F04 durable saga, no distributed transaction or blind retry", () => {
       expect(result.kind).toBe(outcome.kind === "CONFLICT" ? "CONFLICT" : "PENDING")
       expect(provider.createReservedUser).not.toHaveBeenCalled()
       expect(database.commit).not.toHaveBeenCalled()
+      if (outcome.kind === "CONFLICT") expect(database.recordConflict).toHaveBeenCalledOnce()
     }
   })
   it("lost creation response remains durable pending; later owned lookup commits without another create", async () => {
@@ -86,5 +88,15 @@ describe("F04 durable saga, no distributed transaction or blind retry", () => {
     expect(await saga.start(r.commandId, 1, r.leaseOwner, ctx())).toEqual({ kind: "PENDING" })
     expect(database.abortConfirmedAbsent).not.toHaveBeenCalled()
     expect(await saga.start(r.commandId, 1, r.leaseOwner, { ...ctx(), signal: AbortSignal.abort() })).toEqual({ kind: "PENDING" })
+  })
+  it("cannot report a conflict before durable escalation succeeds", async () => {
+    const { saga, database, provider } = harness()
+    provider.getReservedUser.mockResolvedValue({ kind: "CONFLICT" })
+    database.recordConflict.mockResolvedValue(false)
+    expect((await saga.start(r.commandId, 1, r.leaseOwner, ctx())).kind).toBe("PENDING")
+    expect(provider.createReservedUser).not.toHaveBeenCalled()
+    expect(database.commit).not.toHaveBeenCalled()
+    database.recordConflict.mockRejectedValue(new Error("synthetic audit failure"))
+    expect((await saga.reconcile(r.commandId, r.leaseOwner, ctx())).kind).toBe("PENDING")
   })
 })

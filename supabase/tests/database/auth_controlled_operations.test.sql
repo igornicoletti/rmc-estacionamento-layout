@@ -22,9 +22,15 @@ select ok(rmc_auth_api.claim_provisioning_batch(gen_random_uuid(),1) is null,'co
 select ok(not rmc_auth_api.settle_provisioning_batch(gen_random_uuid(),1,true),'wrong owner cannot settle');
 select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',1,false),'first failure persists');
 select rmc_auth_api.claim_provisioning_batch('82000000-0000-4000-8000-000000000001',3);
-select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',2,false),'second failure persists');
+select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',2,null),'empty cycle releases lease');
+select is((select failures from rmc_auth_private.provisioning_reconciler),1,'empty cycle does not invent recovery');
 select rmc_auth_api.claim_provisioning_batch('82000000-0000-4000-8000-000000000001',3);
-select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',3,false),'third failure opens circuit');
+select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',3,false),'second failure persists');
+select rmc_auth_api.claim_provisioning_batch('82000000-0000-4000-8000-000000000001',3);
+select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',4,null),'second empty cycle releases lease');
+select is((select failures from rmc_auth_private.provisioning_reconciler),2,'backoff gap preserves second failure');
+select rmc_auth_api.claim_provisioning_batch('82000000-0000-4000-8000-000000000001',3);
+select ok(rmc_auth_api.settle_provisioning_batch('82000000-0000-4000-8000-000000000001',5,false),'third failure opens circuit');
 select ok(rmc_auth_api.claim_provisioning_batch(gen_random_uuid(),3) is null,'open circuit denies work');
 select is((select failures from rmc_auth_private.provisioning_reconciler),3,'failure counter durable');
 select ok((select open_until>clock_timestamp() from rmc_auth_private.provisioning_reconciler),'cooldown future');

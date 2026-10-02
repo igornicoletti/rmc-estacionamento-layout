@@ -59,4 +59,19 @@ describe("F04 RPC-only provisioning store", () => {
     expect(await db.admit(r, context, true)).toBe(false)
     expect(fetchMock).toHaveBeenCalledOnce()
   })
+  it("persists ownership conflicts through the narrow RPC and rejects malformed acknowledgment", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(Response.json([row]))))
+    const db = store(), context = ctx(), r = await db.reserve(commandId, 1, row.lease_owner, context)
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(input)).toContain("/rpc/record_provisioning_conflict")
+      expect(JSON.parse(String(init?.body)) as unknown).toEqual({ p_command: commandId,
+        p_owner: row.lease_owner, p_fence: 1, p_provider: row.provider_subject,
+        p_binding: row.ownership_binding, p_request: context.requestId })
+      return Promise.resolve(Response.json(true))
+    })
+    vi.stubGlobal("fetch", fetchMock)
+    expect(await db.recordConflict(r, context)).toBe(true)
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(Response.json({ recorded: true }))))
+    await expect(db.recordConflict(r, context)).rejects.toThrow("AUTH_PROVIDER_FAILURE")
+  })
 })

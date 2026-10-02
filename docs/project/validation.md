@@ -199,6 +199,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `supabase/tests/database/auth_reconciliation.test.sql` | Claim exclusivo com tentativa durável, backoff mesmo após lease expirada, prazo imutável, contador não reiniciável e grants/invoker |
 | `supabase/tests/database/auth_controlled_operations.test.sql` | Day-zero operador-only, primeiro S PENDING/one-time e dados cifrados; batch/circuit persistidos, owner/fence e grants |
 | `supabase/tests/database/auth_provisioning_authorization.test.sql` | Fonte PHONE controlada/grants/nega substituição; prova intenção/sessão/generations, consumo único; lookup após revogação sem mutation/commit, fence de compensação e ausência inconclusiva escalada |
+| `supabase/tests/database/auth_provisioning_review.test.sql` | Nomes RPC legados não contornam autorização; primitives privadas; conflito fenced persistido com audit/outbox únicos, replay e exclusão de retries |
 
 Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 

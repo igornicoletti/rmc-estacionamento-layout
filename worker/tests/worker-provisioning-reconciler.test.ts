@@ -21,6 +21,7 @@ describe("F04 scheduled reconciler stays local, bounded and durable", () => {
     vi.stubGlobal("fetch", mock)
     expect(await reconcileProvisioningLocal(config, new AbortController().signal)).toEqual({ kind: "COMPLETE", attempted: 0 })
     expect(mock).toHaveBeenCalledTimes(2)
+    expect(JSON.parse(mock.mock.calls[1][1].body)).toMatchObject({ p_healthy: null })
     for (const value of [{ fence: 0, commandIds: [] }, { fence: 1, commandIds: [], unknown: true },
       { fence: 1, commandIds: ["unknown"] },
       { fence: 1, commandIds: Array(2).fill("01000000-0000-4000-8000-000000000001") },

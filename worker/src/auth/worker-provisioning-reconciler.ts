@@ -33,7 +33,8 @@ export async function reconcileProvisioningLocal(config: { enabled: boolean; env
       const outcome = await saga.reconcile(commandId, owner, { commandId, requestId: crypto.randomUUID(), signal: deadline.signal })
       if (outcome.kind !== "COMMITTED" && outcome.kind !== "ABORTED") { healthy = false; break }
     }
-    const settled = await rpc("settle_provisioning_batch", { p_owner: owner, p_fence: batch.fence, p_healthy: healthy }, deadline.signal)
+    const settled = await rpc("settle_provisioning_batch", { p_owner: owner, p_fence: batch.fence,
+      p_healthy: attempted === 0 ? null : healthy }, deadline.signal)
     if (settled !== true) return { kind: "UNAVAILABLE", attempted }
     return { kind: healthy ? "COMPLETE" : "UNAVAILABLE", attempted }
   } catch {

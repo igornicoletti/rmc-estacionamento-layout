@@ -48,6 +48,7 @@ export interface ProvisioningDatabase {
   abortConfirmedAbsent(reservation: ProvisioningReservation, context: CommandContext): Promise<boolean>
   admit(reservation: ProvisioningReservation, context: CommandContext, mutation: boolean): Promise<boolean>
   recordUnknown(reservation: ProvisioningReservation, context: CommandContext): Promise<boolean>
+  recordConflict(reservation: ProvisioningReservation, context: CommandContext): Promise<boolean>
 }
 
 // Binary CPF codec is separate from CSRF and has its own keyring. No plaintext DB field.

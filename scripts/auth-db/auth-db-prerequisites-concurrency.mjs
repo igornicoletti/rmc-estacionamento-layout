@@ -44,7 +44,7 @@ try {
   await query(`select rmc_auth_api.claim_command('${command}','${randomUUID()}',${hash},'PROVISION_IDENTITY',null,'${identity}')`)
   const reserves = await Promise.all(Array.from({ length: 10 }, () => query(`select provider_subject from rmc_auth_api.reserve_provider('${command}',1,'${owner}')`, "service_role")))
   assert(new Set(reserves).size === 1, "concurrent reservation must allocate one provider UUID")
-  const dispatch = await Promise.all(Array.from({ length: 10 }, () => query(`select rmc_auth_api.admit_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,true)
+  const dispatch = await Promise.all(Array.from({ length: 10 }, () => query(`select rmc_auth_private.admit_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,true)
     from rmc_auth_private.provider_reservations where command_id='${command}'`, "service_role")))
   assert(dispatch.filter((value) => value === "t").length === 1, "one persistent dispatch permission winner required")
   // Expiry is a fixture transition, never a sleep or caller-provided server clock.

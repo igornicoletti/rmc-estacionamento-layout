@@ -19,7 +19,7 @@ const commandSchema = z.object({ commandId: opaqueIdSchema, requestId: opaqueIdS
 
 export function createProvisioningStore(url: string, secret: string): ProvisioningDatabase {
   const rpc = createWorkerRpc(url, secret, ["reserve_provider", "read_provider_reservation", "claim_provider_reconciliation",
-    "record_provider_outcome", "commit_authorized_provider_reservation", "admit_authorized_provider_attempt"])
+    "record_provider_outcome", "record_provisioning_conflict", "commit_authorized_provider_reservation", "admit_authorized_provider_attempt"])
   function reservation(value: unknown, commandId: string): ProvisioningReservation | null {
     // PostgREST serializes composite return types as table-valued arrays.
     if (Array.isArray(value)) {
@@ -89,6 +89,9 @@ export function createProvisioningStore(url: string, secret: string): Provisioni
     },
     async recordUnknown(input, context) {
       return await bool("record_provider_outcome", { ...bound(input, context), p_outcome: "UNKNOWN" }, context)
+    },
+    async recordConflict(input, context) {
+      return await bool("record_provisioning_conflict", { ...bound(input, context), p_request: context.requestId }, context)
     },
     async admit(input, context, mutation) {
       return await bool("admit_authorized_provider_attempt", { ...bound(input, context), p_generation: input.identityGeneration, p_mutation: mutation }, context)
