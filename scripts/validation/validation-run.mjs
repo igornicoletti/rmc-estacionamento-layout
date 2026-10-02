@@ -39,6 +39,8 @@ try {
       if (profile === "full") {
         await provisioningIntegration(report, abort.signal)
         await deliveryIntegration(report, abort.signal)
+        await runSteps([{ label: "F06 local Auth password and TOTP proof", command: process.execPath,
+          args: ["worker/scripts/worker-activation-provider-poc.mjs"], options: { timeout: 120_000 } }], run, report)
         await runSteps([{ label: "F05 local delivery drained", command: process.execPath,
           args: ["scripts/auth-db/auth-delivery-status.mjs", "--assert-drained"], options: { capture: true } }], run, report)
       }

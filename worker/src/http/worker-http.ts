@@ -33,12 +33,12 @@ export function problemResponse(error: unknown, requestId: string): Response {
     ...(status === 429 ? { "Retry-After": "60" } : {}),
   } }), requestId)
 }
-export function jsonResponse(value: unknown, requestId: string, cookie?: string): Response {
+export function jsonResponse(value: unknown, requestId: string, cookie?: string | readonly string[], status = 200): Response {
   const text = JSON.stringify(value)
   if (new TextEncoder().encode(text).length > authHttpPolicy.responseBytes) throw new WorkerProblem("AUTH_UNEXPECTED_ERROR")
-  return secureResponse(new Response(text, { headers: {
-    "Content-Type": "application/json", ...(cookie ? { "Set-Cookie": cookie } : {}),
-  } }), requestId)
+  const headers = new Headers({ "Content-Type": "application/json" })
+  for (const item of typeof cookie === "string" ? [cookie] : cookie ?? []) headers.append("Set-Cookie", item)
+  return secureResponse(new Response(text, { status, headers }), requestId)
 }
 export function validatePath(request: Request): string {
   const url = new URL(request.url)

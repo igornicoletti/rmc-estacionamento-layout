@@ -56,9 +56,9 @@ export class WorkerCrypto implements CryptoProvider {
     const key = await crypto.subtle.importKey("raw", this.key(purpose, keyVersion), { name: "HMAC", hash: "SHA-256" }, false, ["sign"])
     return new Uint8Array(await crypto.subtle.sign("HMAC", key, value))
   }
-  async seal(purpose: string, plaintext: Uint8Array, binding: string): Promise<EncryptedEnvelope> {
+  async seal(purpose: string, plaintext: Uint8Array, binding: string, version = this.ring.currentVersion): Promise<EncryptedEnvelope> {
     if (purpose !== "CSRF" || plaintext.length !== 32 || binding.length < 1 || binding.length > 512) throw new WorkerProblem("AUTH_CONFIGURATION_ERROR")
-    const keyVersion = this.ring.currentVersion
+    const keyVersion = version
     const key = await crypto.subtle.importKey("raw", this.key(purpose, keyVersion), "AES-GCM", false, ["encrypt"])
     const iv = this.randomBytes(12)
     const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, tagLength: 128,

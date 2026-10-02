@@ -2,6 +2,8 @@ import { authEndpoints } from "../../src/shared/auth/auth-http-contracts"
 import { authPolicy } from "../../src/shared/auth/auth-policy"
 import { httpDeadline } from "../../src/lib/http/http-stream"
 import { getAuthContext } from "./auth/worker-context"
+import { cancelActivation, completeActivation, enrollActivationTotp, requestActivation, verifyActivation,
+  writeActivationPassword } from "./auth/worker-activation"
 import { createContextStore } from "./auth/worker-context-store"
 import { WorkerCrypto } from "./auth/worker-crypto"
 import { reconcileProvisioningLocal } from "./auth/worker-provisioning-reconciler"
@@ -86,6 +88,34 @@ export default {
           new WorkerCrypto(env.AUTH_KEYRING), createContextStore(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY), deadline.signal)
         deadline.signal.throwIfAborted()
         response = jsonResponse(body, requestId, cookie)
+      } else if (path === "/api/auth/activation/request" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-request"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await requestActivation(request, env, requestId, deadline.signal)
+      } else if (path === "/api/auth/activation/verify" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-verify"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await verifyActivation(request, env, requestId, deadline.signal)
+      } else if (path === "/api/auth/activation/restart" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-restart"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await cancelActivation(request, env, requestId, deadline.signal)
+      } else if (path === "/api/auth/activation/password" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-password"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await writeActivationPassword(request, env, requestId, deadline.signal)
+      } else if (path === "/api/auth/activation/totp/enroll" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-totp-enroll"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await enrollActivationTotp(request, env, requestId, deadline.signal)
+      } else if (path === "/api/auth/activation/totp/verify" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-totp-verify"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await completeActivation(request, env, requestId, deadline.signal, "TOTP")
+      } else if (path === "/api/auth/activation/complete" && env.BFF_ACTIVATION_ENABLED === "true") {
+        operation = "activation-complete"
+        if (request.method !== "POST") throw new WorkerProblem("AUTH_INVALID_REQUEST")
+        response = await completeActivation(request, env, requestId, deadline.signal, "SKIP")
       } else throw new WorkerProblem("RESOURCE_NOT_FOUND")
     } catch (error) {
       response = problemResponse(deadline.timedOut() ? new WorkerProblem("AUTH_DEPENDENCY_TIMEOUT") : error, requestId)

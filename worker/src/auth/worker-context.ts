@@ -73,7 +73,7 @@ export async function getAuthContext(request: Request, origin: string, adapter: 
   })
   return { body, cookie }
 }
-export async function protectMutation(request: Request, origin: string, adapter: WorkerCrypto, store: AuthContextStore, signal: AbortSignal): Promise<void> {
+export async function protectMutation(request: Request, origin: string, adapter: WorkerCrypto, store: AuthContextStore, signal: AbortSignal): Promise<PersistedAuthContext> {
   protectOrigin(request, origin, true)
   const secret = preauthCookie(request)
   const token = request.headers.get("X-RMC-CSRF-Token")
@@ -82,4 +82,5 @@ export async function protectMutation(request: Request, origin: string, adapter:
   const hash = await adapter.hmac("CSRF", decodeSecret(token), context.keyVersion)
   if (!crypto.subtle.timingSafeEqual(hash, unhex(context.csrfHash))
     || !await store.validate(context.contextId, context.generation, hex(hash), signal)) throw new WorkerProblem("AUTH_CSRF_INVALID")
+  return context
 }

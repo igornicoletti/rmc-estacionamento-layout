@@ -28,6 +28,9 @@ export class WorkerCpfCrypto implements CpfCrypto {
     }
     this.#ring = parsed.data
   }
+  lookupVersions(): number[] {
+    return Object.keys(this.#ring.lookup).map(Number).sort((left, right) => left - right)
+  }
   #check(context: Abortable, identityId?: string, generation?: number) {
     if (context.signal.aborted) throw new WorkerProblem("AUTH_DEPENDENCY_UNAVAILABLE")
     if (identityId !== undefined && (!opaqueIdSchema.safeParse(identityId).success
