@@ -1,11 +1,8 @@
-import { AppCombobox } from "@/components/app/app-combobox"
+import { AppCombobox, type AppComboboxItem } from "@/components/app/app-combobox"
 import { Badge } from "@/components/ui/badge"
 
-export interface DataTableComboboxFilterItem<TValue extends string> {
-  group?: string
-  label: string
-  value: TValue
-}
+export type DataTableComboboxFilterItem<TValue extends string> =
+  AppComboboxItem<TValue>
 
 interface DataTableComboboxFilterProps<TValue extends string> {
   ariaLabel: string

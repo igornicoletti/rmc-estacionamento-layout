@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react"
 
 import {
   Sheet,
@@ -8,19 +8,19 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 
-type SheetRootProps = ComponentProps<typeof Sheet>;
+type SheetRootProps = ComponentProps<typeof Sheet>
 
 interface AppSheetProps {
-  children: ReactNode;
-  closeLabel?: ReactNode | null;
-  description?: ReactNode;
-  footer?: ReactNode;
-  onOpenChange: NonNullable<SheetRootProps["onOpenChange"]>;
-  open: boolean;
-  title: ReactNode;
+  children: ReactNode
+  closeLabel?: ReactNode | null
+  description?: ReactNode
+  footer?: ReactNode
+  onOpenChange: NonNullable<SheetRootProps["onOpenChange"]>
+  open: boolean
+  title: ReactNode
 }
 
 export function AppSheet({
@@ -34,18 +34,18 @@ export function AppSheet({
 }: AppSheetProps) {
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent>
-        <SheetHeader>
+      <SheetContent className="max-h-dvh">
+        <SheetHeader className="shrink-0">
           <SheetTitle>{title}</SheetTitle>
           {description ? (
             <SheetDescription>{description}</SheetDescription>
           ) : null}
         </SheetHeader>
 
-        <div className="no-scrollbar overflow-y-auto px-4 py-2">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">{children}</div>
 
         {footer || closeLabel !== null ? (
-          <SheetFooter>
+          <SheetFooter className="shrink-0">
             {closeLabel !== null ? (
               <SheetClose render={<Button variant="outline" />}>
                 {closeLabel}
@@ -56,5 +56,5 @@ export function AppSheet({
         ) : null}
       </SheetContent>
     </Sheet>
-  );
+  )
 }

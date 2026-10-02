@@ -1,26 +1,26 @@
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react"
+import type { ReactNode } from "react"
 
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge"
 
-export type AppBadgeTone = "primary" | "info" | "success" | "warning" | "error";
+export type AppBadgeTone = "primary" | "info" | "success" | "warning" | "error"
 
-type AppBadgeIconPosition = "start" | "end";
+type AppBadgeIconPosition = "start" | "end"
 
 interface AppBadgeProps {
-  children: ReactNode;
-  icon?: LucideIcon;
-  iconPosition?: AppBadgeIconPosition;
-  tone?: AppBadgeTone;
+  children: ReactNode
+  icon?: LucideIcon
+  iconPosition?: AppBadgeIconPosition
+  tone?: AppBadgeTone
 }
 
 const toneClassName: Record<AppBadgeTone, string> = {
-  primary: "border-primary/5 bg-primary/10 text-primary [&>svg]:text-primary",
-  error: "border-error/5 bg-error/10 text-error [&>svg]:text-error",
-  info: "border-info/10 bg-info/10 text-info [&>svg]:text-info",
-  success: "border-success/5 bg-success/10 text-success [&>svg]:text-success",
-  warning: "border-warning/5 bg-warning/10 text-warning [&>svg]:text-warning",
-};
+  primary: "border-primary/5 bg-primary/10 text-status-primary-foreground",
+  error: "border-error/5 bg-error/10 text-status-error-foreground",
+  info: "border-info/10 bg-info/10 text-status-info-foreground",
+  success: "border-success/5 bg-success/10 text-status-success-foreground",
+  warning: "border-warning/5 bg-warning/10 text-status-warning-foreground",
+}
 
 export function AppBadge({
   children,
@@ -33,7 +33,7 @@ export function AppBadge({
       aria-hidden="true"
       data-icon={iconPosition === "start" ? "inline-start" : "inline-end"}
     />
-  ) : null;
+  ) : null
 
   return (
     <Badge className={toneClassName[tone]} variant="outline">
@@ -41,5 +41,5 @@ export function AppBadge({
       {children}
       {iconPosition === "end" ? icon : null}
     </Badge>
-  );
+  )
 }
