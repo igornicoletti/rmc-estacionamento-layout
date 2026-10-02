@@ -11,6 +11,7 @@
 - [Pendências da fase](#pending)
 - [Checkpoint saga e diagnóstico resolvido](#saga)
 - [Gate integral no SHA estável](#stable)
+- [Continuação dos controles F04](#controlled)
 
 <a id="scope"></a>
 
@@ -111,4 +112,20 @@ Auth disabled e nenhuma rota produtiva de provisioning. Budget persistido lookup
 
 Toolchain/pins iguais aos registrados no primeiro marco: Node24.18.1/npm11.6.0, CLI2.119.0, SDK2.117.2, Wrangler4.145.0, plugin1.3.4/Vitest Worker4.1.11, Vitest app5.0.3, Zod4.6.5. Contrato/dossiê mantêm os checksums anteriores. IP/URLs e credenciais dos testes são exclusivamente locais; nenhuma integração target ou segredo real.
 
-Escopo implementado: RPCs estreitas, admissão persistida de create, fences/generation, budget de oito claims em24h com backoff, associação transacional e audit. ABORTED após dispatch é negado também no banco; GET404 não prova ausência de efeito em voo. Limite de tentativas não transforma UNKNOWN em falha definitiva. Não existe rota produtiva de provisioning, DELETE/revogação operacional, cron ou autorização administrativa completa. Day-zero, compensação segura, scheduler/batches/circuit breaker e contraprovas restantes do plano continuam pendentes. Este gate comprova os arquivos presentes, não encerra F04 nem substitui F12/F13. CI hospedado não foi executado; billing histórico não é aprovação ou waiver deste trabalho.
+Escopo implementado naquele SHA: RPCs estreitas, admissão persistida de create, fences/generation, budget de oito claims em24h com backoff, associação transacional e audit. ABORTED após dispatch é negado também no banco; GET404 não prova ausência de efeito em voo. Limite de tentativas não transforma UNKNOWN em falha definitiva. Naquele checkpoint não havia rota produtiva de provisioning, DELETE/revogação operacional, cron ou autorização administrativa completa. Este gate comprova os arquivos presentes, não encerra F04 nem substitui F12/F13. CI hospedado não foi executado; billing histórico não é aprovação ou waiver deste trabalho.
+
+<a id="controlled"></a>
+
+## Continuação dos controles F04
+
+Rodada sobre HEAD e5ebe6afbf4c5022472b675a6800c744a5ed6b1d, checkout dirty, 02/10/2026 UTC (01/10 local): day-zero, provas imutáveis de intenção, compensação operator-only e reconciler scheduled implementados. Nenhum resultado desta seção é prova do SHA limpo final.
+
+| Comando | Resultado efetivamente observado |
+| --- | --- |
+| check:app | 02:18:57.347Z–02:26:45.324Z, exit0; 57 arquivos/253 testes com cobertura; scripts21; lint/tipos/Knip/audit/docs/build e Chromium19 |
+| check:worker | Exit0; tipos gerados, typecheck, sete arquivos/45 testes e deploy dry-run; nenhuma publicação |
+| test:provisioning:local | 02:22:01.071Z–02:27:09.152Z, exit0; dois resets; dez arquivos/280 assertions; duas concorrências por escopo, incluindo10 disputas day-zero e batch; lint/advisors/diff; provider real normal, resposta perdida/scheduled, day-zero e compensação sem sessões; cleanup confirmado |
+
+Tentativas anteriores falharam por fixture temporária sem grant e por allowlist SQL de reasons não alinhada ao schema TypeScript. Correções preservaram grants produtivos e rejeição de unknown. Startup diagnóstico passou; interrupção/timeout anterior não comprova internet como causa. Gates inválidos não foram promovidos. Todos os stacks próprios das tentativas foram parados, sem remover outros stacks/volumes.
+
+Depois dessa prova, staging operator-only de PHONE e precondição de fonte para toda intenção administrativa foram acrescentados; requerem nova validação. Producer real de prova de step-up permanece F07; fixtures não autenticam. M/O fechados até ERP/F10. Compensação com sessões existentes é escalonada, não usa ban como revogação JWT. Cron hospedado disabled; sem endpoint Users, SMS, Queue ou recursos remotos. Gate integral/revisão no SHA final ainda pendentes.

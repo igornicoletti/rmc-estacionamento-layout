@@ -50,7 +50,7 @@ async function withWorker(key, signal, exercise) {
   const require = createRequire(import.meta.url)
   const cli = join(dirname(require.resolve("wrangler/package.json")), "bin", "wrangler.js")
   const child = spawn(process.execPath, [cli, "dev", "--config", "worker/tests/fixtures/wrangler.provisioning.jsonc",
-    "--local", "--ip", "127.0.0.1", "--port", "8788", "--inspector-port", "9230", "--local-protocol", "https"], {
+    "--local", "--test-scheduled", "--ip", "127.0.0.1", "--port", "8788", "--inspector-port", "9230", "--local-protocol", "https"], {
     windowsHide: true, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"],
     env: { ...process.env, SUPABASE_SECRET_KEY: key, CLOUDFLARE_SEND_METRICS: "false" },
   })
@@ -95,9 +95,17 @@ async function exerciseFixture(fixture, signal, loseResponse) {
       await runProcess("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-AtXq",
         "-v", "ON_ERROR_STOP=1", "-c", `update rmc_auth_private.provider_reservations set fence=fence+1,
         lease_expires_at=clock_timestamp()-interval '1 second' where command_id='${fixture.commandId}'`], { capture: true })
-      const reconciled = await probe({ ...body, owner: randomUUID(), operation: "RECONCILE", loseResponse: false }, signal)
-      assert.equal(reconciled.dispatched, 0)
-      assert.deepEqual(reconciled.result, { kind: "COMMITTED", identityId: fixture.identityId })
+      // Actual scheduled handler, not an HTTP route pretending to be cron.
+      await new Promise((resolve, reject) => {
+        const req = request(origin + "/__scheduled?cron=*%20*%20*%20*%20*", { rejectUnauthorized: false, timeout: 15000, signal }, (res) => {
+          res.resume(); res.once("error", reject)
+          res.once("end", () => res.statusCode === 200 ? resolve() : reject(new Error("Local scheduled handler failed")))
+        })
+        req.once("error", reject); req.once("timeout", () => req.destroy(new Error("Scheduled deadline"))); req.end()
+      })
+      const committed = await runProcess("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-AtXq",
+        "-v", "ON_ERROR_STOP=1", "-c", `select state from rmc_auth_private.command_ledger where command_id='${fixture.commandId}'`], { capture: true })
+      assert.equal(committed.stdout.trim(), "COMMITTED")
     }
     const replay = await probe({ ...body, owner: randomUUID(), loseResponse: false }, signal)
     assert.equal(replay.dispatched, 0)
@@ -109,7 +117,9 @@ async function provisioningPoc(signal) {
     await providerPoc(signal, (fixture, parent) => exerciseFixture(fixture, parent, lost))
     console.log(lost ? "F04 Worker real: lost response, lookup-only reconciliation and terminal replay passed" : "F04 Worker real: RPC/provider/ownership/atomic audit and terminal replay passed")
   }
-  return { cleanupConfirmed: true, scenarios: ["normal", "lost-response"], environment: "LOCAL", authDisabled: true }
+  await providerPoc(signal, (fixture, parent) => exerciseFixture(fixture, parent, false), true)
+  await providerPoc(signal, undefined, false, true)
+  return { cleanupConfirmed: true, scenarios: ["normal", "lost-response-scheduled", "day-zero", "owned-no-session-compensation"], environment: "LOCAL", authDisabled: true }
 }
 export async function provisioningIntegration(results = [], signal) {
   const startedAt = new Date().toISOString()

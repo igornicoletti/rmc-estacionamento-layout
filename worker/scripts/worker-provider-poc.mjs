@@ -44,10 +44,14 @@ export function providerPocClient(url, key, allowedIds, transport = fetch, paren
       const users = "/auth/v1/admin/users"
       if (target.origin !== localApi || target.search || target.hash
         || !(method === "POST" && target.pathname === users
-          || ["GET", "DELETE"].includes(method) && allowedIds.some((id) => target.pathname === `${users}/${id}`))) {
+          || ["GET", "DELETE", "PUT"].includes(method) && allowedIds.some((id) => target.pathname === `${users}/${id}`))) {
         throw new Error("Provider PoC transport target denied")
       }
       if (method === "POST" && !allowedIds.includes(JSON.parse(init.body).id)) throw new Error("Provider PoC reserved UUID denied")
+      if (method === "PUT") {
+        const body = JSON.parse(init.body)
+        if (Object.keys(body).join() !== "ban_duration" || body.ban_duration !== "876000h") throw new Error("Only local compensation ban is allowed")
+      }
       const timeout = AbortSignal.timeout(5000)
       const signal = parentSignal ? AbortSignal.any([timeout, parentSignal]) : timeout
       signal.throwIfAborted()
@@ -85,7 +89,7 @@ export function providerPocClient(url, key, allowedIds, transport = fetch, paren
   })
 }
 
-export async function providerPoc(signal, exercise) {
+export async function providerPoc(signal, exercise, dayZero = false, compensate = false) {
   signal?.throwIfAborted()
   const [cli, prefix] = nodeCli("supabase/dist/supabase.js")
   const status = await runProcess(cli, [...prefix, "status", "--output", "json"], { capture: true })
@@ -99,6 +103,8 @@ export async function providerPoc(signal, exercise) {
   console.log(`Local Auth runtime: ${image.stdout.trim()}; v2.197.0`)
 
   const identityId = randomUUID(), commandId = randomUUID(), owner = randomUUID()
+  const operator = randomUUID()
+  const actorId = randomUUID(), sessionId = randomUUID(), intent = randomBytes(32).toString("hex")
   let reservation
   let client
   let providerMayExist = false
@@ -112,10 +118,24 @@ export async function providerPoc(signal, exercise) {
     cipher.setAAD(Buffer.from(JSON.stringify([1, "A256GCM", "CPF", identityId, 1, 1])))
     const ciphertext = Buffer.concat([iv, cipher.update(cpf, "utf8"), cipher.final(), cipher.getAuthTag()]).toString("hex")
     const hash = createHmac("sha256", lookupKey).update(JSON.stringify(["CPF_LOOKUP", 1, cpf])).digest("hex")
-    await query(`insert into rmc_auth_private.identities(id,role) values ('${identityId}','R');
+    const phone = "+5511999999999", phoneIv = randomBytes(12), phoneCipher = createCipheriv("aes-256-gcm", randomBytes(32), phoneIv)
+    phoneCipher.setAAD(Buffer.from(JSON.stringify([1, "A256GCM", "PHONE", identityId, 1, 1])))
+    const encryptedPhone = Buffer.concat([phoneIv, phoneCipher.update(phone, "utf8"), phoneCipher.final(), phoneCipher.getAuthTag()]).toString("hex")
+    const phoneHash = createHmac("sha256", randomBytes(32)).update(JSON.stringify(["PHONE_LOOKUP", 1, phone])).digest("hex")
+    if (dayZero) {
+      await query(`select rmc_auth_private.begin_day_zero('${identityId}','${commandId}','${randomUUID()}',decode('${randomBytes(32).toString("hex")}','hex'),
+        '${operator}',1,decode('${ciphertext}','hex'),array[1],array[decode('${hash}','hex')],1,decode('${encryptedPhone}','hex'),decode('${phoneHash}','hex'))`)
+    } else await query(`insert into rmc_auth_private.identities(id,role) values ('${identityId}','R');
+      select rmc_auth_private.stage_provisioning_phone('${identityId}',1,1,decode('${encryptedPhone}','hex'),decode('${phoneHash}','hex'));
+      insert into rmc_auth_private.identities(id,role,lifecycle,onboarding,active_superadmin_slot)
+        values('${actorId}','S','ACTIVE','COMPLETE',1);
+      insert into rmc_auth_private.functional_sessions(id,identity_id,purpose,assurance,cookie_hash,key_version,generation,expires_at,idle_expires_at)
+        values('${sessionId}','${actorId}','NORMAL','aal2',decode('${randomBytes(32).toString("hex")}','hex'),1,1,clock_timestamp()+interval '10 minutes',clock_timestamp()+interval '5 minutes');
       select rmc_auth_api.write_cpf_source('${identityId}',1,(select generation from rmc_auth_private.cpf_lookup_policy),0,1,
       decode('${ciphertext}','hex'),array[1],array[decode('${hash}','hex')]);
-      select rmc_auth_api.claim_command('${commandId}','${randomUUID()}',decode('${randomBytes(32).toString("hex")}','hex'),'PROVISION_IDENTITY',null,'${identityId}')`)
+      select rmc_auth_api.claim_command('${commandId}','${randomUUID()}',decode('${intent}','hex'),'PROVISION_IDENTITY','${actorId}','${identityId}');
+      insert into rmc_auth_private.provisioning_authorization_proofs(command_id,session_id,actor_generation,session_generation,target_generation,actor_role,target_role,intent_hash,policy_version,verified_at)
+        values('${commandId}','${sessionId}',1,1,1,'S','R',decode('${intent}','hex'),'1.1',clock_timestamp())`)
     stage = "persistent provider reservation"
     reservation = JSON.parse(await query(`set role service_role; select row_to_json(r) from rmc_auth_api.reserve_provider('${commandId}',1,'${owner}') r`))
     assert.equal(reservation.command_id, commandId)
@@ -136,6 +156,7 @@ export async function providerPoc(signal, exercise) {
       await exercise({ config, commandId, identityId, owner, reservation }, signal)
       creationObserved = true // Exercise must assert the durable OWNED/COMMITTED result.
     } else {
+    assert.equal(await query(`set role service_role; select rmc_auth_api.admit_authorized_provider_attempt('${commandId}','${owner}',1,'${reservation.provider_subject}','${reservation.ownership_binding}',1,true)`), "t")
     const created = await client.auth.admin.createUser({ id: reservation.provider_subject,
       email: `u-${reservation.provider_subject}@${domain}`, password: randomBytes(32).toString("base64url"),
       email_confirm: true, phone_confirm: false, app_metadata: { rmc_provisioning: proof } })
@@ -150,10 +171,31 @@ export async function providerPoc(signal, exercise) {
     stage = "ownership confirmation and audited commit"
     assert.equal(await query(`set role service_role; select rmc_auth_api.record_provider_outcome('${commandId}','${owner}',1,'${reservation.provider_subject}','${reservation.ownership_binding}','OWNED')`), "t")
     signal?.throwIfAborted()
-    assert.equal(await query(`set role service_role; select rmc_auth_api.commit_provider_reservation('${commandId}','${owner}',1,'${randomUUID()}','LOCAL')`), "t")
+    if (compensate) {
+      stage = "controlled compensation fence"
+      assert.equal(await query(`select rmc_auth_private.fence_provisioning_compensation('${commandId}','${owner}',1,'${randomUUID()}')`), "t")
+      assert.equal(await query(`select lifecycle||':'||generation from rmc_auth_private.identities where id='${identityId}'`), "DISABLED:2")
+      stage = "owned provider ban before cleanup"
+      assert.ok(hasOwnedUser((await client.auth.admin.getUserById(reservation.provider_subject)).data.user, reservation))
+      assert.equal((await client.auth.admin.updateUserById(reservation.provider_subject, { ban_duration: "876000h" })).error, null)
+      assert.equal(await query(`select rmc_auth_private.confirm_compensation_blocked('${commandId}')`), "t")
+      assert.ok(hasOwnedUser((await client.auth.admin.getUserById(reservation.provider_subject)).data.user, reservation))
+      assert.equal((await client.auth.admin.deleteUser(reservation.provider_subject)).error, null)
+      assert.equal((await client.auth.admin.getUserById(reservation.provider_subject)).error?.code, "user_not_found")
+      assert.equal(await query(`select rmc_auth_private.finish_provisioning_compensation('${commandId}','${randomUUID()}')`), "t")
+      assert.equal(await query(`select rmc_auth_private.finish_provisioning_compensation('${commandId}','${randomUUID()}')`), "t")
+      console.log("F04 compensation local: owned resource fenced, provider banned, zero sessions, removal confirmed and durable audit")
+    } else assert.equal(await query(`set role service_role; select rmc_auth_api.commit_authorized_provider_reservation('${commandId}','${owner}',1,'${randomUUID()}','LOCAL')`), "t")
     }
-    assert.equal(await query(`select lifecycle||':'||onboarding from rmc_auth_private.identities where id='${identityId}'`), "PENDING:ACTIVATION_REQUIRED")
-    assert.equal(await query(`select count(*) from rmc_auth_private.audit_events where command_id='${commandId}'`), "1")
+    assert.equal(await query(`select lifecycle||':'||onboarding from rmc_auth_private.identities where id='${identityId}'`), compensate ? "DISABLED:ACTIVATION_REQUIRED" : "PENDING:ACTIVATION_REQUIRED")
+    assert.equal(await query(`select count(*) from rmc_auth_private.audit_events where command_id='${commandId}'`), compensate ? "2" : "1")
+    if (dayZero) {
+      assert.equal(await query(`select rmc_auth_private.finish_day_zero('${commandId}','${operator}','${randomUUID()}')`), "t")
+      assert.equal(await query(`select rmc_auth_private.finish_day_zero('${commandId}','${operator}','${randomUUID()}')`), "t")
+      assert.equal(await query(`select state from rmc_auth_private.day_zero_receipt where command_id='${commandId}'`), "COMPLETE")
+      assert.equal(await query(`select count(*) from rmc_auth_private.audit_events where command_id='${commandId}'`), "2")
+      console.log("F04 controlled day-zero: first S PENDING, encrypted phone/CPF, one-time receipt and completion audit")
+    }
     console.log("F04 local provider: reserved UUID, technical selector, private ownership, unconfirmed phone, durable association/audit, no NORMAL")
   } catch {
     console.error(`Provider PoC failed at allowlisted stage: ${stage}; payload suppressed`)
@@ -185,10 +227,17 @@ export async function providerPoc(signal, exercise) {
       await query(`delete from rmc_auth_private.audit_outbox where event_id in (select id from rmc_auth_private.audit_events where command_id='${commandId}');
         delete from rmc_auth_private.audit_events where command_id='${commandId}';
         delete from rmc_auth_private.provider_reservations where command_id='${commandId}';
+        delete from rmc_auth_private.day_zero_receipt where command_id='${commandId}';
+        delete from rmc_auth_private.provisioning_compensations where command_id='${commandId}';
+        delete from rmc_auth_private.provisioning_escalations where command_id='${commandId}';
+        delete from rmc_auth_private.provisioning_authorization_proofs where command_id='${commandId}';
         delete from rmc_auth_private.command_ledger where command_id='${commandId}';
         delete from rmc_auth_private.identity_lookups where identity_id='${identityId}';
         delete from rmc_auth_private.cpf_sources where identity_id='${identityId}';
-        delete from rmc_auth_private.identities where id='${identityId}'`)
+        delete from rmc_auth_private.provisioning_phone_sources where identity_id='${identityId}';
+        delete from rmc_auth_private.identities where id='${identityId}';
+        delete from rmc_auth_private.functional_sessions where id='${sessionId}' and identity_id='${actorId}';
+        delete from rmc_auth_private.identities where id='${actorId}'`)
       assert.equal(await query(`select (select count(*) from rmc_auth_private.identities where id='${identityId}')
         +(select count(*) from rmc_auth_private.command_ledger where command_id='${commandId}')
         +(select count(*) from rmc_auth_private.provider_reservations where command_id='${commandId}')

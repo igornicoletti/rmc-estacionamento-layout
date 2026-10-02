@@ -132,7 +132,9 @@ Saga, store RPC, dispatch único persistido, reconciliação lookup-only com oit
 | Binding conflitante, fence stale, resultado desconhecido | Preservar pendência; não apagar nem adotar recurso |
 | Budget/deadline esgotados | Preservar UNKNOWN para escalonamento; não reiniciar contador ou inferir ausência |
 
-ABORTED fica restrito à ausência anterior ao dispatch; compensação futura requer protocolo específico de ownership/revogação e prova de ausência de efeitos em voo. Faltam procedimento day-zero, autorização administrativa/capability/scope no commit, compensação/revogação operacional, scheduler/batches/circuit breaker e fault injection nas demais fronteiras. Units reais continuam não comprovadas e fluxos M/O operacionais fechados. Portanto, F04 permanece em implementação, sem PR de aceite ou autorização F05.
+ABORTED fica restrito à ausência anterior ao dispatch. Continuação: procedimento day-zero one-time/operador identificado; provas privadas de intenção/session/generations/freshness; compensação com fence funcional antes de bloquear/deletar provider; scheduler lookup-only, batch máximo três, lease persistida e circuito após três falhas estão implementados, ainda em validação. Confirmação de compensação exige ownership privado, provider bloqueado e nenhuma sessão; casos com sessões ou ownership ambíguo são escalonados, nunca apagados automaticamente. O produtor real de prova verificada pertence à F07; fixtures PostgreSQL não provam login/MFA.
+
+Cron produtivo está configurado, mas `BFF_PROVISIONING_ENABLED=false`; habilitação aceita somente ambiente local explícito e Auth disabled. Nenhum endpoint Users ou administração pública existe. O Worker só usa as RPCs autorizadas; primitives invoker subjacentes continuam parte da fronteira servidor confiável, não autorização para browser. Units reais continuam não comprovadas e fluxos M/O operacionais fechados. Faltam gate integral no SHA final, prova real dos novos cenários, revisão de todas as fronteiras e documentação final. Portanto, F04 permanece em implementação, sem PR de aceite ou autorização F05.
 
 <a id="tests"></a>
 

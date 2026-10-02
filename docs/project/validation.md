@@ -182,6 +182,8 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `worker/tests/worker-provisioning-provider.test.ts` | F04 create/read local request-scoped, UUID/prova/credencial interna; admission stale e command alterado sem side effect; ausência somente lookup explícito; ownership alterado, user_metadata, redirect, MIME/JSON/limite e perda de resposta sem retry |
 | `worker/tests/worker-provisioning-store.test.ts` | RPCs allowlisted, cardinalidade, binding/fence/generation, resposta estrita, confirmação consistente e commit com request ID; ausência de headers browser |
 | `worker/tests/worker-provisioning-saga.test.ts` | Reserva antes do efeito, replay terminal, resposta perdida, lookup inconclusivo/404 sem abort, prova divergente, confirmação stale, falha audit e cancelamento |
+| `worker/tests/worker-provisioning-reconciler.test.ts` | Local explícito, disabled/remote sem I/O, lease/circuit durável, lote bounded e respostas estritas/cancelamento sem criação |
+| `tests/unit/shared/auth-provisioning-policy.test.ts` | Base users.create, NORMAL aal2, hierarquia inferior, fresh vinculado à intenção/sessão, geração e scope unit fail-closed |
 
 ### supabase/tests/database
 
@@ -195,6 +197,8 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `supabase/tests/database/auth_prerequisites.test.sql` | CPF source/lookup atômico, CAS, dual-write obrigatório, backfill/cutover/rollback com generation; invoker/grants; reserva idempotente, UUID/binding/lease, unknown versus absent; commit PENDING e audit/outbox únicos; falha de audit reverte commit e generation stale nega |
 | `supabase/tests/database/auth_dispatch.test.sql` | Admissão de dispatch única e irreversível, leitura sem consumo, fence/binding/lifecycle stale, grants mínimos e função invoker com search_path vazio |
 | `supabase/tests/database/auth_reconciliation.test.sql` | Claim exclusivo com tentativa durável, backoff mesmo após lease expirada, prazo imutável, contador não reiniciável e grants/invoker |
+| `supabase/tests/database/auth_controlled_operations.test.sql` | Day-zero operador-only, primeiro S PENDING/one-time e dados cifrados; batch/circuit persistidos, owner/fence e grants |
+| `supabase/tests/database/auth_provisioning_authorization.test.sql` | Prova persistida vinculada à intenção/sessão, consumo único/dispatch, ator bloqueado antes do commit, fence de compensação e ausência inconclusiva escalada |
 
 Concorrência adicional em `scripts/auth-db/auth-db-context-concurrency.mjs`: dez conexões para criação atômica, dez leituras estáveis e dez invalidações (um vencedor); duas rodadas no mesmo stack do gate. O runner HTTPS `scripts/worker/worker-integration.mjs` prova API/SPA/cookie HttpOnly e dez leituras concorrentes com PostgreSQL real. São procedimentos adicionais, não suites Vitest omitidas.
 

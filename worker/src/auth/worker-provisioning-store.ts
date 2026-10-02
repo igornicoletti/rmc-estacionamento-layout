@@ -19,7 +19,7 @@ const commandSchema = z.object({ commandId: opaqueIdSchema, requestId: opaqueIdS
 
 export function createProvisioningStore(url: string, secret: string): ProvisioningDatabase {
   const rpc = createWorkerRpc(url, secret, ["reserve_provider", "read_provider_reservation", "claim_provider_reconciliation",
-    "record_provider_outcome", "commit_provider_reservation", "admit_provider_attempt"])
+    "record_provider_outcome", "commit_authorized_provider_reservation", "admit_authorized_provider_attempt"])
   function reservation(value: unknown, commandId: string): ProvisioningReservation | null {
     // PostgREST serializes composite return types as table-valued arrays.
     if (Array.isArray(value)) {
@@ -80,7 +80,7 @@ export function createProvisioningStore(url: string, secret: string): Provisioni
     },
     async commit(input, context) {
       const args = bound(input, context)
-      return await bool("commit_provider_reservation", { p_command: args.p_command, p_owner: args.p_owner,
+      return await bool("commit_authorized_provider_reservation", { p_command: args.p_command, p_owner: args.p_owner,
         p_fence: args.p_fence, p_request: context.requestId, p_deployment: "LOCAL" }, context)
     },
     async abortConfirmedAbsent(input, context) {
@@ -91,7 +91,7 @@ export function createProvisioningStore(url: string, secret: string): Provisioni
       return await bool("record_provider_outcome", { ...bound(input, context), p_outcome: "UNKNOWN" }, context)
     },
     async admit(input, context, mutation) {
-      return await bool("admit_provider_attempt", { ...bound(input, context), p_generation: input.identityGeneration, p_mutation: mutation }, context)
+      return await bool("admit_authorized_provider_attempt", { ...bound(input, context), p_generation: input.identityGeneration, p_mutation: mutation }, context)
     },
   }
 }

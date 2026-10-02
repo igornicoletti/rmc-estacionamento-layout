@@ -5,10 +5,16 @@ import { httpDeadline, readHttpJson } from "../../../src/lib/http/http-stream"
 import { WorkerProvisioningProvider } from "../../src/auth/worker-provisioning-provider"
 import { createProvisioningStore } from "../../src/auth/worker-provisioning-store"
 import { WorkerProvisioningSaga } from "../../src/auth/worker-provisioning-saga"
+import { reconcileProvisioningLocal } from "../../src/auth/worker-provisioning-reconciler"
 
 const inputSchema = z.strictObject({ commandId: opaqueIdSchema, owner: opaqueIdSchema,
   operation: z.enum(["START", "RECONCILE"]), loseResponse: z.boolean() })
 export default {
+  async scheduled(_controller, env) {
+    const result = await reconcileProvisioningLocal({ enabled: true, environment: "LOCAL_PRODUCTION_LIKE", authStage: "disabled",
+      url: env.SUPABASE_URL, secret: env.SUPABASE_SECRET_KEY }, new AbortController().signal)
+    if (result.kind !== "COMPLETE") throw new Error("Local reconciliation incomplete")
+  },
   async fetch(request, env) {
     const headers = { "Cache-Control": "no-store" }
     if (new URL(request.url).pathname === "/health" && request.method === "GET") return Response.json({ ready: true }, { headers })

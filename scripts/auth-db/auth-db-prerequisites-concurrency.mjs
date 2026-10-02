@@ -17,6 +17,7 @@ function assert(value, message) { if (!value) throw new Error(message) }
 const identities = [randomUUID(), randomUUID()]
 const command = randomUUID()
 const owner = randomUUID()
+const dayZeroCandidates = Array.from({ length: 10 }, () => ({ identity: randomUUID(), command: randomUUID(), key: randomUUID(), operator: randomUUID() }))
 const hash = `decode(md5('${command}')||md5('${owner}'),'hex')`
 const hash2 = `decode(md5('${owner}')||md5('${command}'),'hex')`
 const cipher = "decode(repeat('71',39),'hex')"
@@ -52,7 +53,14 @@ try {
   assert(claims.filter((value) => value === command).length === 1, "one reconciliation lease winner required")
   const stale = await query(`select rmc_auth_api.record_provider_outcome('${command}','${owner}',1,provider_subject,ownership_binding,'OWNED') from rmc_auth_private.provider_reservations where command_id='${command}'`, "service_role")
   assert(stale === "f", "old fence cannot confirm")
-  console.log("Auth provisioning concurrency: CPF one winner, dual-version duplicates denied, one reserved UUID, one dispatch permission, one reconciliation claimant, stale fence denied")
+  const batches = await Promise.all(Array.from({ length: 10 }, () => query(`select rmc_auth_api.claim_provisioning_batch('${randomUUID()}',3)`, "service_role")))
+  assert(batches.filter((value) => value !== "").length === 1, "one durable batch lease winner")
+  await query("update rmc_auth_private.provisioning_reconciler set lease_until=clock_timestamp()-interval '1 second'")
+  const dayZero = await Promise.allSettled(dayZeroCandidates.map((c) => query(`select rmc_auth_private.begin_day_zero('${c.identity}','${c.command}','${c.key}',${hash},'${c.operator}',1,${cipher},array[1],array[${hash2}],1,decode(repeat('72',42),'hex'),${hash2})`)))
+  assert(dayZero.filter((value) => value.status === "fulfilled").length === 1, "one first-S/day-zero winner")
+  assert(dayZero.filter((value) => value.status === "rejected").every((value) => value.reason.message === "23505"), "day-zero losers must be receipt conflicts")
+  assert(await query(`select count(*) from rmc_auth_private.identities where id in ('${dayZeroCandidates.map((c) => c.identity).join("','")}')`) === "1", "only first-S candidate exists")
+  console.log("Auth provisioning concurrency: CPF/rotation, UUID, dispatch, reconciliation and batch single winners; day-zero=10/one first S; stale fence denied")
 } finally {
   // Exact synthetic IDs only; preserve singleton policy's monotonic generation.
   await query(`delete from rmc_auth_private.provider_reservations where command_id='${command}';
@@ -60,6 +68,14 @@ try {
     delete from rmc_auth_private.identity_lookups where identity_id in ('${identities.join("','")}');
     delete from rmc_auth_private.cpf_sources where identity_id in ('${identities.join("','")}');
     delete from rmc_auth_private.identities where id in ('${identities.join("','")}')`)
+  const dayIds = dayZeroCandidates.map((c) => c.identity).join("','"), dayCommands = dayZeroCandidates.map((c) => c.command).join("','")
+  await query(`delete from rmc_auth_private.day_zero_receipt where command_id in ('${dayCommands}');
+    delete from rmc_auth_private.command_ledger where command_id in ('${dayCommands}');
+    delete from rmc_auth_private.provisioning_phone_sources where identity_id in ('${dayIds}');
+    delete from rmc_auth_private.identity_lookups where identity_id in ('${dayIds}');
+    delete from rmc_auth_private.cpf_sources where identity_id in ('${dayIds}');
+    delete from rmc_auth_private.identities where id in ('${dayIds}');
+    update rmc_auth_private.provisioning_reconciler set owner=null,lease_until=null`)
   if (policyGeneration) {
     const pending = await query("select pending_version from rmc_auth_private.cpf_lookup_policy")
     if (pending) await query(`select rmc_auth_api.finish_cpf_rotation((select generation from rmc_auth_private.cpf_lookup_policy),true)`)

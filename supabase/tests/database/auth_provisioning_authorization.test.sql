@@ -1,0 +1,41 @@
+begin;
+set local search_path=extensions,public;
+select no_plan();
+insert into rmc_auth_private.identities(id,role,lifecycle,onboarding,active_superadmin_slot) values
+ ('83000000-0000-4000-8000-000000000001','S','ACTIVE','COMPLETE',1);
+insert into rmc_auth_private.identities(id,role) values ('83000000-0000-4000-8000-000000000002','R');
+select ok(rmc_auth_private.stage_provisioning_phone('83000000-0000-4000-8000-000000000002',1,1,decode(repeat('34',41),'hex'),decode(repeat('35',32),'hex')),'controlled phone source encrypted before provisioning');
+select ok(not has_function_privilege('service_role','rmc_auth_private.stage_provisioning_phone(uuid,bigint,integer,bytea,bytea)','EXECUTE'),'BFF cannot overwrite controlled phone source');
+select ok(not rmc_auth_private.stage_provisioning_phone('83000000-0000-4000-8000-000000000002',1,1,decode(repeat('34',41),'hex'),decode(repeat('36',32),'hex')),'different phone intent cannot silently replace source');
+insert into rmc_auth_private.functional_sessions(id,identity_id,purpose,assurance,cookie_hash,key_version,generation,expires_at,idle_expires_at)
+ values('83000000-0000-4000-8000-000000000003','83000000-0000-4000-8000-000000000001','NORMAL','aal2',decode(repeat('30',32),'hex'),1,1,clock_timestamp()+interval '10 minutes',clock_timestamp()+interval '5 minutes');
+select rmc_auth_api.write_cpf_source('83000000-0000-4000-8000-000000000002',1,1,0,1,decode(repeat('31',39),'hex'),array[1],array[decode(repeat('32',32),'hex')]);
+select rmc_auth_api.claim_command('83000000-0000-4000-8000-000000000004','83000000-0000-4000-8000-000000000005',decode(repeat('33',32),'hex'),'PROVISION_IDENTITY','83000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000002');
+select ok(not rmc_auth_private.validate_provisioning_authorization('83000000-0000-4000-8000-000000000004',true),'missing proof deny');
+insert into rmc_auth_private.provisioning_authorization_proofs(command_id,session_id,actor_generation,session_generation,target_generation,actor_role,target_role,intent_hash,policy_version,verified_at)
+ values('83000000-0000-4000-8000-000000000004','83000000-0000-4000-8000-000000000003',1,1,1,'S','R',decode(repeat('33',32),'hex'),'1.1',clock_timestamp());
+select ok(not has_table_privilege('service_role','rmc_auth_private.provisioning_authorization_proofs','INSERT'),'BFF cannot invent provider freshness');
+select ok(rmc_auth_private.validate_provisioning_authorization('83000000-0000-4000-8000-000000000004',false),'current bound proof admitted');
+create temporary table r as select * from rmc_auth_api.reserve_provider('83000000-0000-4000-8000-000000000004',1,'83000000-0000-4000-8000-000000000006');
+grant select on r to service_role;
+select ok((select rmc_auth_api.admit_authorized_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,false) from r),'fresh unconsumed intent can perform initial absence lookup');
+set local role service_role;
+select ok((select rmc_auth_api.admit_authorized_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,true) from r),'proof consumed and dispatch admitted atomically');
+select ok(not (select rmc_auth_api.admit_authorized_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,true) from r),'second create rejected');
+select throws_ok($$update rmc_auth_private.provisioning_authorization_proofs set consumed_at=null$$,'23514','AUTH_PROVISION_PROOF_IMMUTABLE','proof cannot be reused/reset');
+select ok((select rmc_auth_api.record_provider_outcome(command_id,lease_owner,fence,provider_subject,ownership_binding,'OWNED') from r),'owned proof persisted');
+reset role;
+update rmc_auth_private.identities set lifecycle='BLOCKED',active_superadmin_slot=null where id='83000000-0000-4000-8000-000000000001';
+select ok((select rmc_auth_api.admit_authorized_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,false) from r),'revocation permits bound read-only reconciliation, never creation');
+select ok(not (select rmc_auth_api.admit_authorized_provider_attempt(command_id,lease_owner,fence,provider_subject,ownership_binding,identity_generation,true) from r),'revocation denies provider mutation');
+select ok(not (select rmc_auth_api.commit_authorized_provider_reservation(command_id,lease_owner,fence,gen_random_uuid(),'LOCAL') from r),'blocked actor before commit denied');
+select is((select count(*)::integer from rmc_auth_private.audit_events),0,'denied commit no fabricated success audit');
+select ok((select rmc_auth_private.fence_provisioning_compensation(command_id,lease_owner,fence,gen_random_uuid()) from r),'operator fences failed provisioning');
+select is((select lifecycle::text from rmc_auth_private.identities where id='83000000-0000-4000-8000-000000000002'),'DISABLED','compensation closes functional authority');
+select is((select generation from rmc_auth_private.identities where id='83000000-0000-4000-8000-000000000002'),2::bigint,'compensation advances identity fence');
+select ok(not rmc_auth_private.confirm_compensation_blocked('83000000-0000-4000-8000-000000000004'),'missing or ambiguous provider not deletion proof');
+select is((select state from rmc_auth_private.provisioning_compensations),'ESCALATED','unknown provider requires escalation');
+select ok(not rmc_auth_private.finish_provisioning_compensation('83000000-0000-4000-8000-000000000004',gen_random_uuid()),'absence without observed owned blocked resource not compensated');
+select ok(not has_function_privilege('service_role','rmc_auth_private.finish_provisioning_compensation(uuid,uuid)','EXECUTE'),'BFF cannot remove provisioned users');
+select * from finish();
+rollback;
