@@ -1,6 +1,6 @@
 # F04 — evidências dos marcos e gate integral local
 
-**Natureza:** manifesto local com checkpoints históricos; não aceite/release. **Data:** 01/10/2026 local. **Contrato:** v1.1 sobre v1.0 imutável. **Ambiente:** LOCAL sintético, Auth disabled. **Baseline:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **SHA final testado:** `85790bc84f1697ef2fe28c9108eb9f422288d782`. **Status:** verified-local controlado; revisão/aceite pendentes. Não PASS_LOCAL/PASS_TARGET/GO. SHAs anteriores e seus resultados permanecem históricos nas respectivas seções.
+**Natureza:** manifesto local com checkpoints históricos; não release. **Revisão:** 02/10/2026 UTC (01/10 local). **Contrato:** v1.1 sobre v1.0 imutável. **Ambiente:** LOCAL sintético, Auth disabled. **Baseline:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`. **SHA final testado:** `44614a9291aa9e9199449aca2003e303fc2b9cea`. **Status:** verified-local controlado; correções e fechamento autorizados pelo responsável no PR44, com waiver específico de billing. Não PASS_LOCAL/PASS_TARGET/GO. SHAs anteriores e seus resultados permanecem históricos nas respectivas seções.
 
 ## Sumário navegável
 
@@ -13,6 +13,7 @@
 - [Gate integral no SHA estável](#stable)
 - [Continuação dos controles F04](#controlled)
 - [Gate integral final e limites de aceite](#final)
+- [Correções da revisão e gate de fechamento](#review-closure)
 
 <a id="scope"></a>
 
@@ -154,3 +155,35 @@ Contraprovas presentes: malformed/unknown/ownership alheio; ausência explícita
 Escopo F04 controlado concluído para revisão: saga/provider/RPC, day-zero, fontes CPF/PHONE privadas, intenção autorizada persistida, reconciliação agendada/bounded, compensação sem sessões e auditoria durável. Não existe endpoint Users ou Auth operacional. BFF não fabrica prova verificada; produtor real é F07. M/O negados até ERP/F10; ban não revoga JWT, sessões existentes/ownership ambíguo exigem escalonamento e protocolo F08. Codec/decrypt/entrega SMS permanecem F05; domínio/secrets/cron hospedado/capacidade/restore e provider target são F13. Nenhuma dependência futura foi simulada como sucesso ou abriu fluxo restrito.
 
 Contrato/dossiê mantêm os checksums registrados acima; migrations antigas preservadas, sem dados reais, migration remota, deploy ou SMS/Queue. CI hospedado não integra essa prova local; billing histórico não é resultado positivo nem waiver para este PR. Merge, sincronização/limpeza e F05 dependem de autorização expressa após revisão. Ausência de pendência crítica no escopo local não é aprovação de produção.
+
+<a id="review-closure"></a>
+
+## Correções da revisão e gate de fechamento
+
+Esta rodada supersede o gate anterior como prova corrente, preservando seus resultados históricos. O responsável autorizou expressamente correções, merge, sincronização e limpeza, dispensando CI bloqueada por billing **neste PR44**. Isso não autoriza F05, deploy ou release.
+
+| Achado confirmado | Correção e contraprova |
+| --- | --- |
+| Ciclos vazios zeravam o circuito durante backoff | healthy=NULL libera lease sem apagar failures/open_until. Duas pausas vazias intercaladas entre três falhas provam abertura; assertion Worker verifica NULL no RPC |
+| Ownership conflitante só retornava CONFLICT | Escalonamento OWNERSHIP_CONFLICT e audit/outbox atômicos antes do retorno, com owner/fence/binding/lease; replay único, exclusão do batch e rollback por falha audit. Persistência negada/indisponível retorna PENDING, sem efeito provider |
+| Nomes legados expostos contornavam fresh proof | Primitives movidas para schema privado; nomes antigos delegam wrappers autorizados. Contraprovas service_role negam dispatch/commit sem prova, sem associação. Testes de mecanismo usam explicitamente schema privado, não simulam autorização |
+
+Migration incremental `20261002032330_auth_f04_review_hardening.sql`; nenhuma migration histórica ou contrato integral alterado. Skills Supabase/Postgres/Workers orientaram grants mínimos, locks ordenados e isolamento de runtime; referências oficiais registradas na pesquisa. Nenhum grant de leitura ampliado para fixtures.
+
+Validação focada: três arquivos Worker/18 testes, typecheck e SQL afetado. A nova contraprova inicialmente tentou inspecionar audit_outbox sob service_role sem SELECT; corrigida somente a inspeção da fixture como postgres. Primeira tentativa integral parou no lint das assertions novas, antes das suítes; mocks tipados corrigidos, lint/typecheck focados aprovados. Não houve relaxamento de timeout, retries, thresholds ou grants produtivos.
+
+Gate de fechamento: `npm run check:full`, **44614a9291aa9e9199449aca2003e303fc2b9cea**, checkout **limpo**, sem edições/commits durante execução, **2026-10-02T03:40:39.394Z–03:52:40.047Z, exit0**. Relatório derivado ignorado `validation-results/full.json`, SHA-256 **216F56CA6903D29DB91581CE127B5466199E3030A8F3252B9F0C153C6BBA132A**. Commit posterior exclusivamente documental não muda o SHA testado.
+
+| Parcela | Resultado efetivamente comprovado |
+| --- | --- |
+| Qualidade | diff/cached diff, lint, tipos, Knip, audit zero vulnerabilidades, docs83 suítes e scripts21: exit0 |
+| Aplicação | 57 arquivos/253 testes serial com cobertura87.24/82.43/85.86/88.15%; thresholds preservados; build/budget e Chromium19 aprovados |
+| Worker | tipos gerados, tsc, sete arquivos/47 testes, dry-run: exit0, sem publicação |
+| Banco | PostgreSQL17.11; dois resets; 11 arquivos/306 assertions; duas rodadas por escopo F02/F03/provisioning; lint/advisors sem achados e diff vazio |
+| HTTPS F03 | 03:51:47.054Z–03:51:56.220Z, exit0; API/SPA, contexto persistido, dez abas e cookies reais Chromium |
+| F04 real local | 03:51:57.390Z–03:52:34.930Z, exit0; normal, resposta perdida/scheduled lookup-only, day-zero e compensação owned sem sessões; replay/audit/ownership/ausência confirmados |
+| Cleanup | fixtures e provider sintéticos exatos removidos; processos próprios encerrados; db:stop exit0, nenhum container layout ativo; stack rmc-estacionamento preservado |
+
+Versões/configuração permanecem as do gate anterior, reconferidas pelo relatório/runtime: Node24.18.1/npm11.6.0, CLI2.119.0/SDK2.117.2, Authv2.197.0 com mesmo digest, Wrangler4.145.0/plugin1.3.4/WorkerVitest4.1.11/appVitest5.0.3/Zod4.6.5. LOCAL_PRODUCTION_LIKE explícito, URLs loopback, Auth disabled, flags hosted false e chaves efêmeras não registradas. Contrato/dossiê preservam checksums. Limitações F07/F08/F10/F13 anteriores permanecem; não é prova global T01–T61, PASS_LOCAL ou capacidade target.
+
+CI PR44 antes desta rodada: run36958263205, jobs110686001925/110686001817 falharam **sem steps** por bloqueio de billing; Supabase Preview skipped. O waiver atual é explícito e específico, não CI verde nem waiver transferível. PRs Dependabot36/37/38/39/43 são encerrados sem incorporar atualizações nesta limpeza; versões/pins não mudam. Seus históricos continuam recuperáveis pelo GitHub/Git. F05 permanece fechada.

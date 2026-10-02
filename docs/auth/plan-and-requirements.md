@@ -2,7 +2,7 @@
 
 **Natureza:** referência vigente. **Escopo:** F00–F14.
 **Revisão:** 01/10/2026. **Baseline:** main `844ca20f3a01fb4f69d0c4a05bff9420e25b57a0`.
-**Status:** F03 integrada; [saneamento pré-F04](evidence/pre-f04-prerequisites-local.md) aprovado e integrado nos PR41/42. F04 iniciada por autorização expressa, primeiro marco local: [implementação e pendências](F04-preparation.md#implementation). F05 fechada. Resultados não são inferidos desta referência.
+**Status:** F03 integrada; [saneamento pré-F04](evidence/pre-f04-prerequisites-local.md) aprovado e integrado nos PR41/42. F04 corrigida/revisada, gate integral local aprovado e fechamento autorizado no PR44: [evidência](evidence/F04-local.md#review-closure). F05 fechada. Resultados não são inferidos desta referência.
 
 ## Sumário navegável
 
@@ -87,7 +87,7 @@ F00/F01 foram validadas antes de F02; F02 foi integrada no PR #34. Manutenção 
 | Identidade, sessões, jornadas, assignments e invariantes | F02 | schemas privados; migrations; perfil ADR-002; grants mínimos; estado/binding/fence; RPCs invoker para claim, CAS, lease e challenge/outbox atômicos | contraprovas de persistência; cardinalidade/histórico T25; override T26; banco/roles T27; commit/rollback T28 e binding T29; T24 autoritativo fica F04/F10 | `evidence/F02-reaudit-local.md`; SHA testado `bc8ab3c968ecf0e91c90d4c21934a3f70500d647`; 126 assertions e duas rodadas concorrentes | verified-local |
 | HTTP, body, cookies, CSRF, headers e erros | F03 | Worker ESM, HttpClient, limites reais/deadlines, context PREAUTH/CSRF por RPC, headers e Crypto/codec explícito | T02/T03/T21; parcelas F03 T06/T07/T18/T27/T35/T37/T38; runtime/SQL/HTTPS real | `evidence/F03-local.md`; SHA 4f63abfe6fb7b7c9457dbb96e2c9b74dd1d16365; sem prova hosted | verified-local |
 | Prontidão v1.1: portas de escrita, CPF recuperável/rotação e reserva ownership | F01/F02, antes de F04 | portas puras/audit estrito; migration incremental CPF/source/policy e reserva provider; codec CPF separado e ainda desconectado de Env/rotas | unknown/audit estrito, CPF equivalente entre versões, backfill/rollback, fence/lease, falha audit, transições/grants e reserva concorrente | `evidence/pre-f04-prerequisites-local.md`; SHAs53e974b e04bc12b com parcelas e limites explícitos | verified-local; aprovado/integrado PR41/42 |
-| Provisioning e saga Auth–DB | F04 | create/read local; saga/RPC, admissão persistida, day-zero, autorização por intenção, compensação sem sessões e reconciler agendado; sem endpoint produtivo | T04, T24, parcelas T39/T40/T49/T61; resposta perdida, replay, fences, first-S concorrente e grants; produtor de step-up real F07 e Units reais F10 permanecem fechados | `evidence/F04-local.md#final`; código85790bc; full exit0,283 assertions/duas concorrências; não prova global | verified-local controlado; aguardando aceite |
+| Provisioning e saga Auth–DB | F04 | create/read local; saga/RPC, admissão persistida, day-zero, autorização por intenção, compensação sem sessões e reconciler agendado; conflitos auditados, circuito preservado e primitives não expostas | T04, T24, parcelas T39/T40/T49/T61; resposta perdida, replay, fences, first-S concorrente e grants; produtor de step-up real F07 e Units reais F10 permanecem fechados | `evidence/F04-local.md#review-closure`; código44614a9; full exit0,306 assertions/duas concorrências; não prova global | verified-local controlado; fechamento autorizado PR44 |
 | Outbox, Queue, SMS e DLQ | F05 | dispatcher, consumer e adapter de gateway | T28–T30 | gateway não selecionado | blocked |
 | Ativação e senha inicial | F06 | challenge, BOOTSTRAP e promoção | T01, T04, T11, T31 | pendente | planned |
 | Login, TOTP e step-up | F07 | MFA_PENDING, enrollment e binding | T08–T10 | pendente | planned |
@@ -111,14 +111,14 @@ F00–F02 continuam históricos nos SHAs registrados; não comprovam retroativam
 
 | Testes propostos no dossiê | Requisito/escopo | Fase e evidência esperada | Estado nesta F03 |
 | --- | --- | --- | --- |
-| T39/T40/T61 | Credencial interna, UUID, ownership, resposta perdida | F04 provider+ledger, não promover PENDING | Parcelas UUID/credencial/ownership locais no checkpoint F04; saga/perda de resposta/reconciliação e teste global pendentes |
+| T39/T40/T61 | Credencial interna, UUID, ownership, resposta perdida | F04 provider+ledger, não promover PENDING | Parcelas locais UUID/credencial/ownership, saga/perda de resposta/reconciliação verified-local F04; teste global/target pendente |
 | T41 | Cookies por endpoint e transições | F03 conflitos; F06–F09 promoção/cancel/logout | Parcela runtime/HTTPS verified-local |
 | T42/T43 | JWT/JWKS e revogação/indisponibilidade | F07/F08, caminho escolhido e cache explicitados | Pendente; T43 não pressupõe remoção de verificação online |
 | T44/T45 | Enrollment exclusivo e step-up one-time | F07/F10 provider, concorrência e commit | Pendente |
 | T46 | Bytes/NFC/blocklist por escrita | F06/F09; limites puros F01 históricos | Jornada pendente |
 | T47 | HTTP erros/cache/autoridade | F03 desafio/no-store; F11 controller/cache | Parcela HTTP verified-local |
 | T48 | Streaming/encoding/upstream excessivo | F03 Worker e client; não alegar wire comprimido medido após decoding Fetch | Parcela runtime verified-local |
-| T49 | Atomicidade/crash por comando | F02 constraints históricos; F04–F10 comandos reais | Pendente fora do contexto F03 |
+| T49 | Atomicidade/crash por comando | F02 constraints históricos; F04–F10 comandos reais | Atomicidade/audit rollback e resposta perdida verified-local F04; SIGKILL/falha host e demais comandos/jornadas pendentes |
 | T50 | Transaction pooler/driver | Somente se arquitetura SQL direta aprovada; RPC HTTP atual não usa driver | Não aplicável à arquitetura atual |
 | T51 | CSP/rotas/componentes | F03 HTTPS; F11 browser; exceção styles explicitada | Parcela HTTPS verified-local |
 | T52 | SBOM/secrets/proveniência/artefato | F12–F14, gate de artefato e ambiente | Pendente |
