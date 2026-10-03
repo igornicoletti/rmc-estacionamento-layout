@@ -233,7 +233,9 @@ export async function completeActivation(request: Request, env: Env, requestId: 
     identityId: setup.identityId, sessionId: setup.sessionId, generation: setup.generation,
   })
   if (mode === "TOTP_REAUTH") {
-    const password = validateAndNormalizePassword((input.data as { password: string }).password)
+    const recoveryInput = activationTotpResumeSchema.safeParse(body)
+    if (!recoveryInput.success) throw new WorkerProblem("AUTH_INVALID_REQUEST")
+    const password = validateAndNormalizePassword(recoveryInput.data.password)
     if (!password.valid) throw new WorkerProblem("AUTH_CREDENTIALS_INVALID")
     token = (await runtime.provider.provePassword(setup, password.normalized, signal, false)).accessToken
   }
@@ -489,8 +491,9 @@ export async function verifyActivation(request: Request, env: Env, requestId: st
   const intentHash = hex(new Uint8Array(await crypto.subtle.sign("HMAC", intentKey,
     new TextEncoder().encode(JSON.stringify(["ACTIVATION_VERIFY", 1, input.data.commandId,
       input.data.challengeId, input.data.code])))))
+  const verifyCommandId = input.data.commandId
   async function bootstrapSecrets(version: number) {
-    const binding = JSON.stringify(["ACTIVATION_BOOTSTRAP", cookie, input.data.commandId])
+    const binding = JSON.stringify(["ACTIVATION_BOOTSTRAP", cookie, verifyCommandId])
     return {
       sessionCookie: await runtime.context.hmac("COOKIE", new TextEncoder().encode(binding), version),
       sessionCsrf: await runtime.context.hmac("CSRF", new TextEncoder().encode(binding), version),
