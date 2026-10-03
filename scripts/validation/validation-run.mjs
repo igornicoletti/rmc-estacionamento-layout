@@ -5,6 +5,7 @@ import { checkWorker } from "../worker/worker-check.mjs"
 import { workerIntegration } from "../worker/worker-integration.mjs"
 import { provisioningIntegration } from "../../worker/scripts/worker-provisioning-integration.mjs"
 import { deliveryIntegration } from "../../worker/scripts/worker-delivery-integration.mjs"
+import { activationHttpIntegration } from "../../worker/scripts/worker-activation-http-integration.mjs"
 
 const profile = process.argv[2]
 const profiles = {
@@ -38,7 +39,10 @@ try {
       await workerIntegration(run, report, abort.signal)
       if (profile === "full") {
         await provisioningIntegration(report, abort.signal)
-        await deliveryIntegration(report, abort.signal)
+          await deliveryIntegration(report, abort.signal)
+          await activationHttpIntegration(report, abort.signal)
+        await runSteps([{ label: "F06 local Auth password and TOTP proof", command: process.execPath,
+          args: ["worker/scripts/worker-activation-provider-poc.mjs"], options: { timeout: 120_000 } }], run, report)
         await runSteps([{ label: "F05 local delivery drained", command: process.execPath,
           args: ["scripts/auth-db/auth-delivery-status.mjs", "--assert-drained"], options: { capture: true } }], run, report)
       }

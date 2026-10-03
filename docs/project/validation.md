@@ -134,6 +134,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
 | `tests/unit/shared/auth-contracts.test.ts` | mantém fechado o tipo canônico de authority purpose; aceita a projeção pública estrita e rejeita campos inesperados; rejeita null, shape desconhecido, capability e assurance não canônicas (T03); fecha as etapas restricted por jornada e rejeita combinações cruzadas; totaliza transições, exige fatos e falha fechado para estados desconhecidos; formaliza IDs opacos internos como UUID v4 sem aceitar segredos arbitrários; expõe scope estrito com chave externa opaca, sem presumir UUID; valida identificadores humanos canônicos sem coerção; rejeita OTP fora do formato ou comando com campo extra; mantém login como comando fechado; mantém a política central versionada e os limites canônicos de F01 |
+| `tests/unit/shared/auth-activation.test.ts` | F06 DTOs estritos de request, verify, password e resposta, sem identidade na resposta pública |
 | `tests/unit/shared/auth-freshness.test.ts` | aceita exatamente 300 s e 30 s futuros (T10) |
 | `tests/unit/shared/auth-ports.test.ts` | expõe somente contratos tipados da fronteira F01 sem selecionar adapters |
 | `tests/unit/shared/auth-problem.test.ts` | mantém o mapa fechado de códigos e status; rejeita status divergente, código desconhecido e campos inesperados (T21) |
@@ -168,6 +169,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | `tests/scripts/docs-model.test.mjs` | Markdown parser resolves references, ids, repeated headings and code inventories; local links cannot escape the repository and external links are not fetched; Vitest discovers every unit/integration suite exactly once in node or dom |
 | `tests/scripts/auth-provider-poc.test.mjs` | PoC F04 nega URL remota/UUID não allowlisted; ownership apenas em app_metadata; telefone confirmado, prova extra e recurso alheio negados; redirect/limite, cancelamento antes do provider, cleanup não cancelado e listeners removidos |
 | `tests/scripts/auth-provisioning-integration.test.mjs` | Comando da fixture estrito; UUIDs, operações e fault injection allowlisted; rejeita campos/credenciais extras antes de I/O |
+| `tests/scripts/braces-fork.test.mjs` | Fork local de braces preserva padrões comuns e limita aninhamento de padrões, ASTs e arrays antes de exaurir a pilha |
 | `tests/scripts/shared-imports.test.mjs` | effective ESLint config denies runtime/UI/SDK/I-O imports in shared contracts |
 | `tests/scripts/validation-process.test.mjs` | Report directories isolated from Playwright cleanup; success/sanitized failure; timeout/cancellation/unavailable command/output overflow; stop after failure with outcomes; nonempty schema diff; concurrent gate exclusion and lock release; refusal of preexisting stack; cleanup of owned startup on failure |
 | `tests/scripts/worker-runner.test.mjs` | Workspace isolado/falha interrompe sequência; URLs remotas/probes ambíguos negados; descoberta Worker exatamente uma vez; appVitest5 e WorkerVitest4 preservados |
@@ -177,6 +179,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
 | `worker/tests/worker-boundary.test.ts` | API404 com AcceptHTML e disabled; health/método; configuração hosted fechada; catch sanitizado/headers; 8192/8193 sem length/multibyte; MIME/encoding/JSON; stream lento/deadline; URL/Cookie limites; todas as combinações conflitantes de autoridade; Origin/Host/Fetch Metadata e subresources; desafio 401; token estável, stale e mismatch negados antes de side effect no auxiliar; vetor AES-GCM independente, codec/algorithm desconhecidos, purpose/binding/version/tamper/key separation |
+| `worker/tests/worker-activation.test.ts` | F06 OTP de oito dígitos, HMAC vinculado, HIBP com prefixo e falha fechada, dois Set-Cookie distintos |
 | `worker/tests/worker-upstream.test.ts` | URL somente local; SDK request-scoped/redirect negado/signal; sem Cookie browser; respostas RPC MIME/64KiB/DTO inválidos; rede indisponível sem vazamento |
 | `worker/tests/worker-cpf-crypto.test.ts` | AES-GCM/HMAC com vetor independente Node, nonce aleatório, binding/generation/tag/version adulterados negados, chaves CPF separadas, retenção/retirada de chave histórica, cancelamento e canonicalização CPF |
 | `worker/tests/worker-provisioning-provider.test.ts` | F04 create/read local request-scoped, UUID/prova/credencial interna; admission stale e command alterado sem side effect; ausência somente lookup explícito; ownership alterado, user_metadata, redirect, MIME/JSON/limite e perda de resposta sem retry |
@@ -190,6 +193,7 @@ Inventário de arquivos e cenários declarados; nomes de casos não são contage
 | Arquivo | Cenários/contratos cobertos |
 | --- | --- |
 | `supabase/tests/database/auth_hardening.test.sql` | Bindings/challenge-outbox atômicos, NULL/UUID/hash/envelope, lifecycle/fence/expiry/budget, imutabilidade, superadmins, assignments e grants. |
+| `supabase/tests/database/auth_activation.test.sql` | F06 grant privado, ownership F04, request/outbox atômicos, replay idempotente, OTP consumido uma vez, BOOTSTRAP sem NORMAL e limpeza do ledger. |
 | `supabase/tests/database/auth_invariants.test.sql` | Cardinalidade, CAS one-time, intenção idempotente/conflito e leases. |
 | `supabase/tests/database/auth_roles.test.sql` | PUBLIC/anon/authenticated/service_role reais, grants/RLS/invoker e acesso direto/RPC. |
 | `supabase/tests/database/auth_schema.test.sql` | Objetos/colunas/constraints/índices, schemas privados, RLS e propriedades das funções. |

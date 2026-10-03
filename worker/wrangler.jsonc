@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": false,
-  "secrets": { "required": ["AUTH_KEYRING", "SUPABASE_SECRET_KEY", "DELIVERY_KEYRING", "SMS_GATEWAY_TOKEN"] },
+  "secrets": { "required": ["AUTH_KEYRING", "SUPABASE_SECRET_KEY", "DELIVERY_KEYRING", "SMS_GATEWAY_TOKEN", "CPF_KEYRING", "OTP_KEYRING", "PROVIDER_KEYRING"] },
   "assets": {
     "directory": "../dist",
     "binding": "ASSETS",
@@ -19,6 +19,7 @@
     "BFF_CONTEXT_ENABLED": "false",
     "BFF_PROVISIONING_ENABLED": "false",
     "BFF_DELIVERY_ENABLED": "false",
+    "BFF_ACTIVATION_ENABLED": "false",
     "SMS_GATEWAY_URL": "https://not-configured.invalid",
     "CANONICAL_ORIGIN": "https://not-configured.invalid",
     "SUPABASE_URL": "https://not-configured.invalid"
