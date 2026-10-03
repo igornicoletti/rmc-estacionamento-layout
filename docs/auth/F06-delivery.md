@@ -58,6 +58,7 @@ Todos os endpoints exigem `BFF_ACTIVATION_ENABLED=true` e configuração `LOCAL_
 - `verify` persiste recibo de replay de sessenta segundos vinculado a cookie, CSRF, comando, desafio e código; reentrega exatamente o BOOTSTRAP criado. Enrollment incerto nunca apaga fator verificado ou desconhecido. Nenhuma resposta incerta libera NORMAL.
 - A sessão NORMAL criada é durável mas o contexto F03 ainda não a projeta; login, refresh, logout, recovery, UI e autorização de dados são fases posteriores. O token de acesso do provedor expira e a sessão local é limitada por essa expiração. Sem integração F08/F11, não há alegação de uso funcional do aplicativo.
 - O teste HTTPS/DB cobre a jornada decoy, replay, resend, geração, challenge obsoleto e cancelamento. O PoC real do Auth local cobre senha, remoção de fator unverified, novo enrollment e verificação. Ainda não há um único E2E HTTP da ativação real até NORMAL com SMS físico; esta prova depende do gateway/provider/keys/Queue/edge target F13. TOTP não é resistente a phishing e não se declara certificação NIST AAL2.
+- O aviso [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) passou a afetar o `braces` transitivo durante a validação, sem versão corrigida upstream. O projeto usa um [fork local auditável](../../vendor/braces/README.md) com limite de aninhamento e testes adversariais. O pacote local `3.0.4` não é uma versão upstream; `npm ci` e `npm audit` devem continuar integrando o gate. Substituir o fork quando houver release oficial corrigido e comprovado.
 
 <a id="validation"></a>
 
